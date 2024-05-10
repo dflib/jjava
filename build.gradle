@@ -108,15 +108,22 @@ tasks.register('zipKernel', Zip) {
     group = 'distribution'
     description = 'Zips jupyter kernel jar with its installation script.'
 
-    // preprocess kernel.json
-    def kernelSpecTemplate = file('buildSrc/src/main/resources/kernel.json')
-    from(kernelSpecTemplate) {
-        include kernelSpecTemplate.name
-        filter { line -> line.replaceAll('@JAR_FILE@', "${project.name}-${project.version}.jar") }
-    }
-    // copy as is install script and jar
-    from(file('buildSrc/src/main/resources/install.py'))
-    from(jar.archiveFile)
+    into(".", {
+        // copy as is install script
+        from(file('buildSrc/src/main/resources/install.py'))
+    })
+
+    into("java", {
+        // copy jar
+        from(jar.archiveFile)
+
+        // preprocess kernel.json
+        def kernelSpecTemplate = file('buildSrc/src/main/resources/kernel.json')
+        from(kernelSpecTemplate) {
+            include kernelSpecTemplate.name
+            filter { line -> line.replaceAll('@JAR_FILE@', "${project.name}-${project.version}.jar") }
+        }
+    })
 }
 
 zipKernel.dependsOn 'jar', 'generateLicenseReport'
