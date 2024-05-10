@@ -66,11 +66,15 @@ public class IJavaExecutionControl extends DirectExecutionControl {
     private final ConcurrentMap<String, Future<Object>> running = new ConcurrentHashMap<>();
     private final Map<String, Object> results = new ConcurrentHashMap<>();
 
+    private final IJavaLoaderDelegate loaderDelegate;
+
     public IJavaExecutionControl() {
         this(-1, TimeUnit.MILLISECONDS);
     }
 
     public IJavaExecutionControl(long timeoutTime, TimeUnit timeoutUnit) {
+        super(null);
+        this.loaderDelegate = new IJavaLoaderDelegate();
         this.timeoutTime = timeoutTime;
         this.timeoutUnit = timeoutTime > 0 ? Objects.requireNonNull(timeoutUnit) : TimeUnit.MILLISECONDS;
         this.executor = Executors.newCachedThreadPool(r -> new Thread(r, "IJava-executor-" + EXECUTOR_THREAD_ID.getAndIncrement()));
@@ -161,8 +165,34 @@ public class IJavaExecutionControl extends DirectExecutionControl {
     }
 
     @Override
-    public void stop() throws EngineTerminationException, InternalException {
+    public void stop() {
         this.executor.shutdownNow();
+    }
+
+    @Override
+    public void load(ClassBytecodes[] cbcs) throws ClassInstallException {
+        loaderDelegate.load(cbcs);
+    }
+
+    @Override
+    public void addToClasspath(String cp) throws InternalException {
+        loaderDelegate.addToClasspath(cp);
+    }
+
+    /**
+     * Finds the class with the specified binary name.
+     *
+     * @param name the binary name of the class
+     * @return the Class Object
+     * @throws ClassNotFoundException if the class could not be found
+     */
+    @Override
+    protected Class<?> findClass(String name) throws ClassNotFoundException {
+        return loaderDelegate.findClass(name);
+    }
+
+    void unloadClass(String className) throws ClassNotFoundException {
+        this.loaderDelegate.unloadClass(className);
     }
 
     @Override

@@ -26,6 +26,7 @@ package io.github.spencerpark.ijava.execution;
 import io.github.spencerpark.ijava.JavaKernel;
 import jdk.jshell.*;
 
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -35,6 +36,16 @@ public class CodeEvaluator {
     private static final Pattern LAST_LINE = Pattern.compile("(?:^|\r?\n)(?<last>.*)$");
 
     private static final String NO_MAGIC_RETURN = "\"__NO_MAGIC_RETURN\"";
+
+    private static final Method SNIPPET_CLASS_NAME_METHOD;
+    static {
+        try {
+            SNIPPET_CLASS_NAME_METHOD = Snippet.class.getDeclaredMethod("classFullName");
+            SNIPPET_CLASS_NAME_METHOD.setAccessible(true);
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException("Unable to access jdk.jshell.Snippet.classFullName() method.", e);
+        }
+    }
 
     private final JShell shell;
     private final IJavaExecutionControlProvider executionControlProvider;
@@ -80,6 +91,12 @@ public class CodeEvaluator {
         // We iterate twice to make sure throwing an early exception doesn't leak the memory
         // and we `takeResult` everything.
         for (SnippetEvent event : events) {
+            if(event.status() == Snippet.Status.OVERWRITTEN) {
+                // if a new snippet changed some other definition, drop the older one
+                dropSnippet(event.snippet());
+                continue;
+            }
+
             String key = event.value();
             if (key == null) continue;
 
@@ -150,6 +167,19 @@ public class CodeEvaluator {
             throw new IncompleteSourceException(info.remaining().trim());
 
         return lastEvalResult;
+    }
+
+    /**
+     * Try to clean up information linked to a code snippet and the snippet itself
+     */
+    private void dropSnippet(Snippet snippet)
+            throws Exception {
+        IJavaExecutionControl executionControl =
+                this.executionControlProvider.getRegisteredControlByID(this.executionControlID);
+        this.shell.drop(snippet);
+        // snippet.classFullName() returns name of a wrapper class created for a snippet
+        String className = SNIPPET_CLASS_NAME_METHOD.invoke(snippet).toString();
+        executionControl.unloadClass(className);
     }
 
     private String computeIndentation(String partialStatement) {
