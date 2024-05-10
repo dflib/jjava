@@ -98,7 +98,7 @@ Get the latest _release_ of the software with no compilation needed. See [Instal
 
 **Note:** if you have an old installation or a debug one from running `gradlew installKernel` it is suggested that it is first removed via `jupyter kernelspec remove java`.
 
-1.  Download the release from the [releases tab](https://github.com/SpencerPark/IJava/releases). A prepackaged distribution will be in an artifact named `jjava-$version.zip`.
+1.  Download the release from the [releases tab](https://github.com/dflib/jjava/releases). A prepackaged distribution will be in an artifact named `jjava-$version.zip`.
 
 2.  Unzip it into a temporary location. It should have at least the `install.py` and `java` folder extracted in there.
 
