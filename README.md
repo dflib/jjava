@@ -43,9 +43,9 @@ Currently, the kernel supports
     ![compilation-error](docs/img/compilation-error.png)
     ![incomplete-src-error](docs/img/incomplete-src-error.png)
     ![runtime-error](docs/img/runtime-error.png)
-*   Add maven dependencies at runtime (See also [magics.md](docs/magics.md) and [Try the example ![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/SpencerPark/ijava-binder/master?urlpath=lab/tree/home/jovyan/3rdPartyDependency.ipynb)).
+*   Add maven dependencies at runtime (See also [magics.md](docs/magics.md)).
     ![maven-pom-dep](docs/img/maven-pom-dep.png)
-*   Display rich output (See also [display.md](docs/display.md) and [maven magic](docs/magics.md#addmavendependencies)). Chart library in the demo photo is [XChart](https://github.com/knowm/XChart) with the sample code taken from their README. ([Try the example ![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/SpencerPark/ijava-binder/master?urlpath=lab/tree/home/jovyan/3rdPartyDependency.ipynb))
+*   Display rich output (See also [display.md](docs/display.md) and [maven magic](docs/magics.md#addmavendependencies)). Chart library in the demo photo is [XChart](https://github.com/knowm/XChart) with the sample code taken from their README.
     ![display-img](docs/img/display-img.png)
 *   `eval` function. (See also [kernel.md](docs/kernel.md)) **Note: the signature is `Object eval(String) throws Exception`.** This evaluates the expression (a cell) in the user scope and returns the actual evaluation result instead of a serialized one.
     ![eval](docs/img/eval.png)
