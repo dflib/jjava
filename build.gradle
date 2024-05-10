@@ -2,7 +2,6 @@ plugins {
     id 'java'
     id 'maven-publish'
     id('com.github.hierynomus.license') version '0.16.1'
-    id('io.github.spencerpark.jupyter-kernel-installer') version '3.0.0-SNAPSHOT'
     id('com.github.jk1.dependency-license-report')
 }
 
@@ -105,50 +104,19 @@ publishing {
     }
 }
 
-jupyter {
-    kernelName = 'java'
-    kernelDisplayName = 'Java'
-    kernelLanguage = 'java'
-    kernelInterruptMode = 'message'
+tasks.register('zipKernel', Zip) {
+    group = 'distribution'
+    description = 'Zips jupyter kernel jar with its installation script.'
 
-    kernelParameters {
-        list('classpath', 'IJAVA_CLASSPATH') {
-            separator = PATH_SEPARATOR
-            description = '''A file path separator delimited list of classpath entries that should be available to the user code. **Important:** no matter what OS, this should use forward slash "/" as the file separator. Also each path may actually be a simple glob.'''
-        }
-
-        list('comp-opts', 'IJAVA_COMPILER_OPTS') {
-            separator = ' '
-            description = '''A space delimited list of command line options that would be passed to the `javac` command when compiling a project. For example `-parameters` to enable retaining parameter names for reflection.'''
-        }
-
-        list('startup-scripts-path', 'IJAVA_STARTUP_SCRIPTS_PATH') {
-            separator = PATH_SEPARATOR
-            description = '''A file path seperator delimited list of `.jshell` scripts to run on startup. This includes ijava-jshell-init.jshell and ijava-display-init.jshell. **Important:** no matter what OS, this should use forward slash "/" as the file separator. Also each path may actually be a simple glob.'''
-        }
-
-        string('startup-script', 'IJAVA_STARTUP_SCRIPT') {
-            description = '''A block of java code to run when the kernel starts up. This may be something like `import my.utils;` to setup some default imports or even `void sleep(long time) { try {Thread.sleep(time); } catch (InterruptedException e) { throw new RuntimeException(e); }}` to declare a default utility method to use in the notebook.'''
-        }
-
-        string('timeout', 'IJAVA_TIMEOUT') {
-            aliases NO_TIMEOUT: '-1'
-            description = '''A duration specifying a timeout (in milliseconds by default) for a _single top level statement_. If less than `1` then there is no timeout. If desired a time may be specified with a `TimeUnit` may be given following the duration number (ex `"30 SECONDS"`).'''
-        }
+    // preprocess kernel.json
+    def kernelSpecTemplate = file('buildSrc/src/main/resources/kernel.json')
+    from(kernelSpecTemplate) {
+        include kernelSpecTemplate.name
+        filter { line -> line.replaceAll('@JAR_FILE@', "${project.name}-${project.version}.jar") }
     }
+    // copy as is install script and jar
+    from(file('buildSrc/src/main/resources/install.py'))
+    from(jar.archiveFile)
 }
 
-installKernel {
-    kernelInstallPath = commandLineSpecifiedPathOr(userInstallPath)
-}
-
-zipKernel {
-    installers {
-        with 'python'
-    }
-
-    from(generateLicenseReport.outputFolder) {
-        into 'dependency-licenses'
-    }
-}
-zipKernel.dependsOn 'generateLicenseReport'
+zipKernel.dependsOn 'jar', 'generateLicenseReport'
