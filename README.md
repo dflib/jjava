@@ -2,9 +2,7 @@
 
 ## Project notes
 
-This project is a Java Jupyter kernel based on the [IJava](https://github.com/SpencerPark/IJava) project.
-
-For a full list of changes check [release notes](RELEASE-NOTES.md).
+This project is a supported Java Jupyter kernel based on the [IJava](https://github.com/SpencerPark/IJava) project. For a full list of changes check [release notes](RELEASE-NOTES.md).
 
 ## Project info
 
