@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package io.github.spencerpark.ijava.execution;
+package org.dflib.jjava.execution;
 
 import jdk.jshell.execution.LoaderDelegate;
 import jdk.jshell.spi.ExecutionControl;
@@ -54,7 +54,7 @@ import java.util.Map;
 /**
  * This code is a copy of jdk.jshell.execution.DefaultLoaderDelegate, with an option to unload stored classes
  */
-public class IJavaLoaderDelegate implements LoaderDelegate {
+public class JJavaLoaderDelegate implements LoaderDelegate {
 
     private final RemoteClassLoader loader;
     private final Map<String, Class<?>> klasses = new HashMap<>();
@@ -215,7 +215,7 @@ public class IJavaLoaderDelegate implements LoaderDelegate {
         }
     }
 
-    public IJavaLoaderDelegate() {
+    public JJavaLoaderDelegate() {
         this.loader = new RemoteClassLoader();
         Thread.currentThread().setContextClassLoader(loader);
     }

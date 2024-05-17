@@ -21,11 +21,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package io.github.spencerpark.ijava;
+package org.dflib.jjava;
 
-import io.github.spencerpark.ijava.execution.*;
-import io.github.spencerpark.ijava.magics.ClasspathMagics;
-import io.github.spencerpark.ijava.magics.MavenResolver;
+import org.dflib.jjava.execution.CodeEvaluator;
+import org.dflib.jjava.execution.CodeEvaluatorBuilder;
+import org.dflib.jjava.execution.CompilationException;
+import org.dflib.jjava.execution.EvaluationInterruptedException;
+import org.dflib.jjava.execution.EvaluationTimeoutException;
+import org.dflib.jjava.execution.IncompleteSourceException;
+import org.dflib.jjava.execution.MagicsSourceTransformer;
+import org.dflib.jjava.magics.ClasspathMagics;
+import org.dflib.jjava.magics.MavenResolver;
 import io.github.spencerpark.jupyter.kernel.BaseKernel;
 import io.github.spencerpark.jupyter.kernel.LanguageInfo;
 import io.github.spencerpark.jupyter.kernel.ReplacementOptions;
@@ -78,12 +84,12 @@ public class JavaKernel extends BaseKernel {
 
     public JavaKernel() {
         this.evaluator = new CodeEvaluatorBuilder()
-                .addClasspathFromString(System.getenv(IJava.CLASSPATH_KEY))
-                .compilerOptsFromString(System.getenv(IJava.COMPILER_OPTS_KEY))
-                .startupScript(IJava.resource(IJava.DEFAULT_SHELL_INIT_RESOURCE_PATH))
-                .startupScriptFiles(System.getenv(IJava.STARTUP_SCRIPTS_KEY))
-                .startupScript(System.getenv(IJava.STARTUP_SCRIPT_KEY))
-                .timeoutFromString(System.getenv(IJava.TIMEOUT_DURATION_KEY))
+                .addClasspathFromString(System.getenv(JJava.CLASSPATH_KEY))
+                .compilerOptsFromString(System.getenv(JJava.COMPILER_OPTS_KEY))
+                .startupScript(JJava.resource(JJava.DEFAULT_SHELL_INIT_RESOURCE_PATH))
+                .startupScriptFiles(System.getenv(JJava.STARTUP_SCRIPTS_KEY))
+                .startupScript(System.getenv(JJava.STARTUP_SCRIPT_KEY))
+                .timeoutFromString(System.getenv(JJava.TIMEOUT_DURATION_KEY))
                 .sysStdout()
                 .sysStderr()
                 .sysStdin()
@@ -94,7 +100,7 @@ public class JavaKernel extends BaseKernel {
         this.magics = new Magics();
         this.magics.registerMagics(this.mavenResolver);
         this.magics.registerMagics(new ClasspathMagics(this::addToClasspath));
-        this.magics.registerMagics(new Load(List.of(".jsh", ".jshell", ".java", ".ijava"), this::eval));
+        this.magics.registerMagics(new Load(List.of(".jsh", ".jshell", ".java", ".jjava"), this::eval));
 
         this.languageInfo = new LanguageInfo.Builder("Java")
                 .version(Runtime.version().toString())
@@ -103,16 +109,16 @@ public class JavaKernel extends BaseKernel {
                 .pygments("java")
                 .codemirror("java")
                 .build();
-        this.banner = String.format("Java %s :: IJava kernel %s \nProtocol v%s implementation by %s %s",
+        this.banner = String.format("Java %s :: JJava kernel %s \nProtocol v%s implementation by %s %s",
                 Runtime.version().toString(),
-                IJava.VERSION,
+                JJava.VERSION,
                 Header.PROTOCOL_VERISON,
                 KERNEL_META.getOrDefault("project", "UNKNOWN"),
                 KERNEL_META.getOrDefault("version", "UNKNOWN")
         );
         this.helpLinks = List.of(
                 new LanguageInfo.Help("Java tutorial", "https://docs.oracle.com/javase/tutorial/java/nutsandbolts/index.html"),
-                new LanguageInfo.Help("IJava homepage", "https://github.com/SpencerPark/IJava")
+                new LanguageInfo.Help("JJava homepage", "https://github.com/dflib/jjava")
         );
 
         this.errorStyler = new StringStyler.Builder()

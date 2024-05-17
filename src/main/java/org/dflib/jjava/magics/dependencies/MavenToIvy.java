@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package io.github.spencerpark.ijava.magics.dependencies;
+package org.dflib.jjava.magics.dependencies;
 
 import org.apache.ivy.plugins.resolver.ChainResolver;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
@@ -35,11 +35,11 @@ import java.util.stream.Collectors;
 
 public class MavenToIvy {
     public static List<DependencyResolver> getRepositoriesFromModel(CharSequence pom) throws ModelBuildingException {
-        return MavenToIvy.getRepositoriesFromModel(Maven.getInstance().readEffectiveModel(pom).getEffectiveModel());
+        return getRepositoriesFromModel(Maven.getInstance().readEffectiveModel(pom).getEffectiveModel());
     }
 
     public static List<DependencyResolver> getRepositoriesFromModel(File pom) throws ModelBuildingException {
-        return MavenToIvy.getRepositoriesFromModel(Maven.getInstance().readEffectiveModel(pom).getEffectiveModel());
+        return getRepositoriesFromModel(Maven.getInstance().readEffectiveModel(pom).getEffectiveModel());
     }
 
     public static List<DependencyResolver> getRepositoriesFromModel(Model model) {

@@ -1,10 +1,10 @@
 # Display
 
-One of the many great things about the Jupyter front ends is the support for [`display_data`](http://jupyter-client.readthedocs.io/en/stable/messaging.html#display-data). IJava interfaces with the [base kernel](https://github.com/SpencerPark/jupyter-jvm-basekernel)'s high level rendering API.
+One of the many great things about the Jupyter front ends is the support for [`display_data`](http://jupyter-client.readthedocs.io/en/stable/messaging.html#display-data). JJava interfaces with the [base kernel](https://github.com/SpencerPark/jupyter-jvm-basekernel)'s high level rendering API.
 
 ## Notebook functions
 
-IJava injects 2 functions into the user space for displaying data: `display` and `render`. Most use cases should prefer the former but there is a necessary case for `render` that is outline below. In addition the `updateDisplay` function can be used to update a previously displayed object. All are defined in the runtime [Display](/src/main/java/io/github/spencerpark/ijava/runtime/Display.java) class.
+JJava injects 2 functions into the user space for displaying data: `display` and `render`. Most use cases should prefer the former but there is a necessary case for `render` that is outline below. In addition the `updateDisplay` function can be used to update a previously displayed object. All are defined in the runtime [Display](/src/main/java/org/dflib/jjava/runtime/Display.java) class.
 
 All display/render functions include a `text/plain` representation in their output. By default this is the `String.valueOf(Object)` value but it can be overridden.
 
@@ -23,7 +23,7 @@ The object is rendered and published on the display stream. An id is returned wh
 This is useful when a type has many potential representations but not all are preferred. For example a `CharSequence` has many representations but only the `text/plain` is preferred. To display it as executable javascript we can use the following:
 
 ```java
-display("alert('Hello from IJava!');", "application/javascript");
+display("alert('Hello from JJava!');", "application/javascript");
 ```
 
 Since there is the potential that some front ends don't support a given format many can be given and the front end chooses the best. For example, to display as html and markdown:
@@ -46,7 +46,7 @@ Renders an object as the **requested** types and returns it's rendered format. S
 When expressions are the last code unit in a cell they are rendered with the `render(Object o)` semantics. If this is not desired it can be hijacked by wrapping it in a call to this function.
 
 ```java
-String md = "Hello from **IJava**";
+String md = "Hello from **JJava**";
 
 render(md, "text/markdown")
 ```

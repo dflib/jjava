@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package io.github.spencerpark.ijava.execution;
+package org.dflib.jjava.execution;
 
 import io.github.spencerpark.jupyter.kernel.util.GlobFinder;
 import jdk.jshell.JShell;
@@ -183,14 +183,14 @@ public class CodeEvaluatorBuilder {
     }
 
     public CodeEvaluator build() {
-        IJavaExecutionControlProvider executionControlProvider = new IJavaExecutionControlProvider();
+        JJavaExecutionControlProvider executionControlProvider = new JJavaExecutionControlProvider();
 
         String executionControlID = UUID.randomUUID().toString();
         Map<String, String> executionControlParams = new LinkedHashMap<>();
-        executionControlParams.put(IJavaExecutionControlProvider.REGISTRATION_ID_KEY, executionControlID);
+        executionControlParams.put(JJavaExecutionControlProvider.REGISTRATION_ID_KEY, executionControlID);
 
         if (this.timeout != null)
-            executionControlParams.put(IJavaExecutionControlProvider.TIMEOUT_KEY, this.timeout);
+            executionControlParams.put(JJavaExecutionControlProvider.TIMEOUT_KEY, this.timeout);
 
         JShell.Builder builder = JShell.builder();
         if (this.out != null) builder.out(this.out);

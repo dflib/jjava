@@ -1,6 +1,6 @@
 # Magics
 
-Magics in IJava are very similar to those from IPython. There are:
+Magics in JJava are very similar to those from IPython. There are:
 
 *   **Line magics**: which are inline function calls via a magic function.
 
@@ -31,7 +31,7 @@ The magics simply desugar to calls to `lineMagic` and `cellMagic` in case progra
 *   `<T> T lineMagic(String name, java.util.List<String> args)`
 *   `<T> T cellMagic(String name, java.util.List<String> args, String body)`
 
-## Magics provided by IJava
+## Magics provided by JJava
 
 Things that are likely to become magics are kernel meta functions or functions that operate on source code. Magics should only be used for things that only appear in a Jupyter-like context and only use string arguments. Other things (like `display` and `render`) should be provided as plain functions.
 

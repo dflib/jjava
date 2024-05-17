@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package io.github.spencerpark.ijava.magics;
+package org.dflib.jjava.magics;
 
 import io.github.spencerpark.jupyter.kernel.magic.registry.LineMagic;
 import io.github.spencerpark.jupyter.kernel.util.GlobFinder;

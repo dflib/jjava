@@ -139,11 +139,11 @@ Configuring the kernel can be done via environment variables. These can be set o
 
 | Environment variable | Parameter name | Default | Description |
 |----------------------|----------------|---------|-------------|
-| `IJAVA_COMPILER_OPTS` | `comp-opts` | `""` | A space delimited list of command line options that would be passed to the `javac` command when compiling a project. For example `-parameters` to enable retaining parameter names for reflection. |
-| `IJAVA_TIMEOUT` | `timeout` | `"-1"` | A duration specifying a timeout (in milliseconds by default) for a _single top level statement_. If less than `1` then there is no timeout. If desired a time may be specified with a [`TimeUnit`](https://docs.oracle.com/javase/9/docs/api/java/util/concurrent/TimeUnit.html) may be given following the duration number (ex `"30 SECONDS"`). |
-| `IJAVA_CLASSPATH` | `classpath` | `""` | A file path separator delimited list of classpath entries that should be available to the user code. **Important:** no matter what OS, this should use forward slash "/" as the file separator. Also each path may actually be a [simple glob](#simple-glob-syntax). |
-| `IJAVA_STARTUP_SCRIPTS_PATH` | `startup-scripts-path` | `""` | A file path seperator delimited list of `.jshell` scripts to run on startup. This includes [ijava-jshell-init.jshell](src/main/resources/ijava-jshell-init.jshell) and [ijava-display-init.jshell](src/main/resources/ijava-display-init.jshell). **Important:** no matter what OS, this should use forward slash "/" as the file separator. Also each path may actually be a [simple glob](#simple-glob-syntax). |
-| `IJAVA_STARTUP_SCRIPT` | `startup-script` | `""` | A block of java code to run when the kernel starts up. This may be something like `import my.utils;` to setup some default imports or even `void sleep(long time) { try {Thread.sleep(time); } catch (InterruptedException e) { throw new RuntimeException(e); }}` to declare a default utility method to use in the notebook. |
+| `JJAVA_COMPILER_OPTS` | `comp-opts` | `""` | A space delimited list of command line options that would be passed to the `javac` command when compiling a project. For example `-parameters` to enable retaining parameter names for reflection. |
+| `JJAVA_TIMEOUT` | `timeout` | `"-1"` | A duration specifying a timeout (in milliseconds by default) for a _single top level statement_. If less than `1` then there is no timeout. If desired a time may be specified with a [`TimeUnit`](https://docs.oracle.com/javase/9/docs/api/java/util/concurrent/TimeUnit.html) may be given following the duration number (ex `"30 SECONDS"`). |
+| `JJAVA_CLASSPATH` | `classpath` | `""` | A file path separator delimited list of classpath entries that should be available to the user code. **Important:** no matter what OS, this should use forward slash "/" as the file separator. Also each path may actually be a [simple glob](#simple-glob-syntax). |
+| `JJAVA_STARTUP_SCRIPTS_PATH` | `startup-scripts-path` | `""` | A file path seperator delimited list of `.jshell` scripts to run on startup. This includes [jjava-jshell-init.jshell](src/main/resources/jjava-jshell-init.jshell) and [jjava-display-init.jshell](src/main/resources/jjava-display-init.jshell). **Important:** no matter what OS, this should use forward slash "/" as the file separator. Also each path may actually be a [simple glob](#simple-glob-syntax). |
+| `JJAVA_STARTUP_SCRIPT` | `startup-script` | `""` | A block of java code to run when the kernel starts up. This may be something like `import my.utils;` to setup some default imports or even `void sleep(long time) { try {Thread.sleep(time); } catch (InterruptedException e) { throw new RuntimeException(e); }}` to declare a default utility method to use in the notebook. |
 
 ##### Simple glob syntax
 
@@ -161,7 +161,7 @@ Any relative paths are resolved from the notebook server's working directory. Fo
 
 See the [List of options](#list-of-options) section for all of the configuration options.
 
-To change compiler options use the `IJAVA_COMPILER_OPTS` environment variable (or `--comp-opts` parameter during installation) with a string of flags as if running the `javac` command.
+To change compiler options use the `JJAVA_COMPILER_OPTS` environment variable (or `--comp-opts` parameter during installation) with a string of flags as if running the `javac` command.
 
 The kernel VM parameters must currently be assigned in the `kernel.json` by adding/editing a JSON dictionary at the `env` key and changing the `argv` list. To find where the kernel is installed run
 
