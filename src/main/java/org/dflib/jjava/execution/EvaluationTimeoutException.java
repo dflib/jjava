@@ -21,41 +21,38 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package io.github.spencerpark.ijava.execution;
+package org.dflib.jjava.execution;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.function.Supplier;
+import java.util.concurrent.TimeUnit;
 
-public class LazyOutputStreamDelegate extends OutputStream {
-    private final Supplier<OutputStream> writeTo;
+public class EvaluationTimeoutException extends Exception {
+    private final long duration;
+    private final TimeUnit unit;
+    private final String source;
 
-    public LazyOutputStreamDelegate(Supplier<OutputStream> writeTo) {
-        this.writeTo = writeTo;
+    public EvaluationTimeoutException(long duration, TimeUnit unit, String source) {
+        this.duration = duration;
+        this.unit = unit;
+        this.source = source;
+    }
+
+    public long getDuration() {
+        return duration;
+    }
+
+    public TimeUnit getUnit() {
+        return unit;
+    }
+
+    public String getSource() {
+        return source;
     }
 
     @Override
-    public void write(int b) throws IOException {
-        this.writeTo.get().write(b);
-    }
-
-    @Override
-    public void write(byte[] b) throws IOException {
-        this.writeTo.get().write(b);
-    }
-
-    @Override
-    public void write(byte[] b, int off, int len) throws IOException {
-        this.writeTo.get().write(b, off, len);
-    }
-
-    @Override
-    public void flush() throws IOException {
-        this.writeTo.get().flush();
-    }
-
-    @Override
-    public void close() throws IOException {
-        this.writeTo.get().close();
+    public String getMessage() {
+        return String.format("Evaluator timed out after %d %s while executing: '%s'",
+                this.duration,
+                this.unit.name().toLowerCase(),
+                this.source);
     }
 }

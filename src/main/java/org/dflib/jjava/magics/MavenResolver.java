@@ -21,11 +21,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package io.github.spencerpark.ijava.magics;
+package org.dflib.jjava.magics;
 
-import io.github.spencerpark.ijava.magics.dependencies.CommonRepositories;
-import io.github.spencerpark.ijava.magics.dependencies.Maven;
-import io.github.spencerpark.ijava.magics.dependencies.MavenToIvy;
+import org.dflib.jjava.magics.dependencies.CommonRepositories;
+import org.dflib.jjava.magics.dependencies.Maven;
+import org.dflib.jjava.magics.dependencies.MavenToIvy;
 import io.github.spencerpark.jupyter.kernel.magic.registry.CellMagic;
 import io.github.spencerpark.jupyter.kernel.magic.registry.LineMagic;
 import io.github.spencerpark.jupyter.kernel.magic.registry.MagicsArgs;
@@ -262,7 +262,7 @@ public class MavenResolver {
 
         ModuleDescriptor pomModule = parser.parseDescriptor(new IvySettings(), pomFile.toURI().toURL(), false);
 
-        File tempIvyFile = File.createTempFile("ijava-ivy-", ".xml").getAbsoluteFile();
+        File tempIvyFile = File.createTempFile("jjava-ivy-", ".xml").getAbsoluteFile();
         tempIvyFile.deleteOnExit();
 
         parser.toIvyFile(pomUrl.openStream(), new URLResource(pomUrl), tempIvyFile, pomModule);
@@ -309,9 +309,9 @@ public class MavenResolver {
 
         // Wrap in a dummy tag to allow fragments
         InputStream inStream = new SequenceInputStream(Collections.enumeration(Arrays.asList(
-                new ByteArrayInputStream("<ijava>".getBytes(Charset.forName("utf-8"))),
+                new ByteArrayInputStream("<jjava>".getBytes(Charset.forName("utf-8"))),
                 new ByteArrayInputStream(rawIn.getBytes(Charset.forName("utf-8"))),
-                new ByteArrayInputStream("</ijava>".getBytes(Charset.forName("utf-8")))
+                new ByteArrayInputStream("</jjava>".getBytes(Charset.forName("utf-8")))
         )));
 
         Document doc = builder.parse(inStream);
@@ -386,7 +386,7 @@ public class MavenResolver {
 
         if (!setGroupId) {
             Node groupId = project.appendChild(fixed.createElement("groupId"));
-            groupId.setTextContent("ijava.notebook");
+            groupId.setTextContent("jjava.notebook");
         }
 
         if (!setArtifactId) {
@@ -470,7 +470,7 @@ public class MavenResolver {
     @CellMagic
     public void loadFromPOM(List<String> args, String body) throws Exception {
         try {
-            File tempPomPath = File.createTempFile("ijava-maven-", ".pom").getAbsoluteFile();
+            File tempPomPath = File.createTempFile("jjava-maven-", ".pom").getAbsoluteFile();
             tempPomPath.deleteOnExit();
 
             String rawPom = this.solidifyPartialPOM(body);

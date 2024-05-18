@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package io.github.spencerpark.ijava.execution;
+package org.dflib.jjava.execution;
 
 import jdk.jshell.spi.ExecutionControl;
 import jdk.jshell.spi.ExecutionControlProvider;
@@ -33,7 +33,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class IJavaExecutionControlProvider implements ExecutionControlProvider {
+public class JJavaExecutionControlProvider implements ExecutionControlProvider {
     /**
      * The parameter key that when given causes the generated control to be registered
      * for later reference by the parameter value.
@@ -49,15 +49,15 @@ public class IJavaExecutionControlProvider implements ExecutionControlProvider {
 
     private static final Pattern TIMEOUT_PATTERN = Pattern.compile("^(?<dur>-?\\d+)\\W*(?<unit>[A-Za-z]+)?$");
 
-    private final Map<String, IJavaExecutionControl> controllers = new WeakHashMap<>();
+    private final Map<String, JJavaExecutionControl> controllers = new WeakHashMap<>();
 
-    public IJavaExecutionControl getRegisteredControlByID(String id) {
+    public JJavaExecutionControl getRegisteredControlByID(String id) {
         return this.controllers.get(id);
     }
 
     @Override
     public String name() {
-        return "IJava";
+        return "JJava";
     }
 
     @Override
@@ -82,9 +82,9 @@ public class IJavaExecutionControlProvider implements ExecutionControlProvider {
             }
         }
 
-        IJavaExecutionControl control = timeout > 0
-                ? new IJavaExecutionControl(timeout, timeUnit)
-                : new IJavaExecutionControl();
+        JJavaExecutionControl control = timeout > 0
+                ? new JJavaExecutionControl(timeout, timeUnit)
+                : new JJavaExecutionControl();
 
         String id = parameters.get(REGISTRATION_ID_KEY);
         if (id != null)

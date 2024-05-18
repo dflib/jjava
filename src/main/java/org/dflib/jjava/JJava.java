@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package io.github.spencerpark.ijava;
+package org.dflib.jjava;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
@@ -38,23 +38,23 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.logging.Level;
 
-public class IJava {
-    public static final String COMPILER_OPTS_KEY = "IJAVA_COMPILER_OPTS";
-    public static final String TIMEOUT_DURATION_KEY = "IJAVA_TIMEOUT";
-    public static final String CLASSPATH_KEY = "IJAVA_CLASSPATH";
-    public static final String STARTUP_SCRIPTS_KEY = "IJAVA_STARTUP_SCRIPTS_PATH";
-    public static final String STARTUP_SCRIPT_KEY = "IJAVA_STARTUP_SCRIPT";
+public class JJava {
+    public static final String COMPILER_OPTS_KEY = "JJAVA_COMPILER_OPTS";
+    public static final String TIMEOUT_DURATION_KEY = "JJAVA_TIMEOUT";
+    public static final String CLASSPATH_KEY = "JJAVA_CLASSPATH";
+    public static final String STARTUP_SCRIPTS_KEY = "JJAVA_STARTUP_SCRIPTS_PATH";
+    public static final String STARTUP_SCRIPT_KEY = "JJAVA_STARTUP_SCRIPT";
 
-    public static final String DEFAULT_SHELL_INIT_RESOURCE_PATH = "ijava-jshell-init.jshell";
+    public static final String DEFAULT_SHELL_INIT_RESOURCE_PATH = "jjava-jshell-init.jshell";
 
     public static final String VERSION;
 
     public static InputStream resource(String path) {
-        return IJava.class.getClassLoader().getResourceAsStream(path);
+        return JJava.class.getClassLoader().getResourceAsStream(path);
     }
 
     static {
-        InputStream metaStream = resource("ijava-kernel-metadata.json");
+        InputStream metaStream = resource("jjava-kernel-metadata.json");
         Reader metaReader = new InputStreamReader(metaStream);
         try {
             JsonElement meta = new JsonParser().parse(metaReader);
@@ -79,7 +79,7 @@ public class IJava {
      *         one has not yet (or already created and finished) been created.
      */
     public static JavaKernel getKernelInstance() {
-        return IJava.kernel;
+        return JJava.kernel;
     }
 
     public static void main(String[] args) throws Exception {

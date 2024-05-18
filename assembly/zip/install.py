@@ -6,26 +6,26 @@ import sys
 from jupyter_client.kernelspec import KernelSpecManager
 
 ALIASES = {
-    "IJAVA_CLASSPATH": {
+    "JJAVA_CLASSPATH": {
     },
-    "IJAVA_COMPILER_OPTS": {
+    "JJAVA_COMPILER_OPTS": {
     },
-    "IJAVA_STARTUP_SCRIPTS_PATH": {
+    "JJAVA_STARTUP_SCRIPTS_PATH": {
     },
-    "IJAVA_STARTUP_SCRIPT": {
+    "JJAVA_STARTUP_SCRIPT": {
     },
-    "IJAVA_TIMEOUT": {
+    "JJAVA_TIMEOUT": {
         "NO_TIMEOUT": "-1",
     },
     
 }
 
 NAME_MAP = {
-    "classpath": "IJAVA_CLASSPATH",
-    "comp-opts": "IJAVA_COMPILER_OPTS",
-    "startup-scripts-path": "IJAVA_STARTUP_SCRIPTS_PATH",
-    "startup-script": "IJAVA_STARTUP_SCRIPT",
-    "timeout": "IJAVA_TIMEOUT",
+    "classpath": "JJAVA_CLASSPATH",
+    "comp-opts": "JJAVA_COMPILER_OPTS",
+    "startup-scripts-path": "JJAVA_STARTUP_SCRIPTS_PATH",
+    "startup-script": "JJAVA_STARTUP_SCRIPT",
+    "timeout": "JJAVA_TIMEOUT",
     
 }
 
@@ -130,7 +130,7 @@ if __name__ == '__main__':
         action=EnvVar,
         aliases=ALIASES,
         name_map=NAME_MAP,
-        help="A file path seperator delimited list of `.jshell` scripts to run on startup. This includes ijava-jshell-init.jshell and ijava-display-init.jshell. **Important:** no matter what OS, this should use forward slash \"/\" as the file separator. Also each path may actually be a simple glob.",
+        help="A file path separator delimited list of `.jshell` scripts to run on startup. This includes jjava-jshell-init.jshell and jjava-display-init.jshell. **Important:** no matter what OS, this should use forward slash \"/\" as the file separator. Also each path may actually be a simple glob.",
         type=type_assertion("startup-scripts-path", str),
         list_sep=os.pathsep,
     )

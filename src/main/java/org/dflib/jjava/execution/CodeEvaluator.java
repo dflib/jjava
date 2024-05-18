@@ -21,9 +21,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package io.github.spencerpark.ijava.execution;
+package org.dflib.jjava.execution;
 
-import io.github.spencerpark.ijava.JavaKernel;
+import org.dflib.jjava.JavaKernel;
 import jdk.jshell.*;
 
 import java.lang.reflect.Method;
@@ -48,7 +48,7 @@ public class CodeEvaluator {
     }
 
     private final JShell shell;
-    private final IJavaExecutionControlProvider executionControlProvider;
+    private final JJavaExecutionControlProvider executionControlProvider;
     private final String executionControlID;
     private final SourceCodeAnalysis sourceAnalyzer;
 
@@ -57,7 +57,7 @@ public class CodeEvaluator {
 
     private final String indentation = "  ";
 
-    public CodeEvaluator(JShell shell, IJavaExecutionControlProvider executionControlProvider, String executionControlID, List<String> startupScripts) {
+    public CodeEvaluator(JShell shell, JJavaExecutionControlProvider executionControlProvider, String executionControlID, List<String> startupScripts) {
         this.shell = shell;
         this.executionControlProvider = executionControlProvider;
         this.executionControlID = executionControlID;
@@ -81,7 +81,7 @@ public class CodeEvaluator {
     }
 
     protected Object evalSingle(String code) throws Exception {
-        IJavaExecutionControl executionControl =
+        JJavaExecutionControl executionControl =
                 this.executionControlProvider.getRegisteredControlByID(this.executionControlID);
 
         List<SnippetEvent> events = this.shell.eval(code);
@@ -103,7 +103,7 @@ public class CodeEvaluator {
             Snippet.SubKind subKind = event.snippet().subKind();
 
             // Only executable snippets make their way through the machinery we have setup in the
-            // IJavaExecutionControl. Declarations for example simply take their default value without
+            // JJavaExecutionControl. Declarations for example simply take their default value without
             // being executed.
             Object value = subKind.isExecutable()
                     ? executionControl.takeResult(key)
@@ -128,9 +128,9 @@ public class CodeEvaluator {
                 if (e != null) {
                     if (e instanceof EvalException) {
                         switch (((EvalException) e).getExceptionClassName()) {
-                            case IJavaExecutionControl.EXECUTION_TIMEOUT_NAME:
+                            case JJavaExecutionControl.EXECUTION_TIMEOUT_NAME:
                                 throw new EvaluationTimeoutException(executionControl.getTimeoutDuration(), executionControl.getTimeoutUnit(), code.trim());
-                            case IJavaExecutionControl.EXECUTION_INTERRUPTED_NAME:
+                            case JJavaExecutionControl.EXECUTION_INTERRUPTED_NAME:
                                 throw new EvaluationInterruptedException(code.trim());
                             default:
                                 throw e;
@@ -174,7 +174,7 @@ public class CodeEvaluator {
      */
     private void dropSnippet(Snippet snippet)
             throws Exception {
-        IJavaExecutionControl executionControl =
+        JJavaExecutionControl executionControl =
                 this.executionControlProvider.getRegisteredControlByID(this.executionControlID);
         this.shell.drop(snippet);
         // snippet.classFullName() returns name of a wrapper class created for a snippet
@@ -251,7 +251,7 @@ public class CodeEvaluator {
     }
 
     public void interrupt() {
-        IJavaExecutionControl executionControl =
+        JJavaExecutionControl executionControl =
                 this.executionControlProvider.getRegisteredControlByID(this.executionControlID);
 
         if (executionControl != null)

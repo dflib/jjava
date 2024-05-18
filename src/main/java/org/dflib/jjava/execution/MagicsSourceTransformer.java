@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package io.github.spencerpark.ijava.execution;
+package org.dflib.jjava.execution;
 
 import io.github.spencerpark.jupyter.kernel.magic.CellMagicParseContext;
 import io.github.spencerpark.jupyter.kernel.magic.LineMagicParseContext;

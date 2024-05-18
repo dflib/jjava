@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package io.github.spencerpark.ijava.execution;
+package org.dflib.jjava.execution;
 
 import jdk.jshell.EvalException;
 import jdk.jshell.execution.DirectExecutionControl;
@@ -39,7 +39,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * An ExecutionControl very similar to {@link jdk.jshell.execution.LocalExecutionControl} but which
  * also logs the actual result of an invocation before being serialized.
  */
-public class IJavaExecutionControl extends DirectExecutionControl {
+public class JJavaExecutionControl extends DirectExecutionControl {
     /**
      * A special "class name" for a {@link jdk.jshell.spi.ExecutionControl.UserException} such that it may be
      * identified after serialization into an {@link jdk.jshell.EvalException} via {@link
@@ -66,18 +66,18 @@ public class IJavaExecutionControl extends DirectExecutionControl {
     private final ConcurrentMap<String, Future<Object>> running = new ConcurrentHashMap<>();
     private final Map<String, Object> results = new ConcurrentHashMap<>();
 
-    private final IJavaLoaderDelegate loaderDelegate;
+    private final JJavaLoaderDelegate loaderDelegate;
 
-    public IJavaExecutionControl() {
+    public JJavaExecutionControl() {
         this(-1, TimeUnit.MILLISECONDS);
     }
 
-    public IJavaExecutionControl(long timeoutTime, TimeUnit timeoutUnit) {
+    public JJavaExecutionControl(long timeoutTime, TimeUnit timeoutUnit) {
         super(null);
-        this.loaderDelegate = new IJavaLoaderDelegate();
+        this.loaderDelegate = new JJavaLoaderDelegate();
         this.timeoutTime = timeoutTime;
         this.timeoutUnit = timeoutTime > 0 ? Objects.requireNonNull(timeoutUnit) : TimeUnit.MILLISECONDS;
-        this.executor = Executors.newCachedThreadPool(r -> new Thread(r, "IJava-executor-" + EXECUTOR_THREAD_ID.getAndIncrement()));
+        this.executor = Executors.newCachedThreadPool(r -> new Thread(r, "JJava-executor-" + EXECUTOR_THREAD_ID.getAndIncrement()));
     }
 
     public long getTimeoutDuration() {
@@ -197,7 +197,7 @@ public class IJavaExecutionControl extends DirectExecutionControl {
 
     @Override
     public String toString() {
-        return "IJavaExecutionControl{" +
+        return "JJavaExecutionControl{" +
                 "timeoutTime=" + timeoutTime +
                 ", timeoutUnit=" + timeoutUnit +
                 '}';

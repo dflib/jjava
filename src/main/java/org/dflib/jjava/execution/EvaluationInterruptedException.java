@@ -21,23 +21,22 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package io.github.spencerpark.ijava.runtime;
+package org.dflib.jjava.execution;
 
-import io.github.spencerpark.ijava.IJava;
-import io.github.spencerpark.ijava.JavaKernel;
+public class EvaluationInterruptedException extends Exception {
+    private final String source;
 
-public class Kernel {
-    public static JavaKernel getKernelInstance() {
-        return IJava.getKernelInstance();
+    public EvaluationInterruptedException(String source) {
+        this.source = source;
     }
 
-    public static Object eval(String expr) throws Exception {
-        JavaKernel kernel = getKernelInstance();
+    public String getSource() {
+        return source;
+    }
 
-        if (kernel != null) {
-            return kernel.evalRaw(expr);
-        } else {
-            throw new RuntimeException("No IJava kernel running");
-        }
+    @Override
+    public String getMessage() {
+        return String.format("Evaluator was interrupted while executing: '%s'",
+                this.source);
     }
 }

@@ -21,18 +21,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package io.github.spencerpark.ijava.execution;
+package org.dflib.jjava.runtime;
 
-import jdk.jshell.SnippetEvent;
+import org.dflib.jjava.JJava;
+import org.dflib.jjava.JavaKernel;
 
-public class CompilationException extends Exception {
-    private final SnippetEvent badSnippetCompilation;
-
-    public CompilationException(SnippetEvent badSnippetCompilation) {
-        this.badSnippetCompilation = badSnippetCompilation;
+public class Kernel {
+    public static JavaKernel getKernelInstance() {
+        return JJava.getKernelInstance();
     }
 
-    public SnippetEvent getBadSnippetCompilation() {
-        return badSnippetCompilation;
+    public static Object eval(String expr) throws Exception {
+        JavaKernel kernel = getKernelInstance();
+
+        if (kernel != null) {
+            return kernel.evalRaw(expr);
+        } else {
+            throw new RuntimeException("No JJava kernel running");
+        }
     }
 }

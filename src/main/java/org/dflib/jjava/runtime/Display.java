@@ -21,9 +21,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package io.github.spencerpark.ijava.runtime;
+package org.dflib.jjava.runtime;
 
-import io.github.spencerpark.ijava.JavaKernel;
+import org.dflib.jjava.JavaKernel;
 import io.github.spencerpark.jupyter.kernel.display.DisplayData;
 
 import java.util.UUID;
@@ -35,7 +35,7 @@ public class Display {
         if (kernel != null) {
             return kernel.getRenderer().render(o);
         } else {
-            throw new RuntimeException("No IJava kernel running");
+            throw new RuntimeException("No JJava kernel running");
         }
     }
 
@@ -45,7 +45,7 @@ public class Display {
         if (kernel != null) {
             return kernel.getRenderer().renderAs(o, as);
         } else {
-            throw new RuntimeException("No IJava kernel running");
+            throw new RuntimeException("No JJava kernel running");
         }
     }
 
@@ -65,7 +65,7 @@ public class Display {
 
             return id;
         } else {
-            throw new RuntimeException("No IJava kernel running");
+            throw new RuntimeException("No JJava kernel running");
         }
     }
 
@@ -85,7 +85,7 @@ public class Display {
 
             return id;
         } else {
-            throw new RuntimeException("No IJava kernel running");
+            throw new RuntimeException("No JJava kernel running");
         }
     }
 
@@ -96,7 +96,7 @@ public class Display {
             DisplayData data = kernel.getRenderer().render(o);
             kernel.getIO().display.updateDisplay(id, data);
         } else {
-            throw new RuntimeException("No IJava kernel running");
+            throw new RuntimeException("No JJava kernel running");
         }
     }
 
@@ -107,7 +107,7 @@ public class Display {
             DisplayData data = kernel.getRenderer().renderAs(o, as);
             kernel.getIO().display.updateDisplay(id, data);
         } else {
-            throw new RuntimeException("No IJava kernel running");
+            throw new RuntimeException("No JJava kernel running");
         }
     }
 }

@@ -21,38 +21,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package io.github.spencerpark.ijava.execution;
+package org.dflib.jjava.execution;
 
-import java.util.concurrent.TimeUnit;
+import jdk.jshell.SnippetEvent;
 
-public class EvaluationTimeoutException extends Exception {
-    private final long duration;
-    private final TimeUnit unit;
-    private final String source;
+public class CompilationException extends Exception {
+    private final SnippetEvent badSnippetCompilation;
 
-    public EvaluationTimeoutException(long duration, TimeUnit unit, String source) {
-        this.duration = duration;
-        this.unit = unit;
-        this.source = source;
+    public CompilationException(SnippetEvent badSnippetCompilation) {
+        this.badSnippetCompilation = badSnippetCompilation;
     }
 
-    public long getDuration() {
-        return duration;
-    }
-
-    public TimeUnit getUnit() {
-        return unit;
-    }
-
-    public String getSource() {
-        return source;
-    }
-
-    @Override
-    public String getMessage() {
-        return String.format("Evaluator timed out after %d %s while executing: '%s'",
-                this.duration,
-                this.unit.name().toLowerCase(),
-                this.source);
+    public SnippetEvent getBadSnippetCompilation() {
+        return badSnippetCompilation;
     }
 }

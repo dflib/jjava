@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package io.github.spencerpark.ijava.magics.dependencies;
+package org.dflib.jjava.magics.dependencies;
 
 import org.apache.maven.building.StringSource;
 import org.apache.maven.model.building.*;
