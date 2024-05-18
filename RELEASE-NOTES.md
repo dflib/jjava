@@ -1,3 +1,7 @@
+# 1.0-M2
+
+- #5 Switch project to Maven 
+
 # 1.0-M1
 
 - #1 Upgrade to Gradle 8.5
