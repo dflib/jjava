@@ -120,7 +120,7 @@
                 <executions>
                     <execution>
                         <id>assemble-zip</id>
-                        <phase>install</phase>
+                        <phase>package</phase>
                         <goals>
                             <goal>single</goal>
                         </goals>

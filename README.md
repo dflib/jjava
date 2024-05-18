@@ -123,17 +123,16 @@ Get the latest version of the kernel but possibly run into some issues with inst
     ```
 
 2.  Build the kernel.
-    
-    On *nix `./gradlew zipKernel`
-        
-    On windows `gradlew zipKernel`
+    ```bash
+    mvn package
+    ```
 
-3.  Install `build/distributions/jjava-$version.zip` custom build as a pre-built binary 
+3.  Install `target/jjava-$version.zip` custom build as a pre-built binary 
 
 
 ### Configuring
 
-Configuring the kernel can be done via environment variables. These can be set on the system or inside the `kernel.json`. The configuration can be done at install time, which may be repeated as often as desired. The parameters are listed with `python3 install.py -h` as well as below in the list of options. Configuration done via the installer (or `gradlew installKernel --param ...:...`) should use the names in the _Parameter name_ column.
+Configuring the kernel can be done via environment variables. These can be set on the system or inside the `kernel.json`. The configuration can be done at install time, which may be repeated as often as desired. The parameters are listed with `python3 install.py -h` as well as below in the list of options.
 
 #### List of options
 
