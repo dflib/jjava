@@ -1,0 +1,40 @@
+name: 'create release'
+
+on:
+  push:
+    tags:
+      - '[0-9]+.[0-9]+*'
+
+jobs:
+  prepare-release:
+    runs-on: ubuntu-latest
+
+    outputs:
+      tag: ${{ steps.vars.outputs.tag }}
+      version: ${{ steps.vars.outputs.version }}
+      upload_url:  ${{ steps.create_release.outputs.upload_url }}
+
+    steps:
+      - name: Checkout...
+        uses: actions/checkout@v4
+
+      - name: Build and test...
+        run: mvn clean verify -U
+
+      - name: Set version...
+        id: vars
+        run: |
+          RELEASE_TAG=${GITHUB_REF#refs/*/}
+          echo "tag=${RELEASE_TAG}" >> $GITHUB_OUTPUT
+          echo "version=${RELEASE_TAG}" >> $GITHUB_OUTPUT
+
+      - name: Create release...
+        id: create_release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.vars.outputs.tag }}
+          body: JJava ${{ steps.vars.outputs.version }} release
+          draft: true
+          prerelease: false
+          files: ./target/jjava-${{ steps.vars.outputs.version }}.zip
+          fail_on_unmatched_files: true
