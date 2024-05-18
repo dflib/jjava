@@ -3,6 +3,7 @@
 - #5 Switch project to Maven 
 - #7 Project renaming
 - #8 Java package change 
+- #11 Enable GitHub Actions 
 
 # 1.0-M1
 
