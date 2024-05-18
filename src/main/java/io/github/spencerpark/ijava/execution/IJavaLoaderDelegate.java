@@ -183,7 +183,8 @@ public class IJavaLoaderDelegate implements LoaderDelegate {
         private URL doFindResource(String name) {
             if (classFiles.containsKey(name)) {
                 try {
-                    return URL.of(new URI("jshell", null, "/" + name, null),
+                    return new URL(null,
+                            new URI("jshell", null, "/" + name, null).toString(),
                             new RemoteClassLoader.ResourceURLStreamHandler(name));
                 } catch (MalformedURLException | URISyntaxException ex) {
                     throw new InternalError(ex);

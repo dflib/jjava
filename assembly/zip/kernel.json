@@ -4,7 +4,7 @@
         "--add-opens",
         "jdk.jshell/jdk.jshell=ALL-UNNAMED",
         "-jar",
-        "@KERNEL_INSTALL_DIRECTORY@/@JAR_FILE@",
+        "@KERNEL_INSTALL_DIRECTORY@/${project.build.finalName}.jar",
         "{connection_file}"
     ],
     "display_name": "Java",
