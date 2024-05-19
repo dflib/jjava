@@ -48,39 +48,20 @@ Currently, the kernel supports
 
 ### Requirements
 
-1.  [Java JDK >= 11](https://adoptium.net/temurin/releases/). **Not the JRE**.
+1.  Java JDK >= 11
+Ensure that the `java` command is in the PATH and is using version 11 or newer. For example:
+```bash
+> java -version
+openjdk version "11.0.21" 2023-10-17
+OpenJDK Runtime Environment Temurin-11.0.21+9 (build 11.0.21+9)
+OpenJDK 64-Bit Server VM Temurin-11.0.21+9 (build 11.0.21+9, mixed mode)
+```
 
-    1.  Ensure that the `java` command is in the PATH and is using version 11. For example:
-        ```bash
-        > java -version
-        openjdk version "11.0.21" 2023-10-17
-        OpenJDK Runtime Environment Temurin-11.0.21+9 (build 11.0.21+9)
-        OpenJDK 64-Bit Server VM Temurin-11.0.21+9 (build 11.0.21+9, mixed mode)
-        ```
+2.  A jupyter-like environment to use the kernel in. A non-exhaustive list of options:
 
-    2.  Next ensure that `java` is in a location where the jdk was installed and not just the jre. Use the `java --list-modules` command to do this. The list should contain `jdk.jshell`.
-
-        *   On *nix `java --list-modules | grep "jdk.jshell"`
-        *   On windows `java --list-modules | findstr "jdk.jshell"`
-
-        Both should output `jdk.jshell@` followed by your java version.
-
-    If the kernel cannot start with an error along the lines of
-    ```text
-    Exception in thread "main" java.lang.NoClassDefFoundError: jdk/jshell/JShellException
-            ...
-    Caused by: java.lang.ClassNotFoundException: jdk.jshell.JShellException
-            ...
-    ```
-    then double check that `java` is referring to the command for the `jdk` and not the `jre`.
-    
-2.  Some jupyter-like environment to use the kernel in.
-
-    A non-exhaustive list of options:
-
-    *   [Jupyter](http://jupyter.org/install)
-    *   [JupyterLab](http://jupyterlab.readthedocs.io/en/stable/getting_started/installation.html)
-    *   [nteract](https://nteract.io/desktop)
+*   [Jupyter](http://jupyter.org/install)
+*   [JupyterLab](http://jupyterlab.readthedocs.io/en/stable/getting_started/installation.html)
+*   [nteract](https://nteract.io/desktop)
         
 ### Installing
 
