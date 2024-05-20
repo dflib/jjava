@@ -169,24 +169,23 @@ if __name__ == '__main__':
         replace=args.replace
     )
 
-    # Connect the self referencing token left in the kernel.json to point to it's install location.
-
-    # Prepare the token replacement string which should be properly escaped for use in a JSON string
+    # Prepare token replacement strings which should be properly escaped for use in a JSON string
     # The [1:-1] trims the first and last " json.dumps adds for strings.
-    install_dest_json_fragment = json.dumps(install_dest)[1:-1]
+    executable_path = json.dumps(sys.executable)[1:-1]
+    launcher_path = json.dumps(os.path.join(install_dest, 'launcher.py'))[1:-1]
+    kernel_path = json.dumps(os.path.join(install_dest, '${project.build.finalName}.jar'))[1:-1]
 
     # Prepare the paths to the installed kernel.json and the one bundled with this installer.
     local_kernel_json_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'java', 'kernel.json')
     installed_kernel_json_path = os.path.join(install_dest, 'kernel.json')
 
-    # Replace the @KERNEL_INSTALL_DIRECTORY@ token with the path to where the kernel was installed
-    # in the installed kernel.json from the local template.
+    # Replace tokens in the installed kernel.json.
     with open(local_kernel_json_path, 'r') as template_kernel_json_file:
         template_kernel_json_contents = template_kernel_json_file.read()
-        kernel_json_contents = template_kernel_json_contents.replace(
-            '@KERNEL_INSTALL_DIRECTORY@',
-            install_dest_json_fragment
-        )
+        kernel_json_contents = template_kernel_json_contents.replace('@PY_EXECUTABLE@', executable_path)
+        kernel_json_contents = kernel_json_contents.replace('@LAUNCHER_PATH@', launcher_path)
+        kernel_json_contents = kernel_json_contents.replace('@KERNEL_PATH@', kernel_path)
+        print(kernel_json_contents)
         kernel_json_json_contents = json.loads(kernel_json_contents)
         kernel_env = kernel_json_json_contents.setdefault('env', {})
         for k, v in args.env.items():

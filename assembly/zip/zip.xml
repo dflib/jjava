@@ -12,13 +12,17 @@
             <outputDirectory>java</outputDirectory>
         </file>
         <file>
+            <source>assembly/zip/launcher.py</source>
+            <outputDirectory>java</outputDirectory>
+        </file>
+        <file>
             <source>assembly/zip/kernel.json</source>
             <outputDirectory>java</outputDirectory>
-            <filtered>true</filtered>
         </file>
         <file>
             <source>assembly/zip/install.py</source>
             <outputDirectory>/</outputDirectory>
+            <filtered>true</filtered>
         </file>
     </files>
 </assembly>
