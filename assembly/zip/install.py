@@ -6,28 +6,27 @@ import sys
 from jupyter_client.kernelspec import KernelSpecManager
 
 ALIASES = {
-    "JJAVA_CLASSPATH": {
+    'JJAVA_CLASSPATH': {
     },
-    "JJAVA_COMPILER_OPTS": {
+    'JJAVA_COMPILER_OPTS': {
     },
-    "JJAVA_STARTUP_SCRIPTS_PATH": {
+    'JJAVA_STARTUP_SCRIPTS_PATH': {
     },
-    "JJAVA_STARTUP_SCRIPT": {
+    'JJAVA_STARTUP_SCRIPT': {
     },
-    "JJAVA_TIMEOUT": {
-        "NO_TIMEOUT": "-1",
-    },
-    
+    'JJAVA_TIMEOUT': {
+        'NO_TIMEOUT': '-1',
+    }
 }
 
 NAME_MAP = {
-    "classpath": "JJAVA_CLASSPATH",
-    "comp-opts": "JJAVA_COMPILER_OPTS",
-    "startup-scripts-path": "JJAVA_STARTUP_SCRIPTS_PATH",
-    "startup-script": "JJAVA_STARTUP_SCRIPT",
-    "timeout": "JJAVA_TIMEOUT",
-    
+    'classpath': 'JJAVA_CLASSPATH',
+    'comp-opts': 'JJAVA_COMPILER_OPTS',
+    'startup-scripts-path': 'JJAVA_STARTUP_SCRIPTS_PATH',
+    'startup-script': 'JJAVA_STARTUP_SCRIPT',
+    'timeout': 'JJAVA_TIMEOUT'
 }
+
 
 def type_assertion(name, type_fn):
     env = NAME_MAP[name]
@@ -37,15 +36,19 @@ def type_assertion(name, type_fn):
         alias = aliases.get(value, value)
         type_fn(alias)
         return alias
+
     setattr(checker, '__name__', getattr(type_fn, '__name__', 'type_fn'))
     return checker
+
 
 class EnvVar(argparse.Action):
     def __init__(self, option_strings, dest, aliases=None, name_map=None, list_sep=None, **kwargs):
         super(EnvVar, self).__init__(option_strings, dest, **kwargs)
 
-        if aliases is None: aliases = {}
-        if name_map is None: name_map = {}
+        if aliases is None:
+            aliases = {}
+        if name_map is None:
+            name_map = {}
 
         self.aliases = aliases
         self.name_map = name_map
@@ -55,8 +58,7 @@ class EnvVar(argparse.Action):
             if name.lstrip('-') not in name_map:
                 raise ValueError('Name "%s" is not mapped to an environment variable' % name.lstrip('-'))
 
-
-    def __call__(self, parser, namespace, value, option_string=None):
+    def __call__(self, arg_parser, namespace, value, option_string=None):
         if option_string is None:
             raise ValueError('option_string is required')
 
@@ -75,8 +77,10 @@ class EnvVar(argparse.Action):
 
         setattr(namespace, self.dest, env)
 
+
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Install the java kernel.')
+    parser = argparse.ArgumentParser(description='Install the java kernel.',
+                                     formatter_class=lambda prog: argparse.HelpFormatter(prog, max_help_position=30))
 
     install_location = parser.add_mutually_exclusive_group()
     install_location.add_argument(
@@ -99,66 +103,80 @@ if __name__ == '__main__':
     )
 
     parser.add_argument(
-        '--replace',
-        help='Replace any existing kernel spec with this name.',
-        action='store_true'
-    )
-
-    parser.add_argument(
-        "--classpath",
-        dest="env",
+        '--classpath',
+        dest='env',
         action=EnvVar,
         aliases=ALIASES,
         name_map=NAME_MAP,
-        help="A file path separator delimited list of classpath entries that should be available to the user code. **Important:** no matter what OS, this should use forward slash \"/\" as the file separator. Also each path may actually be a simple glob.",
-        type=type_assertion("classpath", str),
+        help='''
+        A file path separator delimited list of classpath entries that should be available to the user code.
+        **Important:** no matter what OS, this should use forward slash \"/\" as the file separator.
+        Also each path may actually be a simple glob.
+        ''',
+        type=type_assertion('classpath', str),
         list_sep=os.pathsep,
     )
     parser.add_argument(
-        "--comp-opts",
-        dest="env",
+        '--comp-opts',
+        dest='env',
         action=EnvVar,
         aliases=ALIASES,
         name_map=NAME_MAP,
-        help="A space delimited list of command line options that would be passed to the `javac` command when compiling a project. For example `-parameters` to enable retaining parameter names for reflection.",
-        type=type_assertion("comp-opts", str),
-        list_sep=" ",
+        help='''
+        A space delimited list of command line options that would be passed to the `javac` command
+        when compiling a project. For example `-parameters` to enable retaining parameter names for reflection.
+        ''',
+        type=type_assertion('comp-opts', str),
+        list_sep=' ',
     )
     parser.add_argument(
-        "--startup-scripts-path",
-        dest="env",
+        '--startup-scripts-path',
+        dest='env',
         action=EnvVar,
         aliases=ALIASES,
         name_map=NAME_MAP,
-        help="A file path separator delimited list of `.jshell` scripts to run on startup. This includes jjava-jshell-init.jshell and jjava-display-init.jshell. **Important:** no matter what OS, this should use forward slash \"/\" as the file separator. Also each path may actually be a simple glob.",
-        type=type_assertion("startup-scripts-path", str),
+        help='''
+        A file path separator delimited list of `.jshell` scripts to run on startup.'
+        This includes jjava-jshell-init.jshell and jjava-display-init.jshell.
+        **Important:** no matter what OS, this should use forward slash \"/\" as the file separator.
+        Also each path may actually be a simple glob.
+        ''',
+        type=type_assertion('startup-scripts-path', str),
         list_sep=os.pathsep,
     )
     parser.add_argument(
-        "--startup-script",
-        dest="env",
+        '--startup-script',
+        dest='env',
         action=EnvVar,
         aliases=ALIASES,
         name_map=NAME_MAP,
-        help="A block of java code to run when the kernel starts up. This may be something like `import my.utils;` to setup some default imports or even `void sleep(long time) { try {Thread.sleep(time); } catch (InterruptedException e) { throw new RuntimeException(e); }}` to declare a default utility method to use in the notebook.",
-        type=type_assertion("startup-script", str),
+        help='''
+        A block of java code to run when the kernel starts up.
+        This may be something like `import my.utils;` to setup some default imports
+        or even `void sleep(long time) { try {Thread.sleep(time); } catch (InterruptedException e)
+        { throw new RuntimeException(e); }}` to declare a default utility method to use in the notebook.
+        ''',
+        type=type_assertion('startup-script', str),
     )
     parser.add_argument(
-        "--timeout",
-        dest="env",
+        '--timeout',
+        dest='env',
         action=EnvVar,
         aliases=ALIASES,
         name_map=NAME_MAP,
-        help="A duration specifying a timeout (in milliseconds by default) for a _single top level statement_. If less than `1` then there is no timeout. If desired a time may be specified with a `TimeUnit` may be given following the duration number (ex `\"30 SECONDS\"`).",
-        type=type_assertion("timeout", str),
+        help='''
+        A duration specifying a timeout (in milliseconds by default) for a _single top level statement_.
+        If less than `1` then there is no timeout.
+        If desired a time may be specified with a `TimeUnit` may be given following the duration number
+        (ex `\"30 SECONDS\"`).
+        ''',
+        type=type_assertion('timeout', str),
     )
-    
 
     args = parser.parse_args()
 
-    if not hasattr(args, "env") or getattr(args, "env") is None:
-        setattr(args, "env", {})
-    
+    if not hasattr(args, 'env') or getattr(args, 'env') is None:
+        setattr(args, 'env', {})
 
     # Install the kernel
     install_dest = KernelSpecManager().install_kernel_spec(
@@ -166,7 +184,6 @@ if __name__ == '__main__':
         kernel_name='java',
         user=args.user,
         prefix=sys.prefix if args.sys_prefix else args.prefix,
-        replace=args.replace
     )
 
     # Connect the self referencing token left in the kernel.json to point to it's install location.
