@@ -1,14 +1,8 @@
 # JJava
 
-JJava is a supported Java Jupyter kernel that evolved from the earlier [IJava kernel](https://github.com/SpencerPark/IJava). For a full list of changes check [release notes](RELEASE-NOTES.md).
+JJava is a Java kernel for [Jupyter](http://jupyter.org/) maintained by the [DFLib.org](https://dflib.org) community. The kernel executes code via the JShell tool. Some of the additional commands are supported via a syntax similar to the IPython magics. New feature requests, bug reports and support questions can be opened [here](https://github.com/dflib/jjava/issues).
 
-## Project info
-
-![display-img](docs/img/display-img.png)
-
-A [Jupyter](http://jupyter.org/) kernel for executing Java code. The kernel executes code via the new [JShell tool](https://docs.oracle.com/javase/9/jshell/introduction-jshell.htm). Some of the additional commands should be supported as needed via a syntax similar to the ipython magics.
-
-The kernel is fully functional. Check out the [list of features](#features) further down in the README. Any requests for new ones or prioritizing current requests are welcomed in the [issues](https://github.com/dflib/jjava/issues) along with bug requests, installation help, or other questions.
+_JJava is an evolution of the earlier [IJava kernel](https://github.com/SpencerPark/IJava), that is no longer maintained by its authors._
 
 ### Contents
 
