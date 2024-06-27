@@ -26,6 +26,7 @@ package org.dflib.jjava.execution;
 import org.dflib.jjava.JavaKernel;
 import jdk.jshell.*;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -46,6 +47,7 @@ public class CodeEvaluator {
             throw new RuntimeException("Unable to access jdk.jshell.Snippet.classFullName() method.", e);
         }
     }
+    private static final String INDENTATION = "  ";
 
     private final JShell shell;
     private final JJavaExecutionControlProvider executionControlProvider;
@@ -55,7 +57,6 @@ public class CodeEvaluator {
     private boolean isInitialized = false;
     private final List<String> startupScripts;
 
-    private final String indentation = "  ";
 
     public CodeEvaluator(JShell shell, JJavaExecutionControlProvider executionControlProvider, String executionControlID, List<String> startupScripts) {
         this.shell = shell;
@@ -172,14 +173,26 @@ public class CodeEvaluator {
     /**
      * Try to clean up information linked to a code snippet and the snippet itself
      */
-    private void dropSnippet(Snippet snippet)
-            throws Exception {
+    private void dropSnippet(Snippet snippet) throws Exception {
         JJavaExecutionControl executionControl =
                 this.executionControlProvider.getRegisteredControlByID(this.executionControlID);
         this.shell.drop(snippet);
         // snippet.classFullName() returns name of a wrapper class created for a snippet
-        String className = SNIPPET_CLASS_NAME_METHOD.invoke(snippet).toString();
-        executionControl.unloadClass(className);
+        String className = snippetClassName(snippet);
+        // check that this class is not used by other snippets
+        if(this.shell.snippets()
+                .map(this::snippetClassName)
+                .noneMatch(className::equals)) {
+            executionControl.unloadClass(className);
+        }
+    }
+
+    private String snippetClassName(Snippet snippet) {
+        try {
+            return SNIPPET_CLASS_NAME_METHOD.invoke(snippet).toString();
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private String computeIndentation(String partialStatement) {
@@ -222,7 +235,7 @@ public class CodeEvaluator {
         }
 
         return newlyOpenedBraces > 0 || newlyOpenedParens > 0
-                ? currentIndentation + this.indentation
+                ? currentIndentation + INDENTATION
                 : currentIndentation;
     }
 

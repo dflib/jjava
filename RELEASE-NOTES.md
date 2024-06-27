@@ -5,6 +5,7 @@
 - #8 Java package change 
 - #11 Enable GitHub Actions 
 - #16 Upgrade gson transitive dependency 
+- #21 Rendering stale var 
 
 # 1.0-M1
 
