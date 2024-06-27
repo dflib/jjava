@@ -6,7 +6,7 @@ import subprocess
 def launch_kernel():
     kernel_path = sys.argv[1]
     connection_file = sys.argv[2]
-    jvm_options = os.getenv('JJ_JVM_OPTS', '')
+    jvm_options = os.getenv('JJAVA_JVM_OPTS', '')
 
     subprocess.run(['java',
                     jvm_options,
