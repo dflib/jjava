@@ -39,11 +39,41 @@ import java.nio.file.Paths;
 import java.util.logging.Level;
 
 public class JJava {
-    public static final String COMPILER_OPTS_KEY = "JJAVA_COMPILER_OPTS";
-    public static final String TIMEOUT_DURATION_KEY = "JJAVA_TIMEOUT";
-    public static final String CLASSPATH_KEY = "JJAVA_CLASSPATH";
-    public static final String STARTUP_SCRIPTS_KEY = "JJAVA_STARTUP_SCRIPTS_PATH";
-    public static final String STARTUP_SCRIPT_KEY = "JJAVA_STARTUP_SCRIPT";
+    /**
+     * @see #JJ_COMPILER_OPTS_KEY
+     * */
+    @Deprecated(since = "1.0")
+    public static final String COMPILER_OPTS_KEY = "IJAVA_COMPILER_OPTS";
+
+    /**
+     * @see #JJ_TIMEOUT_DURATION_KEY
+     * */
+    @Deprecated(since = "1.0")
+    public static final String TIMEOUT_DURATION_KEY = "IJAVA_TIMEOUT";
+
+    /**
+     * @see #JJ_CLASSPATH_KEY
+     * */
+    @Deprecated(since = "1.0")
+    public static final String CLASSPATH_KEY = "IJAVA_CLASSPATH";
+
+    /**
+     * @see #JJ_STARTUP_SCRIPTS_KEY
+     * */
+    @Deprecated(since = "1.0")
+    public static final String STARTUP_SCRIPTS_KEY = "IJAVA_STARTUP_SCRIPTS_PATH";
+
+    /**
+     * @see #JJ_STARTUP_SCRIPT_KEY
+     * */
+    @Deprecated(since = "1.0")
+    public static final String STARTUP_SCRIPT_KEY = "IJAVA_STARTUP_SCRIPT";
+
+    public static final String JJ_COMPILER_OPTS_KEY = "JJAVA_COMPILER_OPTS";
+    public static final String JJ_TIMEOUT_DURATION_KEY = "JJAVA_TIMEOUT";
+    public static final String JJ_CLASSPATH_KEY = "JJAVA_CLASSPATH";
+    public static final String JJ_STARTUP_SCRIPTS_KEY = "JJAVA_STARTUP_SCRIPTS_PATH";
+    public static final String JJ_STARTUP_SCRIPT_KEY = "JJAVA_STARTUP_SCRIPT";
 
     public static final String DEFAULT_SHELL_INIT_RESOURCE_PATH = "jjava-jshell-init.jshell";
 
