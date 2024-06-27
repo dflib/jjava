@@ -1,10 +1,8 @@
 {
     "argv": [
-        "java",
-        "--add-opens",
-        "jdk.jshell/jdk.jshell=ALL-UNNAMED",
-        "-jar",
-        "@KERNEL_INSTALL_DIRECTORY@/${project.build.finalName}.jar",
+        "@PY_EXECUTABLE@",
+        "@LAUNCHER_PATH@",
+        "@KERNEL_PATH@",
         "{connection_file}"
     ],
     "display_name": "Java",
