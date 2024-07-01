@@ -6,7 +6,8 @@
 - #11 Enable GitHub Actions 
 - #12 Dynamically change the kernel startup parameters
 - #16 Upgrade gson transitive dependency 
-- #21 Rendering stale var 
+- #21 Rendering stale var
+- #22 Clean implementation of the LoaderDelegate
 
 # 1.0-M1
 
