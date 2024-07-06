@@ -1,4 +1,8 @@
-# 1.0-M2
+## 1.0-M3
+
+- #27 Add direct access to JShell
+
+## 1.0-M2
 
 - #5 Switch project to Maven 
 - #7 Project renaming
@@ -9,7 +13,7 @@
 - #21 Rendering stale var
 - #22 Clean implementation of the LoaderDelegate
 
-# 1.0-M1
+## 1.0-M1
 
 - #1 Upgrade to Gradle 8.5
 - #2 Update Ivy to 2.5.2

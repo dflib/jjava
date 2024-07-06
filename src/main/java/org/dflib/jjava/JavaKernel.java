@@ -326,7 +326,7 @@ public class JavaKernel extends BaseKernel {
 
                             return formatted;
                         }).collect(Collectors.joining("\n\n")
-                )
+                        )
         );
 
         fmtDocs.putHTML(
@@ -340,7 +340,7 @@ public class JavaKernel extends BaseKernel {
 
                             return formatted;
                         }).collect(Collectors.joining("<br/><br/>")
-                )
+                        )
         );
 
         return fmtDocs;
@@ -378,5 +378,13 @@ public class JavaKernel extends BaseKernel {
     @Override
     public void interrupt() {
         this.evaluator.interrupt();
+    }
+
+    /**
+     * @return a JShell instance used to evaluate Java code.
+     * @since 1.0-M3
+     */
+    public JShell getJShell() {
+        return evaluator.getShell();
     }
 }
