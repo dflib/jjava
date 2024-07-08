@@ -138,10 +138,14 @@ To change JVM parameters use the `JJAVA_JVM_OPTS` environment variable with a st
 For example to enable assertions and set a limit on the heap size to `128m`:
 
 ```bash
-set JJAVA_JVM_OPTS='-ea -Xmx128m'
+export JJAVA_JVM_OPTS='-ea -Xmx128m'
 ```
 
-[//]: # ( "-agentlib:jdwp=transport=dt_socket,server=y,address=5005,suspend=n",)
+or enabled kernel debug:
+
+```bash
+export JJAVA_JVM_OPTS='-agentlib:jdwp=transport=dt_socket,server=y,address=5005,suspend=n'
+```
 
 ### Run
 
