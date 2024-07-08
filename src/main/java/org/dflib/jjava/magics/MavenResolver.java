@@ -54,20 +54,38 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.*;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Result;
+import javax.xml.transform.Source;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.SequenceInputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.text.ParseException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class MavenResolver {
     private static final String DEFAULT_RESOLVER_NAME = "default";
@@ -83,18 +101,6 @@ public class MavenResolver {
      * The ivy artifact type corresponding to a binary artifact for a module.
      */
     private static final String JAR_TYPE = "jar";
-
-    /**
-     * The ivy artifact type corresponding to a source code artifact for a module. This
-     * is still usually a ".jar" file but that corresponds to the "ext" not the "type".
-     */
-    private static final String SOURCE_TYPE = "source";
-
-    /**
-     * The ivy artifact type corresponding to a javadoc (HTML) artifact for a module. This
-     * is still usually a ".jar" file but that corresponds to the "ext" not the "type".
-     */
-    private static final String JAVADOC_TYPE = "javadoc";
 
     private static final Pattern IVY_MRID_PATTERN = Pattern.compile(
             "^(?<organization>[-\\w/._+=]*)#(?<name>[-\\w/._+=]+)(?:#(?<branch>[-\\w/._+=]+))?;(?<revision>[-\\w/._+=,\\[\\]{}():@]+)$"
@@ -168,7 +174,7 @@ public class MavenResolver {
                     m.group("artifact"),
                     m.group("version"),
                     packaging == null
-                            ? Collections.emptyMap()
+                            ? Map.of()
                             : classifier == null
                                     ? Map.of("ext", packaging)
                                     : Map.of("ext", packaging, "m:classifier", classifier)
@@ -268,7 +274,7 @@ public class MavenResolver {
         parser.toIvyFile(pomUrl.openStream(), new URLResource(pomUrl), tempIvyFile, pomModule);
 
         MessageLogger logger = ivy.getLoggerEngine();
-        logger.info(new String(Files.readAllBytes(tempIvyFile.toPath()), Charset.forName("utf8")));
+        logger.info(Files.readString(tempIvyFile.toPath(), StandardCharsets.UTF_8));
 
         return tempIvyFile;
     }
@@ -309,9 +315,9 @@ public class MavenResolver {
 
         // Wrap in a dummy tag to allow fragments
         InputStream inStream = new SequenceInputStream(Collections.enumeration(Arrays.asList(
-                new ByteArrayInputStream("<jjava>".getBytes(Charset.forName("utf-8"))),
-                new ByteArrayInputStream(rawIn.getBytes(Charset.forName("utf-8"))),
-                new ByteArrayInputStream("</jjava>".getBytes(Charset.forName("utf-8")))
+                new ByteArrayInputStream("<jjava>".getBytes(StandardCharsets.UTF_8)),
+                new ByteArrayInputStream(rawIn.getBytes(StandardCharsets.UTF_8)),
+                new ByteArrayInputStream("</jjava>".getBytes(StandardCharsets.UTF_8))
         )));
 
         Document doc = builder.parse(inStream);
@@ -408,7 +414,7 @@ public class MavenResolver {
         newParent.appendChild(newNode);
     }
 
-    private String writeDOM(Source src) throws TransformerException, UnsupportedEncodingException {
+    private String writeDOM(Source src) throws TransformerException {
         Transformer idTransformer = TransformerFactory.newInstance().newTransformer();
         idTransformer.setOutputProperty(OutputKeys.INDENT, "yes");
 
@@ -417,10 +423,10 @@ public class MavenResolver {
 
         idTransformer.transform(src, dest);
 
-        return out.toString("utf-8");
+        return out.toString(StandardCharsets.UTF_8);
     }
 
-    public void addJarsToClasspath(Iterable<String> jars) {
+    public void addJarsToClasspath(Stream<String> jars) {
         jars.forEach(this.addToClasspath);
     }
 
@@ -448,7 +454,6 @@ public class MavenResolver {
                 this.addJarsToClasspath(
                         this.resolveMavenDependency(dep, repos, verbosity).stream()
                                 .map(File::getAbsolutePath)
-                                ::iterator
                 );
             } catch (IOException | ParseException e) {
                 throw new RuntimeException(e);
@@ -474,7 +479,7 @@ public class MavenResolver {
             tempPomPath.deleteOnExit();
 
             String rawPom = this.solidifyPartialPOM(body);
-            Files.write(tempPomPath.toPath(), rawPom.getBytes(Charset.forName("utf-8")));
+            Files.write(tempPomPath.toPath(), rawPom.getBytes(StandardCharsets.UTF_8));
 
             List<String> loadArgs = new ArrayList<>(args.size() + 1);
             loadArgs.add(tempPomPath.getAbsolutePath());
@@ -515,7 +520,6 @@ public class MavenResolver {
             this.addJarsToClasspath(
                     this.resolveFromIvyFile(ivy, ivyFile, scopes).stream()
                             .map(File::getAbsolutePath)
-                            ::iterator
             );
         } catch (IOException | ParseException | ModelBuildingException e) {
             throw new RuntimeException(e);
