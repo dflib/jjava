@@ -74,6 +74,7 @@ public class JJava {
     public static final String JJ_CLASSPATH_KEY = "JJAVA_CLASSPATH";
     public static final String JJ_STARTUP_SCRIPTS_KEY = "JJAVA_STARTUP_SCRIPTS_PATH";
     public static final String JJ_STARTUP_SCRIPT_KEY = "JJAVA_STARTUP_SCRIPT";
+    public static final String JJ_BOOTSTRAP_OFF_KEY = "JJAVA_BOOTSTRAP_OFF";
 
     public static final String DEFAULT_SHELL_INIT_RESOURCE_PATH = "jjava-jshell-init.jshell";
 

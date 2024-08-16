@@ -43,6 +43,7 @@ import io.github.spencerpark.jupyter.kernel.util.StringStyler;
 import io.github.spencerpark.jupyter.kernel.util.TextColor;
 import io.github.spencerpark.jupyter.messages.Header;
 import jdk.jshell.*;
+import org.dflib.jjava.magics.PluginBootstrap;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -99,7 +100,7 @@ public class JavaKernel extends BaseKernel {
                 .sysStderr()
                 .sysStdin()
                 .build();
-        this.mavenResolver = new MavenResolver(this::addToClasspath);
+        this.mavenResolver = getDependencyResolver();
 
         this.magicsTransformer = new MagicsSourceTransformer();
         this.magics = new Magics();
@@ -138,6 +139,14 @@ public class JavaKernel extends BaseKernel {
 
     public void addToClasspath(String path) {
         this.evaluator.getShell().addToClasspath(path);
+    }
+
+    public void handleBootstrap(PluginBootstrap bootstrap) {
+        try {
+            eval(bootstrap.getBootstrapScript());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public MavenResolver getMavenResolver() {
@@ -183,6 +192,12 @@ public class JavaKernel extends BaseKernel {
         }
 
         return fmt;
+    }
+
+    private MavenResolver getDependencyResolver() {
+        return System.getenv(JJava.JJ_BOOTSTRAP_OFF_KEY) == null
+                ? new MavenResolver(this::addToClasspath, this::handleBootstrap)
+                : new MavenResolver(this::addToClasspath);
     }
 
     private List<String> formatCompilationException(CompilationException e) {

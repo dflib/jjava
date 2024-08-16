@@ -85,7 +85,6 @@ import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class MavenResolver {
     private static final String DEFAULT_RESOLVER_NAME = "default";
@@ -110,10 +109,16 @@ public class MavenResolver {
     );
 
     private final Consumer<String> addToClasspath;
+    private final Consumer<PluginBootstrap> handleBootstrap;
     private final List<DependencyResolver> repos;
 
     public MavenResolver(Consumer<String> addToClasspath) {
+        this(addToClasspath, bootstrap -> {});
+    }
+
+    public MavenResolver(Consumer<String> addToClasspath, Consumer<PluginBootstrap> handleBootstrap) {
         this.addToClasspath = addToClasspath;
+        this.handleBootstrap = handleBootstrap;
         this.repos = new LinkedList<>();
         this.repos.add(CommonRepositories.mavenCentral());
         this.repos.add(CommonRepositories.mavenLocal());
@@ -426,8 +431,17 @@ public class MavenResolver {
         return out.toString(StandardCharsets.UTF_8);
     }
 
-    public void addJarsToClasspath(Stream<String> jars) {
-        jars.forEach(this.addToClasspath);
+    public void addJarsToClasspath(Iterable<String> resolvedJars) {
+        resolvedJars.forEach(addToClasspath);
+    }
+
+    public void tryBootstrap(Iterable<String> resolvedJars) {
+        LinkedList<String> resolvedJarsReversed = new LinkedList<>();
+        resolvedJars.forEach(resolvedJarsReversed::addFirst);
+
+        for (String jar : resolvedJarsReversed) {
+            PluginBootstrapMaster.getInstance().getBootstraps(jar).forEach(handleBootstrap);
+        }
     }
 
     @LineMagic(aliases = { "addMavenDependency", "maven" })
@@ -451,10 +465,11 @@ public class MavenResolver {
 
         for (String dep : deps) {
             try {
-                this.addJarsToClasspath(
-                        this.resolveMavenDependency(dep, repos, verbosity).stream()
-                                .map(File::getAbsolutePath)
-                );
+                List<String> requiredJars = this.resolveMavenDependency(dep, repos, verbosity).stream()
+                        .map(File::getAbsolutePath)
+                        .collect(Collectors.toList());
+                addJarsToClasspath(requiredJars);
+                tryBootstrap(requiredJars);
             } catch (IOException | ParseException e) {
                 throw new RuntimeException(e);
             }
@@ -517,10 +532,11 @@ public class MavenResolver {
 
             this.addPomReposToIvySettings(settings, pomFile);
 
-            this.addJarsToClasspath(
-                    this.resolveFromIvyFile(ivy, ivyFile, scopes).stream()
-                            .map(File::getAbsolutePath)
-            );
+            List<String> requiredJars = resolveFromIvyFile(ivy, ivyFile, scopes).stream()
+                    .map(File::getAbsolutePath)
+                    .collect(Collectors.toList());
+            addJarsToClasspath(requiredJars);
+            tryBootstrap(requiredJars);
         } catch (IOException | ParseException | ModelBuildingException e) {
             throw new RuntimeException(e);
         }
