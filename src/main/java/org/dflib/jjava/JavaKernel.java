@@ -50,6 +50,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class JavaKernel extends BaseKernel {
+
     public static String completeCodeSignifier() {
         return BaseKernel.IS_COMPLETE_YES;
     }
@@ -70,6 +71,7 @@ public class JavaKernel extends BaseKernel {
             .build();
     private static final CharPredicate WS = CharPredicate.anyOf(" \t\n\r");
 
+    private final String version;
     private final CodeEvaluator evaluator;
     private final MavenResolver mavenResolver;
 
@@ -82,23 +84,33 @@ public class JavaKernel extends BaseKernel {
 
     private final StringStyler errorStyler;
 
-    public JavaKernel() {
+    public JavaKernel(String version, String defaultStartupScript) {
+        this.version = version;
         this.evaluator = new CodeEvaluatorBuilder()
+
                 .addClasspathFromString(System.getenv(JJava.CLASSPATH_KEY))
                 .addClasspathFromString(System.getenv(Env.JJAVA_CLASSPATH))
+
                 .compilerOptsFromString(System.getenv(JJava.COMPILER_OPTS_KEY))
                 .compilerOptsFromString(System.getenv(Env.JJAVA_COMPILER_OPTS))
-                .startupScript(JJava.resource(JJava.DEFAULT_SHELL_INIT_RESOURCE_PATH))
+
+                .startupScript(defaultStartupScript)
+
                 .startupScriptFiles(System.getenv(JJava.STARTUP_SCRIPTS_KEY))
                 .startupScriptFiles(System.getenv(Env.JJAVA_STARTUP_SCRIPTS_PATH))
+
                 .startupScript(System.getenv(JJava.STARTUP_SCRIPT_KEY))
                 .startupScript(System.getenv(Env.JJAVA_STARTUP_SCRIPT))
+
+                // TODO: this property is not additive to IJAVA_TIMEOUT is oevrridden by JJAVA_TIMEOUT, even if the latter is null
                 .timeoutFromString(System.getenv(JJava.TIMEOUT_DURATION_KEY))
                 .timeoutFromString(System.getenv(Env.JJAVA_TIMEOUT))
+
                 .sysStdout()
                 .sysStderr()
                 .sysStdin()
                 .build();
+
         this.mavenResolver = new MavenResolver(this::addToClasspath);
 
         this.magicsTransformer = new MagicsSourceTransformer();
@@ -116,7 +128,7 @@ public class JavaKernel extends BaseKernel {
                 .build();
         this.banner = String.format("Java %s :: JJava kernel %s \nProtocol v%s implementation by %s %s",
                 Runtime.version().toString(),
-                JJava.VERSION,
+                version,
                 Header.PROTOCOL_VERISON,
                 KERNEL_META.getOrDefault("project", "UNKNOWN"),
                 KERNEL_META.getOrDefault("version", "UNKNOWN")
@@ -386,5 +398,13 @@ public class JavaKernel extends BaseKernel {
      */
     public JShell getJShell() {
         return evaluator.getShell();
+    }
+
+    /**
+     * @return a version of the Java kernel
+     * @since 1.0-M3
+     */
+    public String getVersion() {
+        return version;
     }
 }
