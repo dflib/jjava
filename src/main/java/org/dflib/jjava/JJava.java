@@ -38,42 +38,40 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.logging.Level;
 
+/**
+ * The main class launching Jupyter Java kernel.
+ */
 public class JJava {
+
     /**
-     * @see #JJ_COMPILER_OPTS_KEY
-     * */
-    @Deprecated(since = "1.0")
+     * @deprecated in favor of {@link Env#JJAVA_COMPILER_OPTS}
+     */
+    @Deprecated(since = "1.0", forRemoval = true)
     public static final String COMPILER_OPTS_KEY = "IJAVA_COMPILER_OPTS";
 
     /**
-     * @see #JJ_TIMEOUT_DURATION_KEY
-     * */
-    @Deprecated(since = "1.0")
+     * @deprecated in favor of {@link Env#JJAVA_TIMEOUT}
+     */
+    @Deprecated(since = "1.0", forRemoval = true)
     public static final String TIMEOUT_DURATION_KEY = "IJAVA_TIMEOUT";
 
     /**
-     * @see #JJ_CLASSPATH_KEY
-     * */
-    @Deprecated(since = "1.0")
+     * @deprecated in favor of  {@link Env#JJAVA_CLASSPATH}
+     */
+    @Deprecated(since = "1.0", forRemoval = true)
     public static final String CLASSPATH_KEY = "IJAVA_CLASSPATH";
 
     /**
-     * @see #JJ_STARTUP_SCRIPTS_KEY
-     * */
-    @Deprecated(since = "1.0")
+     * @deprecated in favor of  {@link Env#JJAVA_STARTUP_SCRIPTS_PATH}
+     */
+    @Deprecated(since = "1.0", forRemoval = true)
     public static final String STARTUP_SCRIPTS_KEY = "IJAVA_STARTUP_SCRIPTS_PATH";
 
     /**
-     * @see #JJ_STARTUP_SCRIPT_KEY
-     * */
-    @Deprecated(since = "1.0")
+     * @deprecated in favor of  {@link Env#JJAVA_STARTUP_SCRIPT}
+     */
+    @Deprecated(since = "1.0", forRemoval = true)
     public static final String STARTUP_SCRIPT_KEY = "IJAVA_STARTUP_SCRIPT";
-
-    public static final String JJ_COMPILER_OPTS_KEY = "JJAVA_COMPILER_OPTS";
-    public static final String JJ_TIMEOUT_DURATION_KEY = "JJAVA_TIMEOUT";
-    public static final String JJ_CLASSPATH_KEY = "JJAVA_CLASSPATH";
-    public static final String JJ_STARTUP_SCRIPTS_KEY = "JJAVA_STARTUP_SCRIPTS_PATH";
-    public static final String JJ_STARTUP_SCRIPT_KEY = "JJAVA_STARTUP_SCRIPT";
 
     public static final String DEFAULT_SHELL_INIT_RESOURCE_PATH = "jjava-jshell-init.jshell";
 
@@ -106,7 +104,7 @@ public class JJava {
      * for the kernel user code to access kernel services.
      *
      * @return the kernel created by running {@link #main(String[])} or {@code null} if
-     *         one has not yet (or already created and finished) been created.
+     * one has not yet (or already created and finished) been created.
      */
     public static JavaKernel getKernelInstance() {
         return JJava.kernel;
