@@ -43,7 +43,6 @@ import io.github.spencerpark.jupyter.kernel.util.StringStyler;
 import io.github.spencerpark.jupyter.kernel.util.TextColor;
 import io.github.spencerpark.jupyter.messages.Header;
 import jdk.jshell.*;
-import org.dflib.jjava.magics.PluginBootstrap;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -112,7 +111,7 @@ public class JavaKernel extends BaseKernel {
                 .sysStdin()
                 .build();
 
-        this.mavenResolver = getDependencyResolver();
+        this.mavenResolver = buildDependencyResolver();
 
         this.magicsTransformer = new MagicsSourceTransformer();
         this.magics = new Magics();
@@ -153,12 +152,8 @@ public class JavaKernel extends BaseKernel {
         this.evaluator.getShell().addToClasspath(path);
     }
 
-    public void handleBootstrap(PluginBootstrap bootstrap) {
-        try {
-            eval(bootstrap.getBootstrapScript());
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+    public void handleExtensionLoading(Extension extension) {
+        extension.install(this);
     }
 
     public MavenResolver getMavenResolver() {
@@ -184,6 +179,26 @@ public class JavaKernel extends BaseKernel {
         return this.helpLinks;
     }
 
+    /**
+     * Determines whether auto-loading of extensions is enabled based on the value of the
+     * {@link Env#JJAVA_LOAD_EXTENSIONS} environment variable.
+     * <p>
+     * The feature is considered disabled if this variable is defined and it's value is falsy ("", "0", "false").<p>
+     * The feature is considered enabled in other cases.
+     *
+     * @return true if auto-loading of extensions is enabled, false otherwise
+     */
+    public boolean autoLoadExtensions() {
+        String envValue = System.getenv(Env.JJAVA_LOAD_EXTENSIONS);
+        if (envValue == null) {
+            return true;
+        }
+        String envValueTrimmed = envValue.trim();
+        return !envValueTrimmed.isEmpty()
+                && !envValueTrimmed.equals("0")
+                && !envValueTrimmed.equalsIgnoreCase("false");
+    }
+
     @Override
     public List<String> formatError(Exception e) {
         List<String> fmt = new LinkedList<>();
@@ -206,9 +221,9 @@ public class JavaKernel extends BaseKernel {
         return fmt;
     }
 
-    private MavenResolver getDependencyResolver() {
-        return System.getenv(Env.JJAVA_BOOTSTRAP_OFF) == null
-                ? new MavenResolver(this::addToClasspath, this::handleBootstrap)
+    private MavenResolver buildDependencyResolver() {
+        return autoLoadExtensions()
+                ? new MavenResolver(this::addToClasspath, this::handleExtensionLoading)
                 : new MavenResolver(this::addToClasspath);
     }
 

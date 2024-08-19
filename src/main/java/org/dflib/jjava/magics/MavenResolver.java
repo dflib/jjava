@@ -23,6 +23,7 @@
  */
 package org.dflib.jjava.magics;
 
+import org.dflib.jjava.Extension;
 import org.dflib.jjava.magics.dependencies.CommonRepositories;
 import org.dflib.jjava.magics.dependencies.Maven;
 import org.dflib.jjava.magics.dependencies.MavenToIvy;
@@ -109,16 +110,16 @@ public class MavenResolver {
     );
 
     private final Consumer<String> addToClasspath;
-    private final Consumer<PluginBootstrap> handleBootstrap;
+    private final Consumer<Extension> handleExtensionLoading;
     private final List<DependencyResolver> repos;
 
     public MavenResolver(Consumer<String> addToClasspath) {
         this(addToClasspath, bootstrap -> {});
     }
 
-    public MavenResolver(Consumer<String> addToClasspath, Consumer<PluginBootstrap> handleBootstrap) {
+    public MavenResolver(Consumer<String> addToClasspath, Consumer<Extension> handleExtensionLoading) {
         this.addToClasspath = addToClasspath;
-        this.handleBootstrap = handleBootstrap;
+        this.handleExtensionLoading = handleExtensionLoading;
         this.repos = new LinkedList<>();
         this.repos.add(CommonRepositories.mavenCentral());
         this.repos.add(CommonRepositories.mavenLocal());
@@ -435,12 +436,12 @@ public class MavenResolver {
         resolvedJars.forEach(addToClasspath);
     }
 
-    public void tryBootstrap(Iterable<String> resolvedJars) {
+    public void tryLoadExtensions(Iterable<String> resolvedJars) {
         LinkedList<String> resolvedJarsReversed = new LinkedList<>();
         resolvedJars.forEach(resolvedJarsReversed::addFirst);
 
         for (String jar : resolvedJarsReversed) {
-            PluginBootstrapMaster.getInstance().getBootstraps(jar).forEach(handleBootstrap);
+            ExtensionLoadingMaster.getInstance().getExtensions(jar).forEach(handleExtensionLoading);
         }
     }
 
@@ -465,11 +466,11 @@ public class MavenResolver {
 
         for (String dep : deps) {
             try {
-                List<String> requiredJars = this.resolveMavenDependency(dep, repos, verbosity).stream()
+                List<String> resolvedJars = this.resolveMavenDependency(dep, repos, verbosity).stream()
                         .map(File::getAbsolutePath)
                         .collect(Collectors.toList());
-                addJarsToClasspath(requiredJars);
-                tryBootstrap(requiredJars);
+                addJarsToClasspath(resolvedJars);
+                tryLoadExtensions(resolvedJars);
             } catch (IOException | ParseException e) {
                 throw new RuntimeException(e);
             }
@@ -532,11 +533,11 @@ public class MavenResolver {
 
             this.addPomReposToIvySettings(settings, pomFile);
 
-            List<String> requiredJars = resolveFromIvyFile(ivy, ivyFile, scopes).stream()
+            List<String> resolvedJars = resolveFromIvyFile(ivy, ivyFile, scopes).stream()
                     .map(File::getAbsolutePath)
                     .collect(Collectors.toList());
-            addJarsToClasspath(requiredJars);
-            tryBootstrap(requiredJars);
+            addJarsToClasspath(resolvedJars);
+            tryLoadExtensions(resolvedJars);
         } catch (IOException | ParseException | ModelBuildingException e) {
             throw new RuntimeException(e);
         }
