@@ -438,9 +438,7 @@ public class MavenResolver {
     }
 
     public void tryLoadExtensions(Iterable<String> resolvedJars) {
-        LinkedList<String> resolvedJarsReversed = new LinkedList<>();
-        resolvedJars.forEach(resolvedJarsReversed::addFirst);
-        ExtensionLoader.getInstance().getExtensions(resolvedJarsReversed).forEach(handleExtensionLoading);
+        ExtensionLoader.getInstance().getExtensions(resolvedJars).forEach(handleExtensionLoading);
     }
 
     @LineMagic(aliases = { "addMavenDependency", "maven" })
