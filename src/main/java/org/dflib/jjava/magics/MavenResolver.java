@@ -24,6 +24,7 @@
 package org.dflib.jjava.magics;
 
 import org.dflib.jjava.Extension;
+import org.dflib.jjava.ExtensionLoadingMaster;
 import org.dflib.jjava.magics.dependencies.CommonRepositories;
 import org.dflib.jjava.magics.dependencies.Maven;
 import org.dflib.jjava.magics.dependencies.MavenToIvy;

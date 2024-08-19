@@ -1,6 +1,4 @@
-package org.dflib.jjava.magics;
-
-import org.dflib.jjava.Extension;
+package org.dflib.jjava;
 
 import java.io.IOException;
 import java.net.URL;
