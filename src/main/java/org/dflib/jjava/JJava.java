@@ -24,103 +24,77 @@
 package org.dflib.jjava;
 
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.github.spencerpark.jupyter.channels.JupyterConnection;
 import io.github.spencerpark.jupyter.channels.JupyterSocket;
 import io.github.spencerpark.jupyter.kernel.KernelConnectionProperties;
+import org.dflib.jjava.execution.CodeEvaluatorBuilder;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.logging.Level;
 
+/**
+ * The main class launching Jupyter Java kernel.
+ */
 public class JJava {
+
+    private static final String KERNEL_METADATA_FILE = "jjava-kernel-metadata.json";
+    private static final String DEFAULT_STARTUP_SCRIPT = "jjava-jshell-init.jshell";
+
     /**
-     * @see #JJ_COMPILER_OPTS_KEY
-     * */
-    @Deprecated(since = "1.0")
+     * @deprecated in favor of {@link Env#JJAVA_COMPILER_OPTS}
+     */
+    @Deprecated(since = "1.0", forRemoval = true)
     public static final String COMPILER_OPTS_KEY = "IJAVA_COMPILER_OPTS";
 
     /**
-     * @see #JJ_TIMEOUT_DURATION_KEY
-     * */
-    @Deprecated(since = "1.0")
+     * @deprecated in favor of {@link Env#JJAVA_TIMEOUT}
+     */
+    @Deprecated(since = "1.0", forRemoval = true)
     public static final String TIMEOUT_DURATION_KEY = "IJAVA_TIMEOUT";
 
     /**
-     * @see #JJ_CLASSPATH_KEY
-     * */
-    @Deprecated(since = "1.0")
+     * @deprecated in favor of  {@link Env#JJAVA_CLASSPATH}
+     */
+    @Deprecated(since = "1.0", forRemoval = true)
     public static final String CLASSPATH_KEY = "IJAVA_CLASSPATH";
 
     /**
-     * @see #JJ_STARTUP_SCRIPTS_KEY
-     * */
-    @Deprecated(since = "1.0")
+     * @deprecated in favor of  {@link Env#JJAVA_STARTUP_SCRIPTS_PATH}
+     */
+    @Deprecated(since = "1.0", forRemoval = true)
     public static final String STARTUP_SCRIPTS_KEY = "IJAVA_STARTUP_SCRIPTS_PATH";
 
     /**
-     * @see #JJ_STARTUP_SCRIPT_KEY
-     * */
-    @Deprecated(since = "1.0")
+     * @deprecated in favor of  {@link Env#JJAVA_STARTUP_SCRIPT}
+     */
+    @Deprecated(since = "1.0", forRemoval = true)
     public static final String STARTUP_SCRIPT_KEY = "IJAVA_STARTUP_SCRIPT";
 
-    public static final String JJ_COMPILER_OPTS_KEY = "JJAVA_COMPILER_OPTS";
-    public static final String JJ_TIMEOUT_DURATION_KEY = "JJAVA_TIMEOUT";
-    public static final String JJ_CLASSPATH_KEY = "JJAVA_CLASSPATH";
-    public static final String JJ_STARTUP_SCRIPTS_KEY = "JJAVA_STARTUP_SCRIPTS_PATH";
-    public static final String JJ_STARTUP_SCRIPT_KEY = "JJAVA_STARTUP_SCRIPT";
-    public static final String JJ_BOOTSTRAP_OFF_KEY = "JJAVA_BOOTSTRAP_OFF";
-
-    public static final String DEFAULT_SHELL_INIT_RESOURCE_PATH = "jjava-jshell-init.jshell";
-
-    public static final String VERSION;
-
-    public static InputStream resource(String path) {
-        return JJava.class.getClassLoader().getResourceAsStream(path);
-    }
-
-    static {
-        InputStream metaStream = resource("jjava-kernel-metadata.json");
-        Reader metaReader = new InputStreamReader(metaStream);
-        try {
-            JsonElement meta = new JsonParser().parse(metaReader);
-            VERSION = meta.getAsJsonObject().get("version").getAsString();
-        } finally {
-            try {
-                metaReader.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    private static JavaKernel kernel = null;
-
-    /**
-     * Obtain a reference to the kernel created by running {@link #main(String[])}. This
-     * kernel may be null if one is not present but as the main use for this method is
-     * for the kernel user code to access kernel services.
-     *
-     * @return the kernel created by running {@link #main(String[])} or {@code null} if
-     *         one has not yet (or already created and finished) been created.
-     */
-    public static JavaKernel getKernelInstance() {
-        return JJava.kernel;
-    }
+    private static JavaKernel kernel;
 
     public static void main(String[] args) throws Exception {
-        if (args.length < 1)
+        if (args.length < 1) {
             throw new IllegalArgumentException("Missing connection file argument");
+        }
+
+        String version = loadKernelVersion();
 
         Path connectionFile = Paths.get(args[0]);
-
-        if (!Files.isRegularFile(connectionFile))
+        if (!Files.isRegularFile(connectionFile)) {
             throw new IllegalArgumentException("Connection file '" + connectionFile + "' isn't a file.");
+        }
+
+        String defaultStartupScript = loadDefaultStartupScript();
 
         String contents = new String(Files.readAllBytes(connectionFile));
 
@@ -129,14 +103,66 @@ public class JJava {
         KernelConnectionProperties connProps = KernelConnectionProperties.parse(contents);
         JupyterConnection connection = new JupyterConnection(connProps);
 
-        kernel = new JavaKernel();
+        kernel = new JavaKernel(version, defaultStartupScript);
         kernel.becomeHandlerForConnection(connection);
 
         connection.connect();
         connection.waitUntilClose();
+    }
 
-        kernel = null;
+    /**
+     * Obtain a reference to the kernel created by running {@link #main(String[])}. This
+     * kernel may be null if one is not present but as the main use for this method is
+     * for the kernel user code to access kernel services.
+     *
+     * @return the kernel created by running {@link #main(String[])} or {@code null} if
+     * one has not yet (or already created and finished) been created.
+     */
+    public static JavaKernel getKernelInstance() {
+        return JJava.kernel;
+    }
 
-        System.exit(0);
+    private static InputStream resource(String path) {
+        return JJava.class.getClassLoader().getResourceAsStream(path);
+    }
+
+    private static String loadKernelVersion() {
+        JsonObject meta = loadKernelMetadata();
+        return meta != null && meta.get("version") != null ? meta.get("version").getAsString() : "0";
+    }
+
+    private static JsonObject loadKernelMetadata() {
+        try (Reader metaReader = new InputStreamReader(resource(KERNEL_METADATA_FILE))) {
+            return new JsonParser().parse(metaReader).getAsJsonObject();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    private static String loadDefaultStartupScript() {
+        try (InputStream in = JJava.resource(DEFAULT_STARTUP_SCRIPT)) {
+            if (in == null) {
+                return null;
+            }
+
+            try {
+                ByteArrayOutputStream result = new ByteArrayOutputStream();
+
+                byte[] buffer = new byte[1024];
+                int read;
+                while ((read = in.read(buffer)) != -1) {
+                    result.write(buffer, 0, read);
+                }
+
+                return result.toString(StandardCharsets.UTF_8.name());
+
+            } catch (IOException e) {
+                throw new RuntimeException(String.format("IOException while reading startup script from stream: %s", e.getMessage()), e);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 }

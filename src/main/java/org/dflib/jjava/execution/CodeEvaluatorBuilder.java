@@ -119,6 +119,10 @@ public class CodeEvaluatorBuilder {
         return this;
     }
 
+    /**
+     * @deprecated in favor of {@link #startupScript(String)}
+     */
+    @Deprecated(since = "1.0", forRemoval = true)
     public CodeEvaluatorBuilder startupScript(InputStream scriptStream) {
         if (scriptStream == null) return this;
 
