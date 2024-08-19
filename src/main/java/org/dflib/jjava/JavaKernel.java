@@ -181,9 +181,9 @@ public class JavaKernel extends BaseKernel {
 
     /**
      * Determines whether auto-loading of extensions is enabled based on the value of the
-     * {@link Env#JJAVA_LOAD_EXTENSIONS} environment variable.
+     * {@code JJAVA_LOAD_EXTENSIONS} environment variable.
      * <br>
-     * The feature is considered disabled if this variable is defined and it's value is falsy ("", "0", "false").<br>
+     * The feature is considered disabled if this variable is defined and its value is falsy ("", "0", "false").<br>
      * The feature is considered enabled in other cases.
      *
      * @return true if auto-loading of extensions is enabled, false otherwise
