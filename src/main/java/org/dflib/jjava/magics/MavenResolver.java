@@ -115,7 +115,7 @@ public class MavenResolver {
     private final List<DependencyResolver> repos;
 
     public MavenResolver(Consumer<String> addToClasspath) {
-        this(addToClasspath, bootstrap -> {});
+        this(addToClasspath, extension -> {});
     }
 
     public MavenResolver(Consumer<String> addToClasspath, Consumer<Extension> handleExtensionLoading) {
