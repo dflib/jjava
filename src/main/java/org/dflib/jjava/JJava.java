@@ -23,13 +23,11 @@
  */
 package org.dflib.jjava;
 
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.github.spencerpark.jupyter.channels.JupyterConnection;
 import io.github.spencerpark.jupyter.channels.JupyterSocket;
 import io.github.spencerpark.jupyter.kernel.KernelConnectionProperties;
-import org.dflib.jjava.execution.CodeEvaluatorBuilder;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
