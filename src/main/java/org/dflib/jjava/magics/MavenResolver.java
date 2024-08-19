@@ -24,7 +24,7 @@
 package org.dflib.jjava.magics;
 
 import org.dflib.jjava.Extension;
-import org.dflib.jjava.ExtensionLoadingMaster;
+import org.dflib.jjava.ExtensionLoader;
 import org.dflib.jjava.magics.dependencies.CommonRepositories;
 import org.dflib.jjava.magics.dependencies.Maven;
 import org.dflib.jjava.magics.dependencies.MavenToIvy;
@@ -440,10 +440,7 @@ public class MavenResolver {
     public void tryLoadExtensions(Iterable<String> resolvedJars) {
         LinkedList<String> resolvedJarsReversed = new LinkedList<>();
         resolvedJars.forEach(resolvedJarsReversed::addFirst);
-
-        for (String jar : resolvedJarsReversed) {
-            ExtensionLoadingMaster.getInstance().getExtensions(jar).forEach(handleExtensionLoading);
-        }
+        ExtensionLoader.getInstance().getExtensions(resolvedJarsReversed).forEach(handleExtensionLoading);
     }
 
     @LineMagic(aliases = { "addMavenDependency", "maven" })
