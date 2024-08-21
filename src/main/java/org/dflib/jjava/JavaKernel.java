@@ -102,7 +102,8 @@ public class JavaKernel extends BaseKernel {
                 .startupScript(System.getenv(JJava.STARTUP_SCRIPT_KEY))
                 .startupScript(System.getenv(Env.JJAVA_STARTUP_SCRIPT))
 
-                // TODO: this property is not additive to IJAVA_TIMEOUT is oevrridden by JJAVA_TIMEOUT, even if the latter is null
+                // TODO: this property is not additive, so IJAVA_TIMEOUT is overridden by JJAVA_TIMEOUT,
+                //  even if the latter is null
                 .timeoutFromString(System.getenv(JJava.TIMEOUT_DURATION_KEY))
                 .timeoutFromString(System.getenv(Env.JJAVA_TIMEOUT))
 
