@@ -7,10 +7,12 @@ _JJava is an evolution of the earlier [IJava kernel](https://github.com/SpencerP
 
 ## Requirements
 
-1.  Java JDK >= 11
-2.  A Jupyter-like environment to use the kernel in.
+1.  Java 11 or newer
+2.  Python and a Jupyter-like environment to use the kernel in.
 
-## Install pre-built binary
+## Installation
+
+_More detailed instructions are available in the [documentation](https://dflib.org/jjava/docs/1.x/#_installation)._
 
 1.  Download the release from the [releases tab](https://github.com/dflib/jjava/releases).
 2.  Unzip it into a temporary location.
