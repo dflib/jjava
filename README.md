@@ -21,5 +21,5 @@ _JJava is an evolution of the earlier [IJava kernel](https://github.com/SpencerP
 * [Website](https://dflib.org/)
 * [Documentation](https://dflib.org/jjava/docs/1.x/)
 * [Discussions and Support Forum](https://github.com/dflib/jjava/discussions)
-* [Bug reports](https://github.com/dflib/jjava/issues)
+* [Bug reports and feature requests](https://github.com/dflib/jjava/issues)
 
