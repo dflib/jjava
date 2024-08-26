@@ -103,6 +103,11 @@ public class MavenResolver {
      */
     private static final String JAR_TYPE = "jar";
 
+    /**
+     * The ivy artifact type corresponding to a jar artifact with an OSGi meta info, that we just ignore
+     */
+    private static final String BUNDLE_TYPE = "bundle";
+
     private static final Pattern IVY_MRID_PATTERN = Pattern.compile(
             "^(?<organization>[-\\w/._+=]*)#(?<name>[-\\w/._+=]+)(?:#(?<branch>[-\\w/._+=]+))?;(?<revision>[-\\w/._+=,\\[\\]{}():@]+)$"
     );
@@ -263,7 +268,8 @@ public class MavenResolver {
         }
 
         return Arrays.stream(resolved.getAllArtifactsReports())
-                .filter(a -> JAR_TYPE.equalsIgnoreCase(a.getType()))
+                .filter(a -> JAR_TYPE.equalsIgnoreCase(a.getType())
+                        || BUNDLE_TYPE.equalsIgnoreCase(a.getType()))
                 .map(ArtifactDownloadReport::getLocalFile)
                 .collect(Collectors.toList());
     }
