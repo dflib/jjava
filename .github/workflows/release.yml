@@ -36,5 +36,5 @@ jobs:
           body: JJava ${{ steps.vars.outputs.version }} release
           draft: true
           prerelease: false
-          files: ./target/jjava-${{ steps.vars.outputs.version }}.zip
+          files: ./jjava/target/jjava-${{ steps.vars.outputs.version }}.zip
           fail_on_unmatched_files: true
