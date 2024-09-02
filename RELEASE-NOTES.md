@@ -2,6 +2,7 @@
 
 - #27 Add direct access to JShell
 - #28 Auto-bootstrap of kernel-aware libraries 
+- #30 DFLib / Parquet and Avro classpath issues 
 - #31 An older jar is used instead of the one indicated in %%loadFromPOM 
 - #33 Internalize dependency on `jupyter-jvm-basekernel` 
 
