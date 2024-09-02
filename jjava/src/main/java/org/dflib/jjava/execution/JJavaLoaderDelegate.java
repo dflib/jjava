@@ -14,6 +14,8 @@ import java.util.Map;
 
 public class JJavaLoaderDelegate implements LoaderDelegate {
 
+    private static final String CLASSPATH_PROPERTY = "java.class.path";
+
     private final Map<String, byte[]> declaredClasses;
     private final Map<String, Class<?>> loadedClasses;
     private final BytecodeClassLoader classLoader;
@@ -54,6 +56,10 @@ public class JJavaLoaderDelegate implements LoaderDelegate {
         for (String next : path.split(File.pathSeparator)) {
             try {
                 classLoader.addURL(Path.of(next).toUri().toURL());
+
+                String classpath = System.getProperty(CLASSPATH_PROPERTY);
+                classpath += System.lineSeparator() + path;
+                System.setProperty(CLASSPATH_PROPERTY, classpath);
             } catch (MalformedURLException e) {
                 throw new ExecutionControl.InternalException("Unable to resolve classpath " + next
                         + ": " + e.getMessage());
