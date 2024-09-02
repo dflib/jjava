@@ -1,6 +1,7 @@
 ## 1.0-M3
 
 - #27 Add direct access to JShell
+- #28 Auto-bootstrap of kernel-aware libraries 
 
 ## 1.0-M2
 
