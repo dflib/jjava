@@ -229,9 +229,10 @@ public class JavaKernel extends BaseKernel {
     }
 
     private MavenResolver buildDependencyResolver() {
-        return autoLoadExtensions()
-                ? new MavenResolver(this::addToClasspath, this::handleExtensionLoading)
-                : new MavenResolver(this::addToClasspath);
+        return new MavenResolver(this::addToClasspath,
+                autoLoadExtensions()
+                        ? this::handleExtensionLoading
+                        : ext -> {});
     }
 
     private List<String> formatCompilationException(CompilationException e) {

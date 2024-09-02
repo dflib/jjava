@@ -115,17 +115,15 @@ public class MavenResolver {
             "^(?<group>[^:\\s]+):(?<artifact>[^:\\s]+)(?::(?<packaging>[^:\\s]*)(?::(?<classifier>[^:\\s]+))?)?:(?<version>[^:\\s]+)$"
     );
 
-    private final Consumer<String> addToClasspath;
-    private final Consumer<Extension> handleExtensionLoading;
+    private final Consumer<String> classPathHandler;
+    private final Consumer<Extension> extensionHandler;
+    private final ExtensionLoader extensionLoader;
     private final List<DependencyResolver> repos;
 
-    public MavenResolver(Consumer<String> addToClasspath) {
-        this(addToClasspath, extension -> {});
-    }
-
-    public MavenResolver(Consumer<String> addToClasspath, Consumer<Extension> handleExtensionLoading) {
-        this.addToClasspath = addToClasspath;
-        this.handleExtensionLoading = handleExtensionLoading;
+    public MavenResolver(Consumer<String> classPathHandler, Consumer<Extension> extensionHandler) {
+        this.classPathHandler = classPathHandler;
+        this.extensionLoader = new ExtensionLoader();
+        this.extensionHandler = extensionHandler;
         this.repos = new LinkedList<>();
         this.repos.add(CommonRepositories.mavenCentral());
         this.repos.add(CommonRepositories.mavenLocal());
@@ -440,11 +438,14 @@ public class MavenResolver {
     }
 
     public void addJarsToClasspath(Iterable<String> resolvedJars) {
-        resolvedJars.forEach(addToClasspath);
+        resolvedJars.forEach(classPathHandler);
+        loadExtensions(resolvedJars);
     }
 
-    public void tryLoadExtensions(Iterable<String> resolvedJars) {
-        ExtensionLoader.getInstance().getExtensions(resolvedJars).forEach(handleExtensionLoading);
+    public void loadExtensions(Iterable<String> resolvedJars) {
+        extensionLoader
+                .loadExtensions(resolvedJars)
+                .forEach(extensionHandler);
     }
 
     @LineMagic(aliases = { "addMavenDependency", "maven" })
@@ -465,14 +466,12 @@ public class MavenResolver {
 
         Set<String> repos = from.isEmpty() ? null : new LinkedHashSet<>(from);
 
-
         for (String dep : deps) {
             try {
                 List<String> resolvedJars = this.resolveMavenDependency(dep, repos, verbosity).stream()
                         .map(File::getAbsolutePath)
                         .collect(Collectors.toList());
                 addJarsToClasspath(resolvedJars);
-                tryLoadExtensions(resolvedJars);
             } catch (IOException | ParseException e) {
                 throw new RuntimeException(e);
             }
@@ -539,7 +538,6 @@ public class MavenResolver {
                     .map(File::getAbsolutePath)
                     .collect(Collectors.toList());
             addJarsToClasspath(resolvedJars);
-            tryLoadExtensions(resolvedJars);
         } catch (IOException | ParseException | ModelBuildingException e) {
             throw new RuntimeException(e);
         }
