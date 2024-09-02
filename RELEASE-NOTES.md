@@ -2,6 +2,7 @@
 
 - #27 Add direct access to JShell
 - #28 Auto-bootstrap of kernel-aware libraries 
+- #31 An older jar is used instead of the one indicated in %%loadFromPOM 
 
 ## 1.0-M2
 
