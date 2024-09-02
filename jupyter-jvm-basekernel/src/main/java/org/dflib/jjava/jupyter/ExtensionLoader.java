@@ -1,4 +1,4 @@
-package org.dflib.jjava;
+package org.dflib.jjava.jupyter;
 
 import java.io.IOException;
 import java.net.MalformedURLException;

@@ -37,6 +37,7 @@ import org.dflib.jjava.execution.EvaluationInterruptedException;
 import org.dflib.jjava.execution.EvaluationTimeoutException;
 import org.dflib.jjava.execution.IncompleteSourceException;
 import org.dflib.jjava.execution.MagicsSourceTransformer;
+import org.dflib.jjava.jupyter.Extension;
 import org.dflib.jjava.jupyter.kernel.BaseKernel;
 import org.dflib.jjava.jupyter.kernel.LanguageInfo;
 import org.dflib.jjava.jupyter.kernel.ReplacementOptions;
