@@ -6,6 +6,7 @@
 - #30 DFLib / Parquet and Avro classpath issues 
 - #31 An older jar is used instead of the one indicated in %%loadFromPOM 
 - #33 Internalize dependency on `jupyter-jvm-basekernel` 
+- #36 Extract and publish JJava API library
 
 ## 1.0-M2
 
