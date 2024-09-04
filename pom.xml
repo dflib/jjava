@@ -7,12 +7,36 @@
 
     <packaging>pom</packaging>
 
-    <name>Java Jupyter Kernel parent module</name>
+    <name>Jupyter Kernel for JVM</name>
+    <description>Jupyter Kernel for JVM, including Java kernel</description>
 
     <modules>
         <module>jjava</module>
         <module>jupyter-jvm-basekernel</module>
     </modules>
+
+    <licenses>
+        <license>
+            <name>Apache License</name>
+            <url>https://github.com/dflib/jjava/blob/master/LICENSE</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <id>andrus</id>
+            <name>Andrus Adamchik</name>
+            <organization>ObjectStyle</organization>
+            <timezone>America/New_York</timezone>
+        </developer>
+        <developer>
+            <id>ntimofeev</id>
+            <name>Nikita Timofeev</name>
+            <organization>ObjectStyle</organization>
+            <timezone>+3</timezone>
+        </developer>
+    </developers>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
