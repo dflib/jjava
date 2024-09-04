@@ -11,7 +11,7 @@ def launch_kernel():
 
     jvm_options = os.getenv('JJAVA_JVM_OPTS', '')
     if jvm_options:
-        args[1:1] = jvm_options.split(r'\s+')
+        args[1:1] = jvm_options.split(' ')
 
     print(f"Running JJava Kernel with args: {args}")
     subprocess.run(args)
