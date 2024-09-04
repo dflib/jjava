@@ -4,5 +4,3 @@ target/
 .project
 .settings
 *.iml
-release.properties
-*.releaseBackup
