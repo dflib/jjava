@@ -4,7 +4,7 @@
 
 ### Prerequisites
 
-You will need a **JDK** >= 11 and proper credentials for the `oss-sonatype-releases` repository
+You will need a **JDK** >= 11 and proper credentials for the `s01-ss-sonatype-releases` repository
 
 ### Perform the Release
 
