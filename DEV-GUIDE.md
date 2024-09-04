@@ -20,6 +20,6 @@ Still everything is done through a single set of Maven commands:
 mvn release:prepare -Prelease
 mvn release:perform -Prelease
 ```
-Go to [https://s01.oss.sonatype.org/]() and manually close and release the staging repository.
+Go to https://s01.oss.sonatype.org/ and manually close and release the staging repository.
 
 Go to [GitHub Releases](https://github.com/dflib/jjava/releases) to manually edit the created draft and publish it.
