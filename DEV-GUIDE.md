@@ -19,7 +19,7 @@ To start a release process you could use `maven-release-plugin` as usual:
 
 ```bash
 mvn release:clean
-mvn release:prapare
+mvn release:prepare
 ```
 
 These commands will create a release tag and [GitHub Actions](https://github.com/dflib/jjava/actions/workflows/release.yml) automation will create a draft release.
