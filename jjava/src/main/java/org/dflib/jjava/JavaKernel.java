@@ -92,7 +92,7 @@ public class JavaKernel extends BaseKernel {
     private final StringStyler errorStyler;
 
     @SuppressWarnings("removal")
-    public JavaKernel(String version, String defaultStartupScript) {
+    public JavaKernel(String version) {
         this.version = version;
         this.evaluator = new CodeEvaluatorBuilder()
 
@@ -101,8 +101,6 @@ public class JavaKernel extends BaseKernel {
 
                 .compilerOptsFromString(System.getenv(JJava.COMPILER_OPTS_KEY))
                 .compilerOptsFromString(System.getenv(Env.JJAVA_COMPILER_OPTS))
-
-                .startupScript(defaultStartupScript)
 
                 .startupScriptFiles(System.getenv(JJava.STARTUP_SCRIPTS_KEY))
                 .startupScriptFiles(System.getenv(Env.JJAVA_STARTUP_SCRIPTS_PATH))
@@ -155,6 +153,8 @@ public class JavaKernel extends BaseKernel {
                 //TODO map snippet ids to code cells and put the proper line number in the margin here
                 .withLinePrefix(TextColor.BOLD_BLACK_FG + "|   ")
                 .build();
+
+        this.mavenResolver.initImplicitExtensions();
     }
 
     public void addToClasspath(String path) {

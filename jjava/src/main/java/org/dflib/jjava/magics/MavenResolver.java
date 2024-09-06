@@ -129,6 +129,15 @@ public class MavenResolver {
         this.repos.add(CommonRepositories.mavenLocal());
     }
 
+    /**
+     * Load extensions provided by the JJava kernel itself (and it's dependencies)
+     *
+     * @since 1.0-M4
+     */
+    public void initImplicitExtensions() {
+        extensionLoader.loadExtensions().forEach(extensionHandler);
+    }
+
     public void addRemoteRepo(String name, String url) {
         if (DEFAULT_RESOLVER_NAME.equals(name))
             throw new IllegalArgumentException("Illegal repository name, cannot use '" + DEFAULT_RESOLVER_NAME + "'.");

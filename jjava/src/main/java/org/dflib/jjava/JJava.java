@@ -29,12 +29,10 @@ import org.dflib.jjava.jupyter.channels.JupyterConnection;
 import org.dflib.jjava.jupyter.channels.JupyterSocket;
 import org.dflib.jjava.jupyter.kernel.KernelConnectionProperties;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -46,7 +44,6 @@ import java.util.logging.Level;
 public class JJava {
 
     private static final String KERNEL_METADATA_FILE = "jjava-kernel-metadata.json";
-    private static final String DEFAULT_STARTUP_SCRIPT = "jjava-jshell-init.jshell";
 
     /**
      * @deprecated in favor of {@link Env#JJAVA_COMPILER_OPTS}
@@ -92,8 +89,6 @@ public class JJava {
             throw new IllegalArgumentException("Connection file '" + connectionFile + "' isn't a file.");
         }
 
-        String defaultStartupScript = loadDefaultStartupScript();
-
         String contents = new String(Files.readAllBytes(connectionFile));
 
         JupyterSocket.JUPYTER_LOGGER.setLevel(Level.WARNING);
@@ -101,7 +96,7 @@ public class JJava {
         KernelConnectionProperties connProps = KernelConnectionProperties.parse(contents);
         JupyterConnection connection = new JupyterConnection(connProps);
 
-        kernel = new JavaKernel(version, defaultStartupScript);
+        kernel = new JavaKernel(version);
         kernel.becomeHandlerForConnection(connection);
 
         connection.connect();
@@ -132,32 +127,6 @@ public class JJava {
     private static JsonObject loadKernelMetadata() {
         try (Reader metaReader = new InputStreamReader(resource(KERNEL_METADATA_FILE))) {
             return JsonParser.parseReader(metaReader).getAsJsonObject();
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    private static String loadDefaultStartupScript() {
-        try (InputStream in = JJava.resource(DEFAULT_STARTUP_SCRIPT)) {
-            if (in == null) {
-                return null;
-            }
-
-            try {
-                ByteArrayOutputStream result = new ByteArrayOutputStream();
-
-                byte[] buffer = new byte[1024];
-                int read;
-                while ((read = in.read(buffer)) != -1) {
-                    result.write(buffer, 0, read);
-                }
-
-                return result.toString(StandardCharsets.UTF_8);
-
-            } catch (IOException e) {
-                throw new RuntimeException(String.format("IOException while reading startup script from stream: %s", e.getMessage()), e);
-            }
         } catch (IOException e) {
             e.printStackTrace();
             return null;

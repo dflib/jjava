@@ -1,3 +1,7 @@
+## 1.0-M4
+
+- #39 Convert the default init script to an extension 
+
 ## 1.0-M3
 
 - #27 Add direct access to JShell

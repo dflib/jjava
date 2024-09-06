@@ -68,12 +68,12 @@ public class MagicsSourceTransformer {
     private String b64Transform(String arg) {
         String encoded = Base64.getEncoder().encodeToString(arg.getBytes());
 
-        return String.format("new String(Base64.getDecoder().decode(\"%s\"))", encoded);
+        return String.format("new String(java.util.Base64.getDecoder().decode(\"%s\"))", encoded);
     }
 
     private String transformLineMagic(LineMagicParseContext ctx) {
         return String.format(
-                "lineMagic(%s,List.of(%s));{};",
+                "org.dflib.jjava.runtime.Magics.lineMagic(%s,java.util.List.of(%s));{};",
                 this.b64Transform(ctx.getMagicCall().getName()),
                 ctx.getMagicCall().getArgs().stream()
                         .map(this::b64Transform)
@@ -83,7 +83,7 @@ public class MagicsSourceTransformer {
 
     private String transformCellMagic(CellMagicParseContext ctx) {
         return String.format(
-                "cellMagic(%s,List.of(%s),%s);{};",
+                "org.dflib.jjava.runtime.Magics.cellMagic(%s,java.util.List.of(%s),%s);{};",
                 this.b64Transform(ctx.getMagicCall().getName()),
                 ctx.getMagicCall().getArgs().stream()
                         .map(this::b64Transform)
