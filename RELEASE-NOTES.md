@@ -1,6 +1,7 @@
 ## 1.0-M4
 
 - #39 Convert the default init script to an extension 
+- #40 Add "java.time" to the list of default imports
 
 ## 1.0-M3
 
