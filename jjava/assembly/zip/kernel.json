@@ -1,8 +1,9 @@
 {
     "argv": [
-        "@PY_EXECUTABLE@",
-        "@LAUNCHER_PATH@",
-        "@KERNEL_PATH@",
+        "java",
+        "-jar",
+        "{resource_dir}/launcher-1.0-SNAPSHOT.jar",
+        "{resource_dir}/jjava-1.0-SNAPSHOT.jar",
         "{connection_file}"
     ],
     "display_name": "Java",

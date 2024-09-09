@@ -8,21 +8,13 @@
     <includeBaseDirectory>false</includeBaseDirectory>
     <files>
         <file>
-            <source>${project.build.directory}/${project.build.finalName}.jar</source>
-            <outputDirectory>java</outputDirectory>
+            <source>${project.build.directory}/jjava-${project.version}.jar</source>
         </file>
         <file>
-            <source>assembly/zip/launcher.py</source>
-            <outputDirectory>java</outputDirectory>
+            <source>../launcher/${project.build.directory}/launcher-${project.version}.jar</source>
         </file>
         <file>
             <source>assembly/zip/kernel.json</source>
-            <outputDirectory>java</outputDirectory>
-        </file>
-        <file>
-            <source>assembly/zip/install.py</source>
-            <outputDirectory>/</outputDirectory>
-            <filtered>true</filtered>
         </file>
     </files>
 </assembly>
