@@ -2,8 +2,8 @@
     "argv": [
         "java",
         "-jar",
-        "{resource_dir}/launcher-1.0-SNAPSHOT.jar",
-        "{resource_dir}/jjava-1.0-SNAPSHOT.jar",
+        "{resource_dir}/launcher-${project.version}.jar",
+        "{resource_dir}/jjava-${project.version}.jar",
         "{connection_file}"
     ],
     "display_name": "Java",
