@@ -1,8 +1,5 @@
 package org.dflib.jjava.launcher;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -17,8 +14,6 @@ import java.util.List;
 public class KernelLauncher {
 
     private static final String JJAVA_JVM_OPTS = "JJAVA_JVM_OPTS";
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(KernelLauncher.class);
 
     private final List<String> args;
 
@@ -39,7 +34,7 @@ public class KernelLauncher {
      */
     public int launchKernel() {
         List<String> command = buildCommand(args);
-        LOGGER.info("Running JJava Kernel with args: {}", command);
+        System.out.println("Running JJava Kernel with args: " + command);
         try {
             ProcessBuilder pb = new ProcessBuilder(command);
             pb.inheritIO();
@@ -53,11 +48,11 @@ public class KernelLauncher {
 
     private void addShutdownHook(Process kernel) {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            LOGGER.info("Launcher is shutting down, terminating the kernel...");
+            System.out.println("Launcher is shutting down, terminating the kernel...");
             kernel.destroy();
             try {
                 kernel.waitFor();
-                LOGGER.info("Kernel terminated.");
+                System.out.println("Kernel terminated.");
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }

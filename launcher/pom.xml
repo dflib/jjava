@@ -13,13 +13,6 @@
     <artifactId>launcher</artifactId>
     <name>Java Jupyter Kernel launcher</name>
 
-    <dependencies>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-simple</artifactId>
-        </dependency>
-    </dependencies>
-
     <build>
         <plugins>
             <plugin>
