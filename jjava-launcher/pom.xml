@@ -10,7 +10,7 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>launcher</artifactId>
+    <artifactId>jjava-launcher</artifactId>
     <name>Java Jupyter Kernel launcher</name>
 
     <build>

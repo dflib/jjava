@@ -2,7 +2,7 @@
     "argv": [
         "java",
         "-jar",
-        "{resource_dir}/launcher-${project.version}.jar",
+        "{resource_dir}/jjava-launcher-${project.version}.jar",
         "{resource_dir}/jjava-${project.version}.jar",
         "{connection_file}"
     ],

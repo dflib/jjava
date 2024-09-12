@@ -17,6 +17,12 @@
             <artifactId>jupyter-jvm-basekernel</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <!-- Need this for the final assembly -->
+        <dependency>
+            <groupId>org.dflib.jjava</groupId>
+            <artifactId>jjava-launcher</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.apache.ivy</groupId>
             <artifactId>ivy</artifactId>

@@ -11,7 +11,7 @@
             <source>${project.build.directory}/jjava-${project.version}.jar</source>
         </file>
         <file>
-            <source>../launcher/${project.build.directory}/launcher-${project.version}.jar</source>
+            <source>../jjava-launcher/${project.build.directory}/jjava-launcher-${project.version}.jar</source>
         </file>
         <file>
             <source>assembly/zip/kernel.json</source>

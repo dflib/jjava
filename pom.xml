@@ -11,9 +11,9 @@
     <description>Jupyter Kernel for JVM, including Java kernel</description>
 
     <modules>
-        <module>launcher</module>
         <module>jupyter-jvm-basekernel</module>
         <module>jjava</module>
+        <module>jjava-launcher</module>
     </modules>
 
     <licenses>
