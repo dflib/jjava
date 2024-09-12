@@ -1,5 +1,6 @@
 ## 1.0-M4
 
+- #35 Replace custom installer with "jupyter kernelspec install" 
 - #39 Convert the default init script to an extension 
 - #40 Add "java.time" to the list of default imports
 
