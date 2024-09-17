@@ -1,5 +1,18 @@
 # JJava Developer Guide
 
+## Installing the latest snapshot version of the Kernel
+
+On macOS (and possibly on Linux) you could just run `snapshot-install.sh` script 
+to build and install current snapshot version of the JJava kernel.
+
+Alternatively, you could just build it and install as with any release version:
+
+```bash
+mvn clean package
+unzip -u "${BUILD_DIR}".zip -d "${TARGET_PATH}"
+jupyter kernelspec install "${TARGET_PATH}" --name=java --user
+```
+
 ## Releasing New Version
 
 ### Prerequisites
