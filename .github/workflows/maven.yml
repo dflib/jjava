@@ -15,15 +15,15 @@ jobs:
         java: [ 11, 17, 21 ]
 
     steps:
-      - name: Checkout...
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up JDK...
+      - name: Set up JDK
         uses: actions/setup-java@v4
         with:
           java-version: ${{ matrix.java }}
           distribution: 'temurin'
           cache: 'maven'
 
-      - name: Build and test...
+      - name: Build and test
         run: mvn clean verify -U
