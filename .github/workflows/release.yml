@@ -70,7 +70,7 @@ jobs:
           body: JJava ${{ github.ref_name }} release
           draft: true
           prerelease: false
-          files: release/
+          files: release/*
           fail_on_unmatched_files: true
 
   deploy-pypi:
