@@ -3,49 +3,97 @@ name: 'create release'
 on:
   push:
     tags:
-      - '[0-9]+.[0-9]+*'
-
+      - '[0-9]+.[0-9]+.?[ab]?[0-9]+'
 permissions:
   # allow a write access to GitHub Releases
   contents: write
 
 jobs:
-  prepare-release:
+  build:
     runs-on: ubuntu-latest
 
-    outputs:
-      tag: ${{ steps.vars.outputs.tag }}
-      version: ${{ steps.vars.outputs.version }}
-      upload_url:  ${{ steps.create_release.outputs.upload_url }}
-
     steps:
-      - name: Checkout...
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up JDK...
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Set up JDK
         uses: actions/setup-java@v4
         with:
           java-version: 17
           distribution: 'temurin'
           cache: 'maven'
 
-      - name: Build...
-        run: mvn clean package
+      - name: Install build dependencies
+        run: pip install build
 
-      - name: Set version...
-        id: vars
+      - name: Build
+        env:
+          SETUPTOOLS_SCM_PRETEND_VERSION_FOR_jjava: ${{ github.ref_name }}
         run: |
-          RELEASE_TAG=${GITHUB_REF#refs/*/}
-          echo "tag=${RELEASE_TAG}" >> $GITHUB_OUTPUT
-          echo "version=${RELEASE_TAG}" >> $GITHUB_OUTPUT
+          mvn clean verify -U
+          python -m build
 
-      - name: Create release...
+      - name: Store the release distribution archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-distributions
+          path: jjava/target/jjava-${{ github.ref_name }}.zip
+          if-no-files-found: error
+
+      - name: Store the python distribution packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-distributions
+          path: dist/
+          if-no-files-found: error
+
+  prepare-release:
+    runs-on: ubuntu-latest
+    needs:
+      - build
+
+    steps:
+      - name: Download distributions
+        uses: actions/download-artifact@v4
+        with:
+          name: release-distributions
+          path: release/
+
+      - name: Create release
         id: create_release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.vars.outputs.tag }}
-          body: JJava ${{ steps.vars.outputs.version }} release
+          tag_name: ${{ github.ref_name }}
+          body: JJava ${{ github.ref_name }} release
           draft: true
           prerelease: false
-          files: ./jjava/target/jjava-${{ steps.vars.outputs.version }}.zip
+          files: release/*
           fail_on_unmatched_files: true
+
+  deploy-pypi:
+    runs-on: ubuntu-latest
+    needs:
+      - build
+    environment:
+      name: pypi
+      url: https://pypi.org/p/jjava
+    permissions:
+      id-token: write
+
+    steps:
+      - name: Download distributions
+        uses: actions/download-artifact@v4
+        with:
+          name: python-distributions
+          path: dist/
+
+      - name: Deploy distributions to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          verbose: true

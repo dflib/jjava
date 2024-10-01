@@ -6,7 +6,7 @@
         "{resource_dir}/jjava.jar",
         "{connection_file}"
     ],
-    "display_name": "Java",
+    "display_name": "Java (jjava)",
     "language": "java",
     "interrupt_mode": "message",
     "env": {
