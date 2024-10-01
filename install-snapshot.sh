@@ -3,7 +3,7 @@
 # This script just eases the installation process of the JJava for the development purposes.
 # Essentially it's just an automated `maven package && unzip && jupyter kernelspec install` cycle.
 #
-# Usage: to install SNAPSHOT version of the Kernel just run `./snapshot-install.sh`
+# Usage: to install SNAPSHOT version of the Kernel just run `./install-snapshot.sh`
 #
 
 BUILD_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)

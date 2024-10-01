@@ -9,13 +9,14 @@
     <files>
         <file>
             <source>${project.build.directory}/jjava-${project.version}.jar</source>
+            <destName>jjava.jar</destName>
         </file>
         <file>
             <source>../jjava-launcher/${project.build.directory}/jjava-launcher-${project.version}.jar</source>
+            <destName>jjava-launcher.jar</destName>
         </file>
         <file>
-            <source>assembly/zip/kernel.json</source>
-            <filtered>true</filtered>
+            <source>../kernelspec/java/kernel.json</source>
         </file>
     </files>
 </assembly>
