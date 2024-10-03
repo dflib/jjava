@@ -9,7 +9,7 @@ Alternatively, you could just build it and install as with any release version:
 
 ```bash
 mvn clean package
-unzip -u "${BUILD_DIR}".zip -d "${TARGET_PATH}"
+mkdir -p "${TARGET_PATH}" && tar -xzf "${BUILD_DIR}".tar.gz -C "${TARGET_PATH}"
 jupyter kernelspec install "${TARGET_PATH}" --name=java --user
 ```
 
