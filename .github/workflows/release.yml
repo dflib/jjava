@@ -18,7 +18,49 @@ jobs:
           fileName: jjava-!(kernelspec)*@(.tar.gz|.whl)
           out-file-path: dist/
 
-      - name: Publish distributions to PyPI
+      - name: Publish package to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          verbose: true
+          verbose: ${{ runner.debug }}
+
+  release-homebrew:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Publish package to Homebrew
+        uses: m-dzianishchyts/brewtap@v1
+        with:
+          homebrew_owner: m-dzianishchyts
+          homebrew_tap: homebrew-jjava
+          version: ${{ github.ref_name }}
+          depends_on: |
+            "jupyterlab"
+            "expect" => :test
+          target: jjava-${{ github.ref_name }}-kernelspec.zip
+          install: |
+            libexec.install Dir["*.jar"]
+            config = buildpath/"kernel.json"
+            inreplace config, "{resource_dir}", libexec
+            system "jupyter kernelspec install #{buildpath} --config=#{config} --sys-prefix --name=java"
+          test: |
+            jupyter = Formula["jupyterlab"].opt_bin/"jupyter"
+            assert_match " java ", shell_output("#{jupyter} kernelspec list")
+
+            (testpath/"console.exp").write <<~EOS
+              spawn #{jupyter} console --kernel=java
+              expect -timeout 30 "In "
+              send "System.out.println(\\\"Hello world!\\\");\r"
+              expect -timeout 10 "In "
+              send "\u0004"
+              expect -timeout 10 "exit"
+              send "y\r"
+              EOS
+            output = shell_output("expect -f console.exp")
+            assert_match "JJava kernel #{version}", output
+            assert_match "Hello world!", output
+          caveats: |
+            Although JJava doesn't depend on java, it requires jre>=11 to run.
+            Make sure you have one in your PATH.
+          update_readme_table: true
+          github_token: ${{ secrets.HOMEBREW_REPO_ACCESS_TOKEN }}
+          debug: ${{ runner.debug }}
