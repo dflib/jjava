@@ -26,3 +26,19 @@ jobs:
         with:
           repository-url: https://test.pypi.org/legacy/
           verbose: true
+
+  release-homebrew:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Publish to Homebrew
+        uses: m-dzianishchyts/homebrew-releaser@v1
+        with:
+          homebrew_owner: m-dzianishchyts
+          homebrew_tap: homebrew-jjava
+          formula_folder: Formula
+          version: ${{ github.ref_name }}
+          depends_on: 'jupyterlab'
+          target: jjava-${{ github.ref_name }}-kernelspec.zip
+          install: 'jupyter kernelspec install Dir.pwd --name=java --user'
+          github_token: ${{ secrets.HOMEBREW_REPO_ACCESS_TOKEN }}
