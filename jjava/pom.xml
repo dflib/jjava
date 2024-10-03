@@ -123,7 +123,7 @@
                                 <descriptor>assembly/kernelspec.xml</descriptor>
                             </descriptors>
                             <formats>
-                                <format>tar.gz</format>
+                                <format>zip</format>
                             </formats>
                         </configuration>
                     </execution>
