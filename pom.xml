@@ -3,7 +3,7 @@
 
     <groupId>org.dflib.jjava</groupId>
     <artifactId>jjava-parent</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0a7</version>
 
     <packaging>pom</packaging>
 
@@ -61,7 +61,7 @@
         <connection>scm:git:https://github.com/m-dzianishchyts/jjava</connection>
         <developerConnection>scm:git:ssh://git@github.com/m-dzianishchyts/jjava</developerConnection>
         <url>https://github.com/m-dzianishchyts/jjava</url>
-        <tag>HEAD</tag>
+        <tag>1.0a7</tag>
     </scm>
 
     <distributionManagement>
