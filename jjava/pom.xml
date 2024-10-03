@@ -113,16 +113,18 @@
                 <artifactId>maven-assembly-plugin</artifactId>
                 <executions>
                     <execution>
-                        <id>assemble-zip</id>
+                        <id>assemble-kernelspec</id>
                         <phase>package</phase>
                         <goals>
                             <goal>single</goal>
                         </goals>
                         <configuration>
                             <descriptors>
-                                <descriptor>assembly/zip/zip.xml</descriptor>
+                                <descriptor>assembly/kernelspec.xml</descriptor>
                             </descriptors>
-                            <appendAssemblyId>false</appendAssemblyId>
+                            <formats>
+                                <format>zip</format>
+                            </formats>
                         </configuration>
                     </execution>
                 </executions>
