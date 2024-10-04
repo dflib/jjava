@@ -25,7 +25,7 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           repository-url: https://test.pypi.org/legacy/
-          verbose: true
+          verbose: ${{ runner.debug }}
 
   release-homebrew:
     runs-on: ubuntu-latest
@@ -40,5 +40,9 @@ jobs:
           version: ${{ github.ref_name }}
           depends_on: 'jupyterlab'
           target: jjava-${{ github.ref_name }}-kernelspec.zip
-          install: 'jupyter kernelspec install Dir.pwd --name=java --user'
+          install: 'system "jupyter kernelspec install #{Dir.pwd} --name=java --user"'
+          update_readme_table: true
+          commit_owner: homebrew-releaser
+          commit_email: homebrew-releaser@example.com
           github_token: ${{ secrets.HOMEBREW_REPO_ACCESS_TOKEN }}
+          debug: ${{ runner.debug }}
