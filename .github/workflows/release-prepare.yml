@@ -1,0 +1,75 @@
+name: 'prepare release'
+
+on:
+  push:
+    tags:
+      - '[0-9]+.[0-9]+.?[ab]?[0-9]+'
+permissions:
+  # allow a write access to GitHub Releases
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Install build dependencies
+        run: pip install build
+
+      - name: Build
+        env:
+          SETUPTOOLS_SCM_PRETEND_VERSION_FOR_jjava: ${{ github.ref_name }}
+        run: |
+          mvn clean verify -U
+          python -m build
+
+      - name: Collect the release distributions
+        run: |
+          mkdir -p release/
+          cp jjava/target/jjava-${{ github.ref_name }}-kernelspec.zip release/
+          cp -r dist/* release/
+
+      - name: Store the release distributions
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-distributions
+          path: release/
+          if-no-files-found: error
+
+  prepare-release:
+    runs-on: ubuntu-latest
+    needs:
+      - build
+
+    steps:
+      - name: Download distributions
+        uses: actions/download-artifact@v4
+        with:
+          name: release-distributions
+          path: release/
+
+      - name: Create release
+        id: create_release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          body: JJava ${{ github.ref_name }} release
+          draft: true
+          prerelease: false
+          files: release/*
+          fail_on_unmatched_files: true
