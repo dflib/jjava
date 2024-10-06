@@ -38,7 +38,9 @@ jobs:
             "jupyterlab"
             "java"
           target: jjava-${{ github.ref_name }}-kernelspec.zip
-          install: 'system "jupyter kernelspec install #{Dir.pwd} --name=java --user"'
+          install: |
+            libexec.install Dir["*"]
+            system "jupyter kernelspec install #{libexec} --sys-prefix --name=java "
           update_readme_table: true
           github_token: ${{ secrets.HOMEBREW_REPO_ACCESS_TOKEN }}
           debug: ${{ runner.debug }}
