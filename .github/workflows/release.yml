@@ -33,13 +33,12 @@ jobs:
         with:
           homebrew_owner: m-dzianishchyts
           homebrew_tap: homebrew-jjava
-          formula_folder: Formula
           version: ${{ github.ref_name }}
-          depends_on: 'jupyterlab'
+          depends_on: |
+            "jupyterlab"
+            "java"
           target: jjava-${{ github.ref_name }}-kernelspec.zip
           install: 'system "jupyter kernelspec install #{Dir.pwd} --name=java --user"'
           update_readme_table: true
-          commit_owner: github-actions[bot]
-          commit_email: 41898282+github-actions[bot]@users.noreply.github.com
           github_token: ${{ secrets.HOMEBREW_REPO_ACCESS_TOKEN }}
           debug: ${{ runner.debug }}
