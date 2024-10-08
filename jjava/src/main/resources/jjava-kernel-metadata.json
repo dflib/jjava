@@ -1,4 +1,4 @@
 {
-  "version": "@version@",
-  "project": "@project@"
+  "version": "${project.version}",
+  "project": "${project.artifactId}"
 }
