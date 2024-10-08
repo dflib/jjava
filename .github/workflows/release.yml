@@ -36,16 +36,15 @@ jobs:
           version: ${{ github.ref_name }}
           depends_on: |
             "jupyterlab"
-            "java"
+            "expect" => :test
           target: jjava-${{ github.ref_name }}-kernelspec.zip
           install: |
-            libexec.install Dir["*"]
-            system "jupyter kernelspec install #{libexec} --sys-prefix --name=java "
+            libexec.install Dir["*.jar"]
+            config = buildpath/"kernel.json"
+            inreplace config, "{resource_dir}", libexec
+            system "jupyter kernelspec install #{buildpath} --config=#{config} --sys-prefix --name=java"
           test: |
-            jjava_version = Formula["jjava"].version
             jupyter = Formula["jupyterlab"].opt_bin/"jupyter"
-            ENV["JUPYTER_PATH"] = share/"jupyter"
-
             assert_match " java ", shell_output("#{jupyter} kernelspec list")
 
             (testpath/"console.exp").write <<~EOS
@@ -56,10 +55,13 @@ jobs:
               send "\u0004"
               expect -timeout 10 "exit"
               send "y\r"
-            EOS
+              EOS
             output = shell_output("expect -f console.exp")
-            assert_match "JJava kernel #{jjava_version}", output
+            assert_match "JJava kernel #{version}", output
             assert_match "Hello world!", output
+          caveats: |
+            Although JJava doesn't depend on java, it requires jre>=11 to run.
+            Make sure you have one in your PATH.
           update_readme_table: true
           github_token: ${{ secrets.HOMEBREW_REPO_ACCESS_TOKEN }}
           debug: ${{ runner.debug }}
