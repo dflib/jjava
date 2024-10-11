@@ -30,8 +30,8 @@ jobs:
       - name: Publish package to Homebrew
         uses: m-dzianishchyts/brewtap@v1
         with:
-          homebrew_owner: m-dzianishchyts
-          homebrew_tap: homebrew-jjava
+          homebrew_owner: dflib
+          homebrew_tap: homebrew-tap
           version: ${{ github.ref_name }}
           depends_on: |
             "jupyterlab"
@@ -62,5 +62,5 @@ jobs:
             Although JJava doesn't depend on java, it requires jre>=11 to run.
             Make sure you have one in your PATH.
           update_readme_table: true
-          github_token: ${{ secrets.HOMEBREW_REPO_ACCESS_TOKEN }}
+          github_token: ${{ secrets.HOMEBREW_RELEASE_ACCESS_TOKEN }}
           debug: ${{ runner.debug }}
