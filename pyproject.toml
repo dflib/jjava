@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "jjava"
+version = "1.0+SNAPSHOT"
+requires-python = ">=3.8"
+description = "A Jupyter kernel for Java notebooks"
+authors = [
+    { name = "Andrus Adamchik", email = "andrus@objectstyle.com" }
+]
+readme = "README.md"
+license = { file = "LICENSE" }
+keywords = ["windows", "macos", "linux", "jupyter", "java", "jupyter-kernels", "pip"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Java",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: MacOS",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: Microsoft :: Windows"
+]
+
+[project.urls]
+Documentation = "https://dflib.org/jjava/docs/1.x/"
+Repository = "https://github.com/dflib/jjava"
+Download = "https://github.com/dflib/jjava/releases"
+Issues = "https://github.com/dflib/jjava/issues"
+Changelog = "https://github.com/dflib/jjava/blob/main/RELEASE-NOTES.md"
+
+[tool.setuptools.packages.find]
+where = ["pip"]
+include = ["jjava"]
+
+[tool.setuptools.data-files]
+"share/jupyter/kernels/java" = ["kernelspec/java/*"]
