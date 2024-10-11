@@ -33,5 +33,8 @@ Changelog = "https://github.com/dflib/jjava/blob/main/RELEASE-NOTES.md"
 where = ["pip"]
 include = ["jjava"]
 
+[tool.setuptools_scm]
+version_file = "pip/jjava/_version.py"
+
 [tool.setuptools.data-files]
 "share/jupyter/kernels/java" = ["kernelspec/java/*"]
