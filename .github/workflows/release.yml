@@ -1,51 +1,66 @@
-name: 'create release'
+name: 'release packages'
 
 on:
-  push:
-    tags:
-      - '[0-9]+.[0-9]+*'
-
-permissions:
-  # allow a write access to GitHub Releases
-  contents: write
+  release:
+    types: [published]
 
 jobs:
-  prepare-release:
+  release-pypi:
     runs-on: ubuntu-latest
-
-    outputs:
-      tag: ${{ steps.vars.outputs.tag }}
-      version: ${{ steps.vars.outputs.version }}
-      upload_url:  ${{ steps.create_release.outputs.upload_url }}
+    permissions:
+      id-token: write
 
     steps:
-      - name: Checkout...
-        uses: actions/checkout@v4
-
-      - name: Set up JDK...
-        uses: actions/setup-java@v4
+      - name: Download release assets
+        uses: robinraju/release-downloader@v1
         with:
-          java-version: 17
-          distribution: 'temurin'
-          cache: 'maven'
+          tag: ${{ github.ref_name }}
+          fileName: jjava-!(kernelspec)*@(.tar.gz|.whl)
+          out-file-path: dist/
 
-      - name: Build...
-        run: mvn clean package
-
-      - name: Set version...
-        id: vars
-        run: |
-          RELEASE_TAG=${GITHUB_REF#refs/*/}
-          echo "tag=${RELEASE_TAG}" >> $GITHUB_OUTPUT
-          echo "version=${RELEASE_TAG}" >> $GITHUB_OUTPUT
-
-      - name: Create release...
-        id: create_release
-        uses: softprops/action-gh-release@v2
+      - name: Publish package to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          tag_name: ${{ steps.vars.outputs.tag }}
-          body: JJava ${{ steps.vars.outputs.version }} release
-          draft: true
-          prerelease: false
-          files: ./jjava/target/jjava-${{ steps.vars.outputs.version }}.zip
-          fail_on_unmatched_files: true
+          verbose: ${{ runner.debug }}
+
+  release-homebrew:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Publish package to Homebrew
+        uses: m-dzianishchyts/brewtap@v1
+        with:
+          homebrew_owner: dflib
+          homebrew_tap: homebrew-tap
+          version: ${{ github.ref_name }}
+          depends_on: |
+            "jupyterlab"
+            "expect" => :test
+          target: jjava-${{ github.ref_name }}-kernelspec.zip
+          install: |
+            libexec.install Dir["*.jar"]
+            config = buildpath/"kernel.json"
+            inreplace config, "{resource_dir}", libexec
+            system "jupyter kernelspec install #{buildpath} --config=#{config} --sys-prefix --name=java"
+          test: |
+            jupyter = Formula["jupyterlab"].opt_bin/"jupyter"
+            assert_match " java ", shell_output("#{jupyter} kernelspec list")
+
+            (testpath/"console.exp").write <<~EOS
+              spawn #{jupyter} console --kernel=java
+              expect -timeout 30 "In "
+              send "System.out.println(\\\"Hello world!\\\");\r"
+              expect -timeout 10 "In "
+              send "\u0004"
+              expect -timeout 10 "exit"
+              send "y\r"
+              EOS
+            output = shell_output("expect -f console.exp")
+            assert_match "JJava kernel #{version}", output
+            assert_match "Hello world!", output
+          caveats: |
+            Although JJava doesn't depend on java, it requires jre>=11 to run.
+            Make sure you have one in your PATH.
+          update_readme_table: true
+          github_token: ${{ secrets.HOMEBREW_RELEASE_ACCESS_TOKEN }}
+          debug: ${{ runner.debug }}

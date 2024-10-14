@@ -7,9 +7,9 @@
 #
 
 BUILD_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
-BUILD_DIR="jjava/target/jjava-${BUILD_VERSION}"
+BUILD_DIR="jjava/target/jjava-${BUILD_VERSION}-kernelspec"
 KERNEL_DIR="$(pwd)/${BUILD_DIR}"
 
 mvn clean package || exit 1
-unzip -u "${BUILD_DIR}".zip -d "${BUILD_DIR}" || exit 1
-jupyter kernelspec install "${KERNEL_DIR}" --name=java --user || exit 1
+unzip -u "${BUILD_DIR}".zip -d "${BUILD_DIR}" || exit 2
+jupyter kernelspec install "${KERNEL_DIR}" --name=java --user || exit 3

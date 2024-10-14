@@ -4,7 +4,6 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "jjava"
-version = "1.0+SNAPSHOT"
 requires-python = ">=3.8"
 description = "A Jupyter kernel for Java notebooks"
 authors = [
@@ -21,6 +20,7 @@ classifiers = [
     "Operating System :: POSIX :: Linux",
     "Operating System :: Microsoft :: Windows"
 ]
+dynamic = ["version"]
 
 [project.urls]
 Documentation = "https://dflib.org/jjava/docs/1.x/"
@@ -32,6 +32,9 @@ Changelog = "https://github.com/dflib/jjava/blob/main/RELEASE-NOTES.md"
 [tool.setuptools.packages.find]
 where = ["pip"]
 include = ["jjava"]
+
+[tool.setuptools_scm]
+version_file = "pip/jjava/_version.py"
 
 [tool.setuptools.data-files]
 "share/jupyter/kernels/java" = ["kernelspec/java/*"]
