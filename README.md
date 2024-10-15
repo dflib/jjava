@@ -14,9 +14,9 @@ _JJava is an evolution of the earlier [IJava kernel](https://github.com/SpencerP
 
 _More detailed instructions are available in the [documentation](https://dflib.org/jjava/docs/1.x/#_installation)._
 
-1.  Download the release from the [releases tab](https://github.com/dflib/jjava/releases).
+1.  Download the latest release from the [releases tab](https://github.com/dflib/jjava/releases).
 2.  Unzip it into a temporary location.
-3.  Run the `install.py` script with the same version of Python as used by Jupyter.
+3.  Run the `jupyter kernelspec install path/to/downloaded/folder --user --name=java`
 
 ## Project Links
 
