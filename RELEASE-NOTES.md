@@ -3,6 +3,8 @@
 - #35 Replace custom installer with "jupyter kernelspec install" 
 - #39 Convert the default init script to an extension 
 - #40 Add "java.time" to the list of default imports
+- #45 Publish jjava as a pip package
+- #46 Publish jjava as a Homebrew package
 
 ## 1.0-M3
 
