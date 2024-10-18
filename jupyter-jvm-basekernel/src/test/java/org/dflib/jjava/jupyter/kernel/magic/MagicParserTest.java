@@ -1,25 +1,17 @@
 package org.dflib.jjava.jupyter.kernel.magic;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 public class MagicParserTest {
-    public static List<String> split(String args) {
-        return MagicParser.split(args);
-    }
-
     private MagicParser inlineParser;
     private MagicParser solParser;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         this.inlineParser = new MagicParser("//%", "//%%");
         this.solParser = new MagicParser("^\\s*//%", "//%%");
@@ -45,7 +37,7 @@ public class MagicParserTest {
                 "**magicName3-arg1,arg2 arg2"
         );
 
-        assertEquals(expectedTransformedCell, transformedCell);
+        Assertions.assertEquals(expectedTransformedCell, transformedCell);
     }
 
     @Test
@@ -58,12 +50,12 @@ public class MagicParserTest {
 
         CellMagicParseContext ctx = this.inlineParser.parseCellMagic(cell);
 
-        assertNotNull(ctx);
-        assertEquals("cellMagicName", ctx.getMagicCall().getName());
-        assertEquals(Arrays.asList("arg1", "arg2 arg2", "arg3"), ctx.getMagicCall().getArgs());
-        assertEquals("This is the body\nwith multiple lines", ctx.getMagicCall().getBody());
-        assertEquals("//%%cellMagicName arg1 \"arg2 arg2\" arg3  ", ctx.getRawArgsLine());
-        assertEquals(cell, ctx.getRawCell());
+        Assertions.assertNotNull(ctx);
+        Assertions.assertEquals("cellMagicName", ctx.getMagicCall().getName());
+        Assertions.assertEquals(Arrays.asList("arg1", "arg2 arg2", "arg3"), ctx.getMagicCall().getArgs());
+        Assertions.assertEquals("This is the body\nwith multiple lines", ctx.getMagicCall().getBody());
+        Assertions.assertEquals("//%%cellMagicName arg1 \"arg2 arg2\" arg3  ", ctx.getRawArgsLine());
+        Assertions.assertEquals(cell, ctx.getRawCell());
     }
 
     @Test
@@ -81,7 +73,7 @@ public class MagicParserTest {
 
         String expectedTransformedCell = "cellMagicName(arg1,arg2 arg2,arg3)\nThis is the body\nwith multiple lines";
 
-        assertEquals(expectedTransformedCell, transformedCell);
+        Assertions.assertEquals(expectedTransformedCell, transformedCell);
     }
 
     @Test
@@ -94,7 +86,7 @@ public class MagicParserTest {
 
         String transformedCell = this.inlineParser.transformCellMagic(cell, ctx -> "transformer applied");
 
-        assertEquals(cell, transformedCell);
+        Assertions.assertEquals(cell, transformedCell);
     }
 
     @Test
@@ -103,7 +95,7 @@ public class MagicParserTest {
 
         String transformedCell = this.solParser.transformLineMagics(cell, ctx -> "");
 
-        assertEquals(cell, transformedCell);
+        Assertions.assertEquals(cell, transformedCell);
     }
 
     @Test
@@ -121,7 +113,7 @@ public class MagicParserTest {
                 "sol3"
         );
 
-        assertEquals(expectedTransformedCell, transformedCell);
+        Assertions.assertEquals(expectedTransformedCell, transformedCell);
     }
 
     @Test
@@ -137,6 +129,10 @@ public class MagicParserTest {
                 "Not //%sol"
         );
 
-        assertEquals(expectedTransformedCell, transformedCell);
+        Assertions.assertEquals(expectedTransformedCell, transformedCell);
+    }
+
+    public static List<String> split(String args) {
+        return MagicParser.split(args);
     }
 }

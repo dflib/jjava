@@ -1,46 +1,21 @@
 package org.dflib.jjava.jupyter.kernel.display;
 
 import org.dflib.jjava.jupyter.kernel.display.mime.MIMEType;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
+import java.util.stream.Stream;
 
-import static org.junit.Assert.assertEquals;
-
-@RunWith(Parameterized.class)
 public class RenderRequestTypesResolutionTest {
-    @Parameterized.Parameters
-    public static Collection<Object[]> data() {
-        return Arrays.asList(new Object[][]{
-                { "image/svg+xml", "image/svg+xml", Collections.singletonList("image/svg+xml") },
-                { "image/svg+xml", "image/svg", Collections.singletonList("image/svg") },
-                { "image/svg+xml", "image/svg+xml", Collections.singletonList("image/*") },
-                { "image/svg+xml", "image/svg+xml", Collections.singletonList("image") },
-                { "image/svg+xml", "application/xml", Collections.singletonList("application/xml") },
-                { "image/svg+xml", "application/xml", Collections.singletonList("application/*") },
-                { "image/svg+xml", "application/xml", Collections.singletonList("application") },
-                { "image/svg+xml", "image/svg+xml", Collections.singletonList("*") },
 
-                { "image/svg", "image/svg", Collections.singletonList("image/svg") },
-
-                { "image/svg", null, Collections.singletonList("application/xml") },
-                { "image/svg+xml", null, Collections.singletonList("application/json") },
-        });
-    }
-
-    private final MIMEType supported;
-    private final MIMEType expected;
-    private final RenderRequestTypes requestTypes;
-
-    public RenderRequestTypesResolutionTest(String supported, String expected, List<String> requestTypes) {
-        this.supported = supported == null ? null : MIMEType.parse(supported);
-        this.expected = expected == null ? null : MIMEType.parse(expected);
-
+    @ParameterizedTest
+    @MethodSource("data")
+    public void test(String supported, String expected, List<String> requestTypes) {
+        MIMEType supportedMime = MIMEType.parse(supported);
+        MIMEType expectedMime = expected == null ? null : MIMEType.parse(expected);
         RenderRequestTypes.Builder builder = new RenderRequestTypes.Builder(group -> {
             switch (group) {
                 case "xml":
@@ -54,13 +29,26 @@ public class RenderRequestTypesResolutionTest {
         requestTypes.stream()
                 .map(MIMEType::parse)
                 .forEach(builder::withType);
-        this.requestTypes = builder.build();
+        RenderRequestTypes renderRequestTypes = builder.build();
+
+        MIMEType actualMime = renderRequestTypes.resolveSupportedType(supportedMime);
+
+        Assertions.assertEquals(expectedMime, actualMime);
     }
 
-    @Test
-    public void test() {
-        MIMEType actual = this.requestTypes.resolveSupportedType(this.supported);
-
-        assertEquals(expected, actual);
+    public static Stream<Arguments> data() {
+        return Stream.of(
+                Arguments.of("image/svg+xml", "image/svg+xml", List.of("image/svg+xml")),
+                Arguments.of("image/svg+xml", "image/svg", List.of("image/svg")),
+                Arguments.of("image/svg+xml", "image/svg+xml", List.of("image/*")),
+                Arguments.of("image/svg+xml", "image/svg+xml", List.of("image")),
+                Arguments.of("image/svg+xml", "application/xml", List.of("application/xml")),
+                Arguments.of("image/svg+xml", "application/xml", List.of("application/*")),
+                Arguments.of("image/svg+xml", "application/xml", List.of("application")),
+                Arguments.of("image/svg+xml", "image/svg+xml", List.of("*")),
+                Arguments.of("image/svg", "image/svg", List.of("image/svg")),
+                Arguments.of("image/svg", null, List.of("application/xml")),
+                Arguments.of("image/svg+xml", null, List.of("application/json"))
+        );
     }
 }
