@@ -1,6 +1,5 @@
 package org.dflib.jjava.jupyter.kernel.util;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -9,6 +8,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 public class InheritanceIteratorTest {
 
     @ParameterizedTest
@@ -16,7 +17,7 @@ public class InheritanceIteratorTest {
     public void test(Class<?> root, List<Class<?>> expected) {
         List<Class<?>> actual = collectIteration(root);
 
-        Assertions.assertEquals(expected, actual);
+        assertEquals(expected, actual);
     }
 
     public static Stream<Arguments> data() {

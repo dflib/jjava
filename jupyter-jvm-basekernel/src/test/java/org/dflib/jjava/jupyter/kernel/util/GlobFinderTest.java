@@ -3,7 +3,6 @@ package org.dflib.jjava.jupyter.kernel.util;
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -21,6 +20,8 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class GlobFinderTest {
     private static final Configuration WIN_FS = Configuration.windows().toBuilder().setWorkingDirectory("C:/dir-a").build();
@@ -68,7 +69,7 @@ public class GlobFinderTest {
                 .map(Path::normalize)
                 .map(Path::toAbsolutePath)
                 .collect(Collectors.toSet());
-        Assertions.assertEquals(expected, actual, String.format("Glob files: '%s'", glob));
+        assertEquals(expected, actual, String.format("Glob files: '%s'", glob));
 
         expected = paths.stream()
                 .map(fs::getPath)
@@ -79,7 +80,7 @@ public class GlobFinderTest {
                 .map(Path::normalize)
                 .map(Path::toAbsolutePath)
                 .collect(Collectors.toSet());
-        Assertions.assertEquals(expected, actual, String.format("Glob paths: '%s'", glob));
+        assertEquals(expected, actual, String.format("Glob paths: '%s'", glob));
     }
 
     public static Stream<Arguments> data() {

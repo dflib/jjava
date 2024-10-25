@@ -1,6 +1,5 @@
 package org.dflib.jjava.jupyter.kernel.magic.registry;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -9,6 +8,10 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class MagicsTest {
     private Magics magics;
@@ -25,7 +28,7 @@ public class MagicsTest {
         List<String> args = Arrays.asList("arg1", "arg2");
         List<String> out = magics.applyLineMagic("test", args);
 
-        Assertions.assertEquals(args, out);
+        assertEquals(args, out);
     }
 
     @Test
@@ -43,7 +46,7 @@ public class MagicsTest {
         List<String> expected = new LinkedList<>(args);
         expected.add(body);
 
-        Assertions.assertEquals(expected, out);
+        assertEquals(expected, out);
     }
 
     @Test
@@ -73,8 +76,8 @@ public class MagicsTest {
         List<String> expectedCell = new LinkedList<>(args);
         expectedCell.add(body);
 
-        Assertions.assertEquals(args, lineOut);
-        Assertions.assertEquals(expectedCell, cellOut);
+        assertEquals(args, lineOut);
+        assertEquals(expectedCell, cellOut);
     }
 
     @Test
@@ -105,11 +108,11 @@ public class MagicsTest {
         magics.applyLineMagic("list", args);
         magics.applyLineMagic("iterable", args);
         magics.applyLineMagic("named", args);
-        Assertions.assertEquals((Integer) 2, magics.applyLineMagic("returnInt", args));
+        assertEquals((Integer) 2, magics.applyLineMagic("returnInt", args));
 
         try {
             magics.applyLineMagic("unusedName", args);
-            Assertions.fail("named magic was also registered under the method name");
+            fail("named magic was also registered under the method name");
         } catch (UndefinedMagicException ignored) {
         }
     }
@@ -122,7 +125,7 @@ public class MagicsTest {
             }
         }
 
-        Assertions.assertThrows(IllegalArgumentException.class, () -> magics.registerMagics(new BadMagic()));
+        assertThrows(IllegalArgumentException.class, () -> magics.registerMagics(new BadMagic()));
     }
 
     @Test
@@ -133,7 +136,7 @@ public class MagicsTest {
             }
         }
 
-        Assertions.assertThrows(IllegalArgumentException.class, () -> magics.registerMagics(new BadMagic()));
+        assertThrows(IllegalArgumentException.class, () -> magics.registerMagics(new BadMagic()));
     }
 
     @Test
@@ -165,11 +168,11 @@ public class MagicsTest {
         magics.applyCellMagic("list", args, body);
         magics.applyCellMagic("iterable", args, body);
         magics.applyCellMagic("named", args, body);
-        Assertions.assertEquals((Integer) 2, magics.applyCellMagic("returnInt", args, body));
+        assertEquals((Integer) 2, magics.applyCellMagic("returnInt", args, body));
 
         try {
             magics.applyCellMagic("unusedName", args, body);
-            Assertions.fail("named magic was also registered under the method name");
+            fail("named magic was also registered under the method name");
         } catch (UndefinedMagicException ignored) {
         }
     }
@@ -182,7 +185,7 @@ public class MagicsTest {
             }
         }
 
-        Assertions.assertThrows(IllegalArgumentException.class, () -> magics.registerMagics(new BadMagic()));
+        assertThrows(IllegalArgumentException.class, () -> magics.registerMagics(new BadMagic()));
     }
 
     @Test
@@ -193,7 +196,7 @@ public class MagicsTest {
             }
         }
 
-        Assertions.assertThrows(IllegalArgumentException.class, () -> magics.registerMagics(new BadMagic()));
+        assertThrows(IllegalArgumentException.class, () -> magics.registerMagics(new BadMagic()));
     }
 
     @Test
@@ -204,7 +207,7 @@ public class MagicsTest {
             }
         }
 
-        Assertions.assertThrows(IllegalArgumentException.class, () -> magics.registerMagics(new BadMagic()));
+        assertThrows(IllegalArgumentException.class, () -> magics.registerMagics(new BadMagic()));
     }
 
     @Test
@@ -240,16 +243,16 @@ public class MagicsTest {
         magics.applyLineMagic("list", args);
         magics.applyLineMagic("iterable", args);
         magics.applyLineMagic("lineNamed", args);
-        Assertions.assertEquals((Integer) 3, magics.applyLineMagic("returnInt", args));
+        assertEquals((Integer) 3, magics.applyLineMagic("returnInt", args));
 
         magics.applyCellMagic("list", args, body);
         magics.applyCellMagic("iterable", args, body);
         magics.applyCellMagic("cellNamed", args, body);
-        Assertions.assertEquals((Integer) 4, magics.applyCellMagic("returnInt", args, body));
+        assertEquals((Integer) 4, magics.applyCellMagic("returnInt", args, body));
 
         try {
             magics.applyCellMagic("unusedName", args, body);
-            Assertions.fail("named magic was also registered under the method name");
+            fail("named magic was also registered under the method name");
         } catch (UndefinedMagicException ignored) {
         }
     }
@@ -268,14 +271,14 @@ public class MagicsTest {
         magics.registerMagics(new Magic());
 
         for (int i = 0; i < 3; i++)
-            Assertions.assertEquals((Integer) i, magics.applyLineMagic("getAndIncrement", Collections.emptyList()));
+            assertEquals((Integer) i, magics.applyLineMagic("getAndIncrement", Collections.emptyList()));
     }
 
     @Test
     public void staticMagic() throws Exception {
         magics.registerMagics(StaticMagics.class);
 
-        Assertions.assertEquals((Integer) 0, magics.applyLineMagic("staticMagic", Collections.emptyList()));
-        Assertions.assertEquals("body", magics.applyCellMagic("staticMagic", Collections.emptyList(), "body"));
+        assertEquals((Integer) 0, magics.applyLineMagic("staticMagic", Collections.emptyList()));
+        assertEquals("body", magics.applyCellMagic("staticMagic", Collections.emptyList(), "body"));
     }
 }

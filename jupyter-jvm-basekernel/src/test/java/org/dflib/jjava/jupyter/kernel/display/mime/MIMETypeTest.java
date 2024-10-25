@@ -1,8 +1,9 @@
 package org.dflib.jjava.jupyter.kernel.display.mime;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class MIMETypeTest {
 
@@ -23,6 +24,6 @@ public class MIMETypeTest {
         MIMEType expected = new MIMEType(type, tree, subtype, suffix);
         MIMEType actual = MIMEType.parse(raw);
 
-        Assertions.assertEquals(expected, actual);
+        assertEquals(expected, actual);
     }
 }

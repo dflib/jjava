@@ -2,7 +2,6 @@ package org.dflib.jjava.jupyter.kernel.magic.registry;
 
 import org.dflib.jjava.jupyter.kernel.magic.MagicParserTest;
 import org.hamcrest.Matcher;
-import org.hamcrest.MatcherAssert;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -14,6 +13,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.hasEntry;
 
@@ -25,7 +25,7 @@ public class MagicsArgsTest {
         List<String> rawArgs = MagicParserTest.split(args);
         Map<String, List<String>> actual = Assertions.assertDoesNotThrow(() -> schema.parse(rawArgs));
 
-        MatcherAssert.assertThat(actual, matcher);
+        assertThat(actual, matcher);
     }
 
     public static Stream<Arguments> values() {
@@ -146,7 +146,7 @@ public class MagicsArgsTest {
         List<String> rawArgs = MagicParserTest.split(args);
         Map<String, List<String>> actual = Assertions.assertDoesNotThrow(() -> schema.parse(rawArgs));
 
-        MatcherAssert.assertThat(actual, matcher);
+        assertThat(actual, matcher);
     }
 
     public static Stream<Arguments> flags() {
@@ -185,7 +185,7 @@ public class MagicsArgsTest {
         List<String> rawArgs = MagicParserTest.split(args);
         Map<String, List<String>> actual = Assertions.assertDoesNotThrow(() -> schema.parse(rawArgs));
 
-        MatcherAssert.assertThat(actual, matcher);
+        assertThat(actual, matcher);
     }
 
     public static Stream<Arguments> keywords() {
@@ -229,7 +229,7 @@ public class MagicsArgsTest {
         List<String> rawArgs = MagicParserTest.split(args);
         Map<String, List<String>> actual = Assertions.assertDoesNotThrow(() -> schema.parse(rawArgs));
 
-        MatcherAssert.assertThat(actual, matcher);
+        assertThat(actual, matcher);
     }
 
     public static Stream<Arguments> flagsAndKeyWords() {
@@ -249,7 +249,7 @@ public class MagicsArgsTest {
         List<String> rawArgs = MagicParserTest.split(args);
         Map<String, List<String>> actual = Assertions.assertDoesNotThrow(() -> schema.parse(rawArgs));
 
-        MatcherAssert.assertThat(actual, matcher);
+        assertThat(actual, matcher);
     }
 
     public static Stream<Arguments> positionalsAndFlagsAndKeywords() {
@@ -274,7 +274,7 @@ public class MagicsArgsTest {
         List<String> rawArgs = MagicParserTest.split(args);
         Map<String, List<String>> actual = Assertions.assertDoesNotThrow(() -> schema.parse(rawArgs));
 
-        MatcherAssert.assertThat(actual, matcher);
+        assertThat(actual, matcher);
     }
 
     public static Stream<Arguments> strange() {
