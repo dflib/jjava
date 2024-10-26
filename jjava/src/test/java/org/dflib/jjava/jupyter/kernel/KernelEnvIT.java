@@ -21,7 +21,9 @@ class KernelEnvIT extends ContainerizedKernelCase {
 
         assertThat(snippetResult.getStderr(), CoreMatchers.allOf(
                 containsString("|   var value = 1;"),
-                containsString("'var' is a restricted local variable type")
+                containsString(Runtime.version().feature() == 11
+                        ? "'var' is a restricted local variable type"
+                        : "'var' is a restricted type name")
         ));
     }
 
