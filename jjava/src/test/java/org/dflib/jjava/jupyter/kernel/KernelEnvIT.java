@@ -54,7 +54,7 @@ class KernelEnvIT extends ContainerizedKernelCase {
 
     @Test
     void startUpScriptsPath() throws Exception {
-        Map<String, String> env = Map.of(Env.JJAVA_STARTUP_SCRIPTS_PATH,  CONTAINER_RESOURCES + "/test-init.jshell");
+        Map<String, String> env = Map.of(Env.JJAVA_STARTUP_SCRIPTS_PATH,  CONTAINER_RESOURCES + "/test-ping.jshell");
         String snippet = "ping()";
         Container.ExecResult snippetResult = executeInKernel(snippet, env);
 
