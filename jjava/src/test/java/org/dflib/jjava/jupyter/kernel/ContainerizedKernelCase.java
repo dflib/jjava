@@ -25,7 +25,7 @@ public abstract class ContainerizedKernelCase {
     protected static final String CONTAINER_RESOURCES = WORKING_DIRECTORY + "/resources";
     protected static final String TEST_CLASSPATH = CONTAINER_RESOURCES + "/classes";
 
-    private static final String BASE_IMAGE = String.format("eclipse-temurin:%s", Runtime.version().version().get(0));
+    private static final String BASE_IMAGE = String.format("eclipse-temurin:%s", Runtime.version().feature());
     private static final String FS_KERNELSPEC = "../kernelspec/java";
     private static final String FS_RESOURCES = "src/test/resources";
 
