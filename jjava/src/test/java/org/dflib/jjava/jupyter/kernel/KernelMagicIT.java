@@ -8,7 +8,7 @@ import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class KernelMagicIT extends ContainerizedKernelCase {
+class KernelMagicIT extends ContainerizedKernelCase {
 
     @Test
     void jars() throws Exception {
@@ -67,5 +67,19 @@ public class KernelMagicIT extends ContainerizedKernelCase {
 
         assertThat(snippetResult.getStderr(), not(containsString("|")));
         assertThat(snippetResult.getStdout(), containsString("pong!"));
+    }
+
+    @Test
+    void loadFromPOM() throws Exception {
+        String pom = CONTAINER_RESOURCES + "/test-pom.xml";
+        String snippet = String.join("\n",
+                "%loadFromPOM " + pom,
+                "import jakarta.annotation.Nullable;",
+                "Nullable.class.getName()"
+        );
+        Container.ExecResult snippetResult = executeInKernel(snippet);
+
+        assertThat(snippetResult.getStderr(), not(containsString("|")));
+        assertThat(snippetResult.getStdout(), containsString("jakarta.annotation.Nullable"));
     }
 }
