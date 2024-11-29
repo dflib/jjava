@@ -1,51 +1,29 @@
 package org.dflib.jjava.jupyter.kernel.display.mime;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
-import java.util.Arrays;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import static org.junit.Assert.assertEquals;
-
-@RunWith(Parameterized.class)
 public class MIMETypeTest {
-    @Parameters(name = "{index}: MIMEType.parse({0}) = new MIMEType({1}, {2}, {3}, {4})")
-    public static Iterable<Object[]> data() {
-        return Arrays.asList(new Object[][]{
-                { "application/json", "application", null, "json", null },
-                { "application/xhtml+xml", "application", null, "xhtml", "xml" },
-                { "image/*", "image", null, "*", null },
-                { "image/", "image", null, "", null },
-                { "video", "video", null, null, null },
-                { "video", "video", null, null, null },
-                { "application/vnd.media", "application", "vnd", "media", null },
-                { "application/vnd.media.producer", "application", "vnd", "media.producer", null },
-                { "application/vnd.media.producer+suffix", "application", "vnd", "media.producer", "suffix" },
-                { "application/vnd.media.named+producer+suffix", "application", "vnd", "media.named+producer", "suffix" },
-        });
-    }
 
-    private final String raw;
-    private final String type;
-    private final String tree;
-    private final String subtype;
-    private final String suffix;
+    @ParameterizedTest(name = "{index}: MIMEType.parse({0}) = new MIMEType({1}, {2}, {3}, {4})")
+    @CsvSource({
+            "application/json,                              application,    ,       json,                   ",
+            "application/xhtml+xml,                         application,    ,       xhtml,                  xml",
+            "image/*,                                       image,          ,       *,                      ",
+            "image/,                                        image,          ,       '',                     ",
+            "video,                                         video,          ,       ,                       ",
+            "video,                                         video,          ,       ,                       ",
+            "application/vnd.media,                         application,    vnd,    media,                  ",
+            "application/vnd.media.producer,                application,    vnd,    media.producer,         ",
+            "application/vnd.media.producer+suffix,         application,    vnd,    media.producer,         suffix",
+            "application/vnd.media.named+producer+suffix,   application,    vnd,    media.named+producer,   suffix"
+    })
+    public void test(String raw, String type, String tree, String subtype, String suffix) {
+        MIMEType expected = new MIMEType(type, tree, subtype, suffix);
+        MIMEType actual = MIMEType.parse(raw);
 
-    public MIMETypeTest(String raw, String type, String tree, String subtype, String suffix) {
-        this.raw = raw;
-        this.type = type;
-        this.tree = tree;
-        this.subtype = subtype;
-        this.suffix = suffix;
-    }
-
-    @Test
-    public void test() {
-        MIMEType parsed = MIMEType.parse(this.raw);
-        MIMEType expected = new MIMEType(this.type, this.tree, this.subtype, this.suffix);
-
-        assertEquals(expected, parsed);
+        assertEquals(expected, actual);
     }
 }

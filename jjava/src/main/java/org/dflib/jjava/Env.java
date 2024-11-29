@@ -12,7 +12,6 @@ public final class Env {
     public static final String JJAVA_STARTUP_SCRIPT = "JJAVA_STARTUP_SCRIPT";
     public static final String JJAVA_LOAD_EXTENSIONS = "JJAVA_LOAD_EXTENSIONS";
 
-    // not used by Java, but rather by the Python kernel boot script
+    // not used by JJava, but rather by the kernel launcher script
     public static final String JJAVA_JVM_OPTS = "JJAVA_JVM_OPTS";
-
 }
