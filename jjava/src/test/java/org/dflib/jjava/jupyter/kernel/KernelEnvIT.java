@@ -16,7 +16,7 @@ class KernelEnvIT extends ContainerizedKernelCase {
     @Test
     void compilerOpts() throws Exception {
         Map<String, String> env = Map.of(Env.JJAVA_COMPILER_OPTS, "-source 9");
-        String snippet = "var value = 1";
+        String snippet = "var value = 1;";
         Container.ExecResult snippetResult = executeInKernel(snippet, env);
 
         assertThat(snippetResult.getStderr(), CoreMatchers.allOf(

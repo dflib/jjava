@@ -1,9 +1,12 @@
 package org.dflib.jjava.jupyter.kernel;
 
 import org.junit.jupiter.api.BeforeAll;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.Container;
 import org.testcontainers.containers.ExecConfig;
 import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.utility.MountableFile;
 
@@ -18,6 +21,8 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public abstract class ContainerizedKernelCase {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ContainerizedKernelCase.class);
 
     protected static final GenericContainer<?> container;
     protected static final String WORKING_DIRECTORY = "/test";
@@ -35,6 +40,7 @@ public abstract class ContainerizedKernelCase {
                 .withCopyToContainer(MountableFile.forHostPath(FS_KERNELSPEC), CONTAINER_KERNELSPEC)
                 .withCopyToContainer(MountableFile.forHostPath(FS_RESOURCES), CONTAINER_RESOURCES)
                 .withCommand("bash", "-c", getStartupCommand())
+                .withLogConsumer(new Slf4jLogConsumer(LOGGER))
                 .waitingFor(Wait.forSuccessfulCommand(getSuccessfulCommand()))
                 .withStartupTimeout(Duration.ofMinutes(5));
         container.start();
@@ -64,12 +70,17 @@ public abstract class ContainerizedKernelCase {
     protected static Container.ExecResult executeInKernel(String snippet, Map<String, String> env) throws IOException, InterruptedException {
         String snippet64 = Base64.getEncoder().encodeToString(snippet.getBytes());
         String jupyterCommand = venvCommand("jupyter console --kernel=java --simple-prompt");
-        String[] containerCommand = new String[]{"bash", "-c", "base64 -d <<< " + snippet64 + " | " + jupyterCommand};
-        return container.execInContainer(ExecConfig.builder()
+        String[] containerCommand = new String[]{"bash", "-c", "echo \"" + snippet64 + "\" | base64 -d | " + jupyterCommand};
+        Container.ExecResult execResult = container.execInContainer(ExecConfig.builder()
                 .envVars(env)
                 .command(containerCommand)
                 .build()
         );
+        LOGGER.info("env = {}", env);
+        LOGGER.info("snippet = {}", snippet);
+        LOGGER.debug("stderr = {}", execResult.getStderr());
+        LOGGER.debug("stdout = {}", execResult.getStdout());
+        return execResult;
     }
 
     private static String getStartupCommand() {
