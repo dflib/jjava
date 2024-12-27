@@ -32,6 +32,8 @@ public enum TextColor {
     WHITE_BG(47),
     RESET_BG(49),
 
+    BOLD_RESET_FG(39, 1),
+
     BOLD(1),
     UNDERLINE(4),
     SWAP_FG_BG(7),

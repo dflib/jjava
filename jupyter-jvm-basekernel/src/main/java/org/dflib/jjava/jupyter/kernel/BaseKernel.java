@@ -107,9 +107,9 @@ public abstract class BaseKernel {
         Text.registerAll(this.renderer);
 
         this.errorStyler = new StringStyler.Builder()
-                .addPrimaryStyle(TextColor.BOLD_BLACK_FG)
+                .addPrimaryStyle(TextColor.BOLD_RESET_FG)
                 .addSecondaryStyle(TextColor.BOLD_RED_FG)
-                .addHighlightStyle(TextColor.BOLD_BLACK_FG)
+                .addHighlightStyle(TextColor.BOLD_RESET_FG)
                 .addHighlightStyle(TextColor.RED_BG)
                 .build();
     }

@@ -146,12 +146,12 @@ public class JavaKernel extends BaseKernel {
         );
 
         this.errorStyler = new StringStyler.Builder()
-                .addPrimaryStyle(TextColor.BOLD_BLACK_FG)
+                .addPrimaryStyle(TextColor.BOLD_RESET_FG)
                 .addSecondaryStyle(TextColor.BOLD_RED_FG)
-                .addHighlightStyle(TextColor.BOLD_BLACK_FG)
+                .addHighlightStyle(TextColor.BOLD_RESET_FG)
                 .addHighlightStyle(TextColor.RED_BG)
                 //TODO map snippet ids to code cells and put the proper line number in the margin here
-                .withLinePrefix(TextColor.BOLD_BLACK_FG + "|   ")
+                .withLinePrefix(TextColor.BOLD_RESET_FG + "|   ")
                 .build();
 
         this.mavenResolver.initImplicitExtensions();
