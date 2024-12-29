@@ -1,4 +1,8 @@
-## 1.0-M4
+## 1.0-a5
+
+- #57 Black error message in dark mode (e.g. VSCode) not easily readable
+
+## 1.0-a4
 
 - #35 Replace custom installer with "jupyter kernelspec install" 
 - #39 Convert the default init script to an extension 
