@@ -161,7 +161,30 @@ public abstract class BaseKernel {
         return null;
     }
 
-    public abstract DisplayData eval(String expr) throws Exception;
+    /**
+     * Evaluates a code expression in the kernel's language environment and returns the result
+     * as display data. This is the core evaluation method called when executing code cells
+     * in a Jupyter notebook.
+     *
+     * <p>The implementation should:
+     * <ul>
+     *   <li>Parse and evaluate the provided expression string</li>
+     *   <li>Convert the evaluation result into appropriate display data formats</li>
+     *   <li>Handle any language-specific evaluation context/scope</li>
+     * </ul>
+     *
+     * <p>The returned {@link DisplayData} can contain multiple representations of the result
+     * (e.g. text/plain, text/html, image/png) to allow rich display in the notebook.
+     * Return null if the expression produces no displayable result.
+     *
+     * @param expr The code expression to evaluate as received from the Jupyter frontend
+     *
+     * @return A {@link DisplayData} object containing the evaluation result in one or more
+     *         MIME formats, or null if there is no displayable result
+     *
+     * @throws EvaluationException If an error occurs during expression evaluation
+     */
+    public abstract DisplayData eval(String expr);
 
     /**
      * Inspect the code to get things such as documentation for a function. This is
@@ -283,7 +306,7 @@ public abstract class BaseKernel {
      *         not include strings with newlines but rather separate strings each to go on a
      *         new line.
      */
-    public List<String> formatError(Exception e) {
+    public List<String> formatError(Throwable e) {
         List<String> lines = new LinkedList<>();
         lines.add(this.errorStyler.secondary("---------------------------------------------------------------------------"));
 
