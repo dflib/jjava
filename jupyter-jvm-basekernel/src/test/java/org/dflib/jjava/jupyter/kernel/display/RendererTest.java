@@ -1,21 +1,21 @@
 package org.dflib.jjava.jupyter.kernel.display;
 
 import org.dflib.jjava.jupyter.kernel.display.mime.MIMEType;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
-public class RendererTest {
+class RendererTest {
     private Renderer renderer;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         this.renderer = new Renderer();
         this.renderer.createRegistration(D.class)
@@ -47,6 +47,233 @@ public class RendererTest {
                     ctx.renderIfRequested(MIMEType.APPLICATION_JAVASCRIPT, j::js);
                     ctx.renderIfRequested(MIMEType.TEXT_PLAIN, j::pretty);
                 });
+    }
+
+    @Test
+    void rendersPlainText() {
+        DisplayData data = this.renderer.render(new A());
+
+        assertEquals("A", data.getData(MIMEType.TEXT_PLAIN));
+    }
+
+    @Test
+    void alwaysRendersPlainText() {
+        DisplayData data = this.renderer.render(new B());
+
+        assertEquals("B", data.getData(MIMEType.TEXT_PLAIN));
+    }
+
+    @Test
+    void rendersPreferred() {
+        DisplayData data = this.renderer.render(new B());
+
+        assertEquals("**B**", data.getData(MIMEType.TEXT_MARKDOWN));
+    }
+
+    @Test
+    void rendersJustPreferred() {
+        DisplayData data = this.renderer.render(new C());
+
+        assertEquals(".c{}", data.getData(MIMEType.TEXT_CSS));
+        assertEquals("C", data.getData(MIMEType.TEXT_PLAIN));
+        assertNull(data.getData(MIMEType.TEXT_MARKDOWN));
+    }
+
+    @Test
+    void rendersExternal() {
+        DisplayData data = this.renderer.render(new D());
+
+        assertEquals("<d></d>", data.getData(MIMEType.TEXT_HTML));
+        assertEquals("D", data.getData(MIMEType.TEXT_PLAIN));
+        assertNull(data.getData(MIMEType.TEXT_LATEX));
+    }
+
+    @Test
+    void rendersAs() {
+        DisplayData data = this.renderer.renderAs(new C(), "text/markdown");
+
+        assertEquals("**C**", data.getData(MIMEType.TEXT_MARKDOWN));
+        assertEquals("C", data.getData(MIMEType.TEXT_PLAIN));
+        assertNull(data.getData(MIMEType.TEXT_CSS));
+    }
+
+    @Test
+    void rendersAsExternal() {
+        DisplayData data = this.renderer.renderAs(new D(), "text/latex");
+
+        assertEquals("\\d", data.getData(MIMEType.TEXT_LATEX));
+        assertEquals("D", data.getData(MIMEType.TEXT_PLAIN));
+        assertNull(data.getData(MIMEType.TEXT_HTML));
+    }
+
+    @Test
+    void supportsPreferringAll() {
+        DisplayData data = this.renderer.render(new E());
+
+        assertEquals("<e></e>", data.getData(MIMEType.TEXT_HTML));
+        assertEquals(".e{}", data.getData(MIMEType.TEXT_CSS));
+        assertEquals("e();", data.getData(MIMEType.APPLICATION_JAVASCRIPT));
+        assertEquals("E", data.getData(MIMEType.TEXT_PLAIN));
+    }
+
+    @Test
+    void supportsPreferringAllExternal() {
+        DisplayData data = this.renderer.render(new F());
+
+        assertEquals("<f></f>", data.getData(MIMEType.TEXT_HTML));
+        assertEquals(".f{}", data.getData(MIMEType.TEXT_CSS));
+        assertEquals("f();", data.getData(MIMEType.APPLICATION_JAVASCRIPT));
+        assertEquals("F", data.getData(MIMEType.TEXT_PLAIN));
+    }
+
+    @Test
+    void supportsPreferringAllRequestingAll() {
+        DisplayData data = this.renderer.renderAs(new E(), "*");
+
+        assertEquals("<e></e>", data.getData(MIMEType.TEXT_HTML));
+        assertEquals(".e{}", data.getData(MIMEType.TEXT_CSS));
+        assertEquals("e();", data.getData(MIMEType.APPLICATION_JAVASCRIPT));
+        assertEquals("E", data.getData(MIMEType.TEXT_PLAIN));
+    }
+
+    @Test
+    void supportsPreferringAllRequestingAllExternal() {
+        DisplayData data = this.renderer.renderAs(new F(), "*");
+
+        assertEquals("<f></f>", data.getData(MIMEType.TEXT_HTML));
+        assertEquals(".f{}", data.getData(MIMEType.TEXT_CSS));
+        assertEquals("f();", data.getData(MIMEType.APPLICATION_JAVASCRIPT));
+        assertEquals("F", data.getData(MIMEType.TEXT_PLAIN));
+    }
+
+    @Test
+    void supportsPreferringAllRequestingSome() {
+        DisplayData data = this.renderer.renderAs(new E(), "text/html");
+
+        assertEquals("<e></e>", data.getData(MIMEType.TEXT_HTML));
+        assertNull(data.getData(MIMEType.TEXT_CSS));
+        assertNull(data.getData(MIMEType.APPLICATION_JAVASCRIPT));
+        assertEquals("E", data.getData(MIMEType.TEXT_PLAIN));
+    }
+
+    @Test
+    void supportsPreferringAllRequestingSomeExternal() {
+        DisplayData data = this.renderer.renderAs(new F(), "text/html");
+
+        assertEquals("<f></f>", data.getData(MIMEType.TEXT_HTML));
+        assertNull(data.getData(MIMEType.TEXT_CSS));
+        assertNull(data.getData(MIMEType.APPLICATION_JAVASCRIPT));
+        assertEquals("F", data.getData(MIMEType.TEXT_PLAIN));
+    }
+
+    @Test
+    void supportsPreferringAllRequestingGroup() {
+        DisplayData data = this.renderer.renderAs(new E(), "text/*");
+
+        assertEquals("<e></e>", data.getData(MIMEType.TEXT_HTML));
+        assertEquals(".e{}", data.getData(MIMEType.TEXT_CSS));
+        assertNull(data.getData(MIMEType.APPLICATION_JAVASCRIPT));
+        assertEquals("E", data.getData(MIMEType.TEXT_PLAIN));
+    }
+
+    @Test
+    void supportsPreferringAllRequestingGroupExternal() {
+        DisplayData data = this.renderer.renderAs(new F(), "text/*");
+
+        assertEquals("<f></f>", data.getData(MIMEType.TEXT_HTML));
+        assertEquals(".f{}", data.getData(MIMEType.TEXT_CSS));
+        assertNull(data.getData(MIMEType.APPLICATION_JAVASCRIPT));
+        assertEquals("F", data.getData(MIMEType.TEXT_PLAIN));
+    }
+
+    @Test
+    void supportsPreferringGroup() {
+        DisplayData data = this.renderer.render(new G());
+
+        assertEquals("<g></g>", data.getData(MIMEType.TEXT_HTML));
+        assertEquals(".g{}", data.getData(MIMEType.TEXT_CSS));
+        assertEquals("g();", data.getData(MIMEType.APPLICATION_JAVASCRIPT));
+        assertEquals("G", data.getData(MIMEType.TEXT_PLAIN));
+    }
+
+    @Test
+    void supportsPreferringGroupExternal() {
+        DisplayData data = this.renderer.render(new H());
+
+        assertEquals("<h></h>", data.getData(MIMEType.TEXT_HTML));
+        assertEquals(".h{}", data.getData(MIMEType.TEXT_CSS));
+        assertEquals("h();", data.getData(MIMEType.APPLICATION_JAVASCRIPT));
+        assertEquals("H", data.getData(MIMEType.TEXT_PLAIN));
+    }
+
+    @Test
+    void supportsPreferringGroupRequestingSome() {
+        DisplayData data = this.renderer.renderAs(new G(), "text/html");
+
+        assertEquals("<g></g>", data.getData(MIMEType.TEXT_HTML));
+        assertNull(data.getData(MIMEType.TEXT_CSS));
+        assertNull(data.getData(MIMEType.APPLICATION_JAVASCRIPT));
+        assertEquals("G", data.getData(MIMEType.TEXT_PLAIN));
+    }
+
+    @Test
+    void supportsPreferringGroupRequestingSomeExternal() {
+        DisplayData data = this.renderer.renderAs(new H(), "text/html");
+
+        assertEquals("<h></h>", data.getData(MIMEType.TEXT_HTML));
+        assertNull(data.getData(MIMEType.TEXT_CSS));
+        assertNull(data.getData(MIMEType.APPLICATION_JAVASCRIPT));
+        assertEquals("H", data.getData(MIMEType.TEXT_PLAIN));
+    }
+
+    @Test
+    void supportsPreferringGroupRequestingGroup() {
+        DisplayData data = this.renderer.renderAs(new G(), "text/*");
+
+        assertEquals("<g></g>", data.getData(MIMEType.TEXT_HTML));
+        assertEquals(".g{}", data.getData(MIMEType.TEXT_CSS));
+        assertNull(data.getData(MIMEType.APPLICATION_JAVASCRIPT));
+        assertEquals("G", data.getData(MIMEType.TEXT_PLAIN));
+    }
+
+    @Test
+    void supportsPreferringGroupRequestingGroupExternal() {
+        DisplayData data = this.renderer.renderAs(new H(), "text/*");
+
+        assertEquals("<h></h>", data.getData(MIMEType.TEXT_HTML));
+        assertEquals(".h{}", data.getData(MIMEType.TEXT_CSS));
+        assertNull(data.getData(MIMEType.APPLICATION_JAVASCRIPT));
+        assertEquals("H", data.getData(MIMEType.TEXT_PLAIN));
+    }
+
+    @Test
+    void supportsOverridingTextRepresentation() {
+        DisplayData data = this.renderer.render(new I());
+
+        assertEquals("I!", data.getData(MIMEType.TEXT_PLAIN));
+    }
+
+    @Test
+    void supportsOverridingTextRepresentationExternal() {
+        DisplayData data = this.renderer.render(new J());
+
+        assertEquals("J!", data.getData(MIMEType.TEXT_PLAIN));
+    }
+
+    @Test
+    void supportsOverridingTextRepresentationWhenNotRequested() {
+        DisplayData data = this.renderer.renderAs(new I(), "application/javascript");
+
+        assertEquals("i();", data.getData(MIMEType.APPLICATION_JAVASCRIPT));
+        assertEquals("I!", data.getData(MIMEType.TEXT_PLAIN));
+    }
+
+    @Test
+    void supportsOverridingTextRepresentationWhenNotRequestedExternal() {
+        DisplayData data = this.renderer.renderAs(new J(), "application/javascript");
+
+        assertEquals("j();", data.getData(MIMEType.APPLICATION_JAVASCRIPT));
+        assertEquals("J!", data.getData(MIMEType.TEXT_PLAIN));
     }
 
     class A {
@@ -227,232 +454,5 @@ public class RendererTest {
         public String toString() {
             return "J";
         }
-    }
-
-    @Test
-    public void rendersPlainText() {
-        DisplayData data = this.renderer.render(new A());
-
-        assertEquals("A", data.getData(MIMEType.TEXT_PLAIN));
-    }
-
-    @Test
-    public void alwaysRendersPlainText() {
-        DisplayData data = this.renderer.render(new B());
-
-        assertEquals("B", data.getData(MIMEType.TEXT_PLAIN));
-    }
-
-    @Test
-    public void rendersPreferred() {
-        DisplayData data = this.renderer.render(new B());
-
-        assertEquals("**B**", data.getData(MIMEType.TEXT_MARKDOWN));
-    }
-
-    @Test
-    public void rendersJustPreferred() {
-        DisplayData data = this.renderer.render(new C());
-
-        assertEquals(".c{}", data.getData(MIMEType.TEXT_CSS));
-        assertEquals("C", data.getData(MIMEType.TEXT_PLAIN));
-        assertNull(data.getData(MIMEType.TEXT_MARKDOWN));
-    }
-
-    @Test
-    public void rendersExternal() {
-        DisplayData data = this.renderer.render(new D());
-
-        assertEquals("<d></d>", data.getData(MIMEType.TEXT_HTML));
-        assertEquals("D", data.getData(MIMEType.TEXT_PLAIN));
-        assertNull(data.getData(MIMEType.TEXT_LATEX));
-    }
-
-    @Test
-    public void rendersAs() {
-        DisplayData data = this.renderer.renderAs(new C(), "text/markdown");
-
-        assertEquals("**C**", data.getData(MIMEType.TEXT_MARKDOWN));
-        assertEquals("C", data.getData(MIMEType.TEXT_PLAIN));
-        assertNull(data.getData(MIMEType.TEXT_CSS));
-    }
-
-    @Test
-    public void rendersAsExternal() {
-        DisplayData data = this.renderer.renderAs(new D(), "text/latex");
-
-        assertEquals("\\d", data.getData(MIMEType.TEXT_LATEX));
-        assertEquals("D", data.getData(MIMEType.TEXT_PLAIN));
-        assertNull(data.getData(MIMEType.TEXT_HTML));
-    }
-
-    @Test
-    public void supportsPreferringAll() {
-        DisplayData data = this.renderer.render(new E());
-
-        assertEquals("<e></e>", data.getData(MIMEType.TEXT_HTML));
-        assertEquals(".e{}", data.getData(MIMEType.TEXT_CSS));
-        assertEquals("e();", data.getData(MIMEType.APPLICATION_JAVASCRIPT));
-        assertEquals("E", data.getData(MIMEType.TEXT_PLAIN));
-    }
-
-    @Test
-    public void supportsPreferringAllExternal() {
-        DisplayData data = this.renderer.render(new F());
-
-        assertEquals("<f></f>", data.getData(MIMEType.TEXT_HTML));
-        assertEquals(".f{}", data.getData(MIMEType.TEXT_CSS));
-        assertEquals("f();", data.getData(MIMEType.APPLICATION_JAVASCRIPT));
-        assertEquals("F", data.getData(MIMEType.TEXT_PLAIN));
-    }
-
-    @Test
-    public void supportsPreferringAllRequestingAll() {
-        DisplayData data = this.renderer.renderAs(new E(), "*");
-
-        assertEquals("<e></e>", data.getData(MIMEType.TEXT_HTML));
-        assertEquals(".e{}", data.getData(MIMEType.TEXT_CSS));
-        assertEquals("e();", data.getData(MIMEType.APPLICATION_JAVASCRIPT));
-        assertEquals("E", data.getData(MIMEType.TEXT_PLAIN));
-    }
-
-    @Test
-    public void supportsPreferringAllRequestingAllExternal() {
-        DisplayData data = this.renderer.renderAs(new F(), "*");
-
-        assertEquals("<f></f>", data.getData(MIMEType.TEXT_HTML));
-        assertEquals(".f{}", data.getData(MIMEType.TEXT_CSS));
-        assertEquals("f();", data.getData(MIMEType.APPLICATION_JAVASCRIPT));
-        assertEquals("F", data.getData(MIMEType.TEXT_PLAIN));
-    }
-
-    @Test
-    public void supportsPreferringAllRequestingSome() {
-        DisplayData data = this.renderer.renderAs(new E(), "text/html");
-
-        assertEquals("<e></e>", data.getData(MIMEType.TEXT_HTML));
-        assertNull(data.getData(MIMEType.TEXT_CSS));
-        assertNull(data.getData(MIMEType.APPLICATION_JAVASCRIPT));
-        assertEquals("E", data.getData(MIMEType.TEXT_PLAIN));
-    }
-
-    @Test
-    public void supportsPreferringAllRequestingSomeExternal() {
-        DisplayData data = this.renderer.renderAs(new F(), "text/html");
-
-        assertEquals("<f></f>", data.getData(MIMEType.TEXT_HTML));
-        assertNull(data.getData(MIMEType.TEXT_CSS));
-        assertNull(data.getData(MIMEType.APPLICATION_JAVASCRIPT));
-        assertEquals("F", data.getData(MIMEType.TEXT_PLAIN));
-    }
-
-    @Test
-    public void supportsPreferringAllRequestingGroup() {
-        DisplayData data = this.renderer.renderAs(new E(), "text/*");
-
-        assertEquals("<e></e>", data.getData(MIMEType.TEXT_HTML));
-        assertEquals(".e{}", data.getData(MIMEType.TEXT_CSS));
-        assertNull(data.getData(MIMEType.APPLICATION_JAVASCRIPT));
-        assertEquals("E", data.getData(MIMEType.TEXT_PLAIN));
-    }
-
-    @Test
-    public void supportsPreferringAllRequestingGroupExternal() {
-        DisplayData data = this.renderer.renderAs(new F(), "text/*");
-
-        assertEquals("<f></f>", data.getData(MIMEType.TEXT_HTML));
-        assertEquals(".f{}", data.getData(MIMEType.TEXT_CSS));
-        assertNull(data.getData(MIMEType.APPLICATION_JAVASCRIPT));
-        assertEquals("F", data.getData(MIMEType.TEXT_PLAIN));
-    }
-
-    @Test
-    public void supportsPreferringGroup() {
-        DisplayData data = this.renderer.render(new G());
-
-        assertEquals("<g></g>", data.getData(MIMEType.TEXT_HTML));
-        assertEquals(".g{}", data.getData(MIMEType.TEXT_CSS));
-        assertEquals("g();", data.getData(MIMEType.APPLICATION_JAVASCRIPT));
-        assertEquals("G", data.getData(MIMEType.TEXT_PLAIN));
-    }
-
-    @Test
-    public void supportsPreferringGroupExternal() {
-        DisplayData data = this.renderer.render(new H());
-
-        assertEquals("<h></h>", data.getData(MIMEType.TEXT_HTML));
-        assertEquals(".h{}", data.getData(MIMEType.TEXT_CSS));
-        assertEquals("h();", data.getData(MIMEType.APPLICATION_JAVASCRIPT));
-        assertEquals("H", data.getData(MIMEType.TEXT_PLAIN));
-    }
-
-    @Test
-    public void supportsPreferringGroupRequestingSome() {
-        DisplayData data = this.renderer.renderAs(new G(), "text/html");
-
-        assertEquals("<g></g>", data.getData(MIMEType.TEXT_HTML));
-        assertNull(data.getData(MIMEType.TEXT_CSS));
-        assertNull(data.getData(MIMEType.APPLICATION_JAVASCRIPT));
-        assertEquals("G", data.getData(MIMEType.TEXT_PLAIN));
-    }
-
-    @Test
-    public void supportsPreferringGroupRequestingSomeExternal() {
-        DisplayData data = this.renderer.renderAs(new H(), "text/html");
-
-        assertEquals("<h></h>", data.getData(MIMEType.TEXT_HTML));
-        assertNull(data.getData(MIMEType.TEXT_CSS));
-        assertNull(data.getData(MIMEType.APPLICATION_JAVASCRIPT));
-        assertEquals("H", data.getData(MIMEType.TEXT_PLAIN));
-    }
-
-    @Test
-    public void supportsPreferringGroupRequestingGroup() {
-        DisplayData data = this.renderer.renderAs(new G(), "text/*");
-
-        assertEquals("<g></g>", data.getData(MIMEType.TEXT_HTML));
-        assertEquals(".g{}", data.getData(MIMEType.TEXT_CSS));
-        assertNull(data.getData(MIMEType.APPLICATION_JAVASCRIPT));
-        assertEquals("G", data.getData(MIMEType.TEXT_PLAIN));
-    }
-
-    @Test
-    public void supportsPreferringGroupRequestingGroupExternal() {
-        DisplayData data = this.renderer.renderAs(new H(), "text/*");
-
-        assertEquals("<h></h>", data.getData(MIMEType.TEXT_HTML));
-        assertEquals(".h{}", data.getData(MIMEType.TEXT_CSS));
-        assertNull(data.getData(MIMEType.APPLICATION_JAVASCRIPT));
-        assertEquals("H", data.getData(MIMEType.TEXT_PLAIN));
-    }
-
-    @Test
-    public void supportsOverridingTextRepresentation() {
-        DisplayData data = this.renderer.render(new I());
-
-        assertEquals("I!", data.getData(MIMEType.TEXT_PLAIN));
-    }
-
-    @Test
-    public void supportsOverridingTextRepresentationExternal() {
-        DisplayData data = this.renderer.render(new J());
-
-        assertEquals("J!", data.getData(MIMEType.TEXT_PLAIN));
-    }
-
-    @Test
-    public void supportsOverridingTextRepresentationWhenNotRequested() {
-        DisplayData data = this.renderer.renderAs(new I(), "application/javascript");
-
-        assertEquals("i();", data.getData(MIMEType.APPLICATION_JAVASCRIPT));
-        assertEquals("I!", data.getData(MIMEType.TEXT_PLAIN));
-    }
-
-    @Test
-    public void supportsOverridingTextRepresentationWhenNotRequestedExternal() {
-        DisplayData data = this.renderer.renderAs(new J(), "application/javascript");
-
-        assertEquals("j();", data.getData(MIMEType.APPLICATION_JAVASCRIPT));
-        assertEquals("J!", data.getData(MIMEType.TEXT_PLAIN));
     }
 }

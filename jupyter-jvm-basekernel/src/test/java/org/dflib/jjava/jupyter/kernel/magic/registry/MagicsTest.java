@@ -1,7 +1,7 @@
 package org.dflib.jjava.jupyter.kernel.magic.registry;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -9,13 +9,14 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class MagicsTest {
     private Magics magics;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         magics = new Magics();
     }
@@ -116,7 +117,7 @@ public class MagicsTest {
         }
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void badReflectionLineMagicsType() {
         class BadMagic {
             @LineMagic
@@ -124,10 +125,10 @@ public class MagicsTest {
             }
         }
 
-        magics.registerMagics(new BadMagic());
+        assertThrows(IllegalArgumentException.class, () -> magics.registerMagics(new BadMagic()));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void badReflectionLineMagicsTypeParam() {
         class BadMagic {
             @LineMagic
@@ -135,7 +136,7 @@ public class MagicsTest {
             }
         }
 
-        magics.registerMagics(new BadMagic());
+        assertThrows(IllegalArgumentException.class, () -> magics.registerMagics(new BadMagic()));
     }
 
     @Test
@@ -176,7 +177,7 @@ public class MagicsTest {
         }
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void badReflectionCellMagicsType() {
         class BadMagic {
             @LineMagic
@@ -184,10 +185,10 @@ public class MagicsTest {
             }
         }
 
-        magics.registerMagics(new BadMagic());
+        assertThrows(IllegalArgumentException.class, () -> magics.registerMagics(new BadMagic()));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void badReflectionCellMagicsTypeParam() {
         class BadMagic {
             @LineMagic
@@ -195,10 +196,10 @@ public class MagicsTest {
             }
         }
 
-        magics.registerMagics(new BadMagic());
+        assertThrows(IllegalArgumentException.class, () -> magics.registerMagics(new BadMagic()));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void badReflectionCellMagicsBodyTypeParam() {
         class BadMagic {
             @LineMagic
@@ -206,7 +207,7 @@ public class MagicsTest {
             }
         }
 
-        magics.registerMagics(new BadMagic());
+        assertThrows(IllegalArgumentException.class, () -> magics.registerMagics(new BadMagic()));
     }
 
     @Test

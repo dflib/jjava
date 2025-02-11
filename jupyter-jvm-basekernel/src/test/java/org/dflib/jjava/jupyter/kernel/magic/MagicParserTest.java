@@ -1,25 +1,19 @@
 package org.dflib.jjava.jupyter.kernel.magic;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class MagicParserTest {
-    public static List<String> split(String args) {
-        return MagicParser.split(args);
-    }
-
     private MagicParser inlineParser;
     private MagicParser solParser;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         this.inlineParser = new MagicParser("//%", "//%%");
         this.solParser = new MagicParser("^\\s*//%", "//%%");
@@ -138,5 +132,9 @@ public class MagicParserTest {
         );
 
         assertEquals(expectedTransformedCell, transformedCell);
+    }
+
+    public static List<String> split(String args) {
+        return MagicParser.split(args);
     }
 }
