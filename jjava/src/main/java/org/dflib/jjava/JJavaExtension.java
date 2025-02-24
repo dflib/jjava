@@ -25,10 +25,6 @@ public class JJavaExtension implements Extension {
 
     @Override
     public void install(BaseKernel kernel) {
-        try {
-            kernel.eval(STARTUP_SCRIPT);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        kernel.eval(STARTUP_SCRIPT);
     }
 }
