@@ -45,7 +45,7 @@ class KernelMagicIT extends ContainerizedKernelCase {
     }
 
     @Test
-    void addMavenDependencies() throws Exception {
+    void addMavenDependency() throws Exception {
         String snippet = String.join("\n",
                 "%maven org.dflib:dflib-jupyter:1.0.0-RC1",
                 "System.getProperty(\"java.class.path\")"
@@ -54,6 +54,19 @@ class KernelMagicIT extends ContainerizedKernelCase {
 
         assertThat(snippetResult.getStderr(), not(containsString("|")));
         assertThat(snippetResult.getStdout(), containsString("dflib-jupyter-1.0.0-RC1.jar"));
+    }
+
+    @Test
+    void addIvyDependency() throws Exception {
+        String snippet = String.join("\n",
+                "%maven jakarta.annotation#jakarta.annotation-api;3.0.0",
+                "System.getProperty(\"java.class.path\")"
+        );
+
+        Container.ExecResult snippetResult = executeInKernel(snippet);
+
+        assertThat(snippetResult.getStderr(), not(containsString("|")));
+        assertThat(snippetResult.getStdout(), containsString("jakarta.annotation-api-3.0.0.jar"));
     }
 
     @Test
