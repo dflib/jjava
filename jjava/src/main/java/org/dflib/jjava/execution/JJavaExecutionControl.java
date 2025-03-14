@@ -103,7 +103,7 @@ public class JJavaExecutionControl extends DirectExecutionControl {
         return result == NULL ? null : result;
     }
 
-    private Object execute(String key, Method doitMethod) throws TimeoutException, Exception {
+    private Object execute(String key, Method doitMethod) throws Exception {
         Future<Object> runningTask = this.executor.submit(() -> doitMethod.invoke(null));
 
         this.running.put(key, runningTask);
@@ -137,7 +137,7 @@ public class JJavaExecutionControl extends DirectExecutionControl {
             else if (cause instanceof SPIResolutionException)
                 throw new ResolutionException(((SPIResolutionException) cause).id(), cause.getStackTrace());
             else
-                throw new UserException(String.valueOf(cause.getMessage()), String.valueOf(cause.getClass().getName()), cause.getStackTrace());
+                throw new UserException(String.valueOf(cause.getMessage()), cause.getClass().getName(), cause.getStackTrace());
         } catch (TimeoutException e) {
             throw new UserException(
                     String.format("Execution timed out after configured timeout of %d %s.", this.timeoutTime, this.timeoutUnit.toString().toLowerCase()),
@@ -199,7 +199,7 @@ public class JJavaExecutionControl extends DirectExecutionControl {
         return loaderDelegate.findClass(name);
     }
 
-    void unloadClass(String className) throws ClassNotFoundException {
+    void unloadClass(String className) {
         this.loaderDelegate.unloadClass(className);
     }
 

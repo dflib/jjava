@@ -25,7 +25,7 @@ package org.dflib.jjava.execution;
 
 import jdk.jshell.SnippetEvent;
 
-public class CompilationException extends Exception {
+public class CompilationException extends RuntimeException {
     private final SnippetEvent badSnippetCompilation;
 
     public CompilationException(SnippetEvent badSnippetCompilation) {

@@ -59,7 +59,9 @@ import java.util.function.Supplier;
 
 public abstract class BaseKernel {
     protected final AtomicInteger executionCount = new AtomicInteger(1);
-    protected static final Map<String, String> KERNEL_META = ((Supplier<Map<String, String>>) () -> {
+    protected static final Map<String, String> KERNEL_META;
+
+    static {
         Map<String, String> meta = null;
 
         InputStream metaStream = BaseKernel.class.getClassLoader().getResourceAsStream("kernel-metadata.json");
@@ -83,8 +85,8 @@ public abstract class BaseKernel {
             meta.put("project", "unknown");
         }
 
-        return meta;
-    }).get();
+        KERNEL_META = meta;
+    }
 
     private final JupyterIO io;
     private boolean shouldReplaceStdStreams;
@@ -181,8 +183,6 @@ public abstract class BaseKernel {
      *
      * @return A {@link DisplayData} object containing the evaluation result in one or more
      *         MIME formats, or null if there is no displayable result
-     *
-     * @throws EvaluationException If an error occurs during expression evaluation
      */
     public abstract DisplayData eval(String expr);
 
@@ -201,10 +201,9 @@ public abstract class BaseKernel {
      *
      * @return an output bundle for displaying the documentation or null if nothing is found
      *
-     * @throws Exception if the code cannot be inspected for some reason (such as it not
-     *                   compiling)
+     * @throws RuntimeException if the code cannot be inspected for some reason (such as it not compiling)
      */
-    public DisplayData inspect(String code, int at, boolean extraDetail) throws Exception {
+    public DisplayData inspect(String code, int at, boolean extraDetail) {
         return null;
     }
 
@@ -227,11 +226,11 @@ public abstract class BaseKernel {
      * @return the replacement options containing a list of replacement texts and a
      *         source range to overwrite with a user selected replacement from the list
      *
-     * @throws Exception if code cannot be completed due to code compilation issues, or
-     *                   similar. This should not be thrown if not replacements are available but rather just
-     *                   an empty replacements returned.
+     * @throws RuntimeException if code cannot be completed due to code compilation issues, or similar.
+     *                          This should not be thrown if not replacements are available but rather just
+     *                          an empty replacements returned.
      */
-    public ReplacementOptions complete(String code, int at) throws Exception {
+    public ReplacementOptions complete(String code, int at) {
         return null;
     }
 

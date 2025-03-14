@@ -39,7 +39,6 @@ import org.dflib.jjava.execution.IncompleteSourceException;
 import org.dflib.jjava.execution.MagicsSourceTransformer;
 import org.dflib.jjava.jupyter.Extension;
 import org.dflib.jjava.jupyter.kernel.BaseKernel;
-import org.dflib.jjava.jupyter.kernel.EvaluationException;
 import org.dflib.jjava.jupyter.kernel.LanguageInfo;
 import org.dflib.jjava.jupyter.kernel.ReplacementOptions;
 import org.dflib.jjava.jupyter.kernel.display.DisplayData;
@@ -212,8 +211,6 @@ public class JavaKernel extends BaseKernel {
 
     @Override
     public List<String> formatError(Throwable e) {
-        if (e instanceof EvaluationException)
-            return formatError(e.getCause());
         if (e instanceof CompilationException) {
             return formatCompilationException((CompilationException) e);
         } else if (e instanceof IncompleteSourceException) {
@@ -334,7 +331,7 @@ public class JavaKernel extends BaseKernel {
         return fmt;
     }
 
-    public Object evalRaw(String expr) throws Exception {
+    public Object evalRaw(String expr) {
         expr = this.magicsTransformer.transformMagics(expr);
 
         return this.evaluator.eval(expr);
@@ -342,13 +339,7 @@ public class JavaKernel extends BaseKernel {
 
     @Override
     public DisplayData eval(String expr) {
-        Object result;
-        try {
-            result = this.evalRaw(expr);
-        } catch (Exception e) {
-            throw new EvaluationException(e);
-        }
-
+        Object result = this.evalRaw(expr);
         if (result == null) {
             return null;
         }

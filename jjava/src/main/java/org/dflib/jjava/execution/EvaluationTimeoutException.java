@@ -25,7 +25,7 @@ package org.dflib.jjava.execution;
 
 import java.util.concurrent.TimeUnit;
 
-public class EvaluationTimeoutException extends Exception {
+public class EvaluationTimeoutException extends RuntimeException {
     private final long duration;
     private final TimeUnit unit;
     private final String source;

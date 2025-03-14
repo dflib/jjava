@@ -23,7 +23,7 @@
  */
 package org.dflib.jjava.execution;
 
-public class EvaluationInterruptedException extends Exception {
+public class EvaluationInterruptedException extends RuntimeException {
     private final String source;
 
     public EvaluationInterruptedException(String source) {
