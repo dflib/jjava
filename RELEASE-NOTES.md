@@ -1,5 +1,6 @@
 ## 1.0-a5
 
+- #52 Homebrew: unable to install package 
 - #57 Black error message in dark mode (e.g. VSCode) not easily readable
 - #59 BaseKernel.eval(..) should not declare a checked exception
 
