@@ -1,6 +1,7 @@
 ## 1.0-a5
 
 - #57 Black error message in dark mode (e.g. VSCode) not easily readable
+- #59 BaseKernel.eval(..) should not declare a checked exception
 
 ## 1.0-a4
 
