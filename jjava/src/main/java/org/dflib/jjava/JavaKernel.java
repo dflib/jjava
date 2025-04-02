@@ -210,7 +210,7 @@ public class JavaKernel extends BaseKernel {
     }
 
     @Override
-    public List<String> formatError(Exception e) {
+    public List<String> formatError(Throwable e) {
         if (e instanceof CompilationException) {
             return formatCompilationException((CompilationException) e);
         } else if (e instanceof IncompleteSourceException) {
@@ -331,22 +331,21 @@ public class JavaKernel extends BaseKernel {
         return fmt;
     }
 
-    public Object evalRaw(String expr) throws Exception {
+    public Object evalRaw(String expr) {
         expr = this.magicsTransformer.transformMagics(expr);
 
         return this.evaluator.eval(expr);
     }
 
     @Override
-    public DisplayData eval(String expr) throws Exception {
+    public DisplayData eval(String expr) {
         Object result = this.evalRaw(expr);
-
-        if (result != null)
-            return result instanceof DisplayData
-                    ? (DisplayData) result
-                    : this.getRenderer().render(result);
-
-        return null;
+        if (result == null) {
+            return null;
+        }
+        return result instanceof DisplayData
+                ? (DisplayData) result
+                : this.getRenderer().render(result);
     }
 
     @Override

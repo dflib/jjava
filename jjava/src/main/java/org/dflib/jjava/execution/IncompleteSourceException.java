@@ -23,7 +23,7 @@
  */
 package org.dflib.jjava.execution;
 
-public class IncompleteSourceException extends Exception {
+public class IncompleteSourceException extends RuntimeException {
     private final String source;
 
     public IncompleteSourceException(String source) {

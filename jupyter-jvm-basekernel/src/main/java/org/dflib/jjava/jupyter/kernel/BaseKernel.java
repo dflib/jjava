@@ -59,7 +59,9 @@ import java.util.function.Supplier;
 
 public abstract class BaseKernel {
     protected final AtomicInteger executionCount = new AtomicInteger(1);
-    protected static final Map<String, String> KERNEL_META = ((Supplier<Map<String, String>>) () -> {
+    protected static final Map<String, String> KERNEL_META;
+
+    static {
         Map<String, String> meta = null;
 
         InputStream metaStream = BaseKernel.class.getClassLoader().getResourceAsStream("kernel-metadata.json");
@@ -83,8 +85,8 @@ public abstract class BaseKernel {
             meta.put("project", "unknown");
         }
 
-        return meta;
-    }).get();
+        KERNEL_META = meta;
+    }
 
     private final JupyterIO io;
     private boolean shouldReplaceStdStreams;
@@ -161,7 +163,28 @@ public abstract class BaseKernel {
         return null;
     }
 
-    public abstract DisplayData eval(String expr) throws Exception;
+    /**
+     * Evaluates a code expression in the kernel's language environment and returns the result
+     * as display data. This is the core evaluation method called when executing code cells
+     * in a Jupyter notebook.
+     *
+     * <p>The implementation should:
+     * <ul>
+     *   <li>Parse and evaluate the provided expression string</li>
+     *   <li>Convert the evaluation result into appropriate display data formats</li>
+     *   <li>Handle any language-specific evaluation context/scope</li>
+     * </ul>
+     *
+     * <p>The returned {@link DisplayData} can contain multiple representations of the result
+     * (e.g. text/plain, text/html, image/png) to allow rich display in the notebook.
+     * Return null if the expression produces no displayable result.
+     *
+     * @param expr The code expression to evaluate as received from the Jupyter frontend
+     *
+     * @return A {@link DisplayData} object containing the evaluation result in one or more
+     *         MIME formats, or null if there is no displayable result
+     */
+    public abstract DisplayData eval(String expr);
 
     /**
      * Inspect the code to get things such as documentation for a function. This is
@@ -178,10 +201,9 @@ public abstract class BaseKernel {
      *
      * @return an output bundle for displaying the documentation or null if nothing is found
      *
-     * @throws Exception if the code cannot be inspected for some reason (such as it not
-     *                   compiling)
+     * @throws RuntimeException if the code cannot be inspected for some reason (such as it not compiling)
      */
-    public DisplayData inspect(String code, int at, boolean extraDetail) throws Exception {
+    public DisplayData inspect(String code, int at, boolean extraDetail) {
         return null;
     }
 
@@ -204,11 +226,11 @@ public abstract class BaseKernel {
      * @return the replacement options containing a list of replacement texts and a
      *         source range to overwrite with a user selected replacement from the list
      *
-     * @throws Exception if code cannot be completed due to code compilation issues, or
-     *                   similar. This should not be thrown if not replacements are available but rather just
-     *                   an empty replacements returned.
+     * @throws RuntimeException if code cannot be completed due to code compilation issues, or similar.
+     *                          This should not be thrown if not replacements are available but rather just
+     *                          an empty replacements returned.
      */
-    public ReplacementOptions complete(String code, int at) throws Exception {
+    public ReplacementOptions complete(String code, int at) {
         return null;
     }
 
@@ -283,7 +305,7 @@ public abstract class BaseKernel {
      *         not include strings with newlines but rather separate strings each to go on a
      *         new line.
      */
-    public List<String> formatError(Exception e) {
+    public List<String> formatError(Throwable e) {
         List<String> lines = new LinkedList<>();
         lines.add(this.errorStyler.secondary("---------------------------------------------------------------------------"));
 

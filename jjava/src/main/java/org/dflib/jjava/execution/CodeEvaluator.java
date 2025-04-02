@@ -79,14 +79,14 @@ public class CodeEvaluator {
         return this.sourceAnalyzer.analyzeCompletion(source);
     }
 
-    private void init() throws Exception {
+    private void init() {
         for (String script : this.startupScripts)
             eval(script);
 
         this.startupScripts.clear();
     }
 
-    protected Object evalSingle(String code) throws Exception {
+    protected Object evalSingle(String code) {
         JJavaExecutionControl executionControl =
                 this.executionControlProvider.getRegisteredControlByID(this.executionControlID);
 
@@ -139,11 +139,11 @@ public class CodeEvaluator {
                             case JJavaExecutionControl.EXECUTION_INTERRUPTED_NAME:
                                 throw new EvaluationInterruptedException(code.trim());
                             default:
-                                throw e;
+                                throw new RuntimeException(e);
                         }
                     }
 
-                    throw e;
+                    throw new RuntimeException(e);
                 }
 
                 if (!event.status().isDefined())
@@ -154,7 +154,7 @@ public class CodeEvaluator {
         return result;
     }
 
-    public Object eval(String code) throws Exception {
+    public Object eval(String code) {
         // The init() method runs some code in the shell to initialize the environment. As such
         // it is deferred until the first user requested evaluation to cleanly return errors when
         // they happen.
@@ -178,7 +178,7 @@ public class CodeEvaluator {
     /**
      * Try to clean up information linked to a code snippet and the snippet itself
      */
-    private void dropSnippet(Snippet snippet) throws Exception {
+    private void dropSnippet(Snippet snippet) {
         JJavaExecutionControl executionControl =
                 this.executionControlProvider.getRegisteredControlByID(this.executionControlID);
         this.shell.drop(snippet);
