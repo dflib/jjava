@@ -1,6 +1,8 @@
 ## 1.0-a5
 
+- #23 Port dependency management from Ivy to Maven 
 - #52 Homebrew: unable to install package 
+- #55 Working on POM in SNAPSHOT mode fails to work properly due to .ivy2 cache 
 - #57 Black error message in dark mode (e.g. VSCode) not easily readable
 - #59 BaseKernel.eval(..) should not declare a checked exception
 
