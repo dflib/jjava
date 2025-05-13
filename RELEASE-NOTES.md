@@ -5,6 +5,7 @@
 - #55 Working on POM in SNAPSHOT mode fails to work properly due to .ivy2 cache 
 - #57 Black error message in dark mode (e.g. VSCode) not easily readable
 - #59 BaseKernel.eval(..) should not declare a checked exception
+- #64 Notebook hangs when a static method signature is redefined
 
 ## 1.0-a4
 

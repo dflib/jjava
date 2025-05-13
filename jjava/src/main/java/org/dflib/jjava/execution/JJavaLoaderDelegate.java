@@ -105,7 +105,13 @@ public class JJavaLoaderDelegate implements LoaderDelegate {
             if (data == null) {
                 return super.findClass(name);
             }
-            return super.defineClass(name, data, 0, data.length, (CodeSource) null);
+            try {
+                return super.defineClass(name, data, 0, data.length, (CodeSource) null);
+            } catch (LinkageError er) {
+                // rethrow as ClassNotFoundException to let the caller properly handle this case
+                // this error could be thrown in some cases (like static method signature change)
+                throw new ClassNotFoundException(name, er);
+            }
         }
     }
 }
