@@ -3,7 +3,7 @@
 ## Installing the latest snapshot version of the Kernel
 
 On macOS (and possibly on Linux) you could just run `install-snapshot.sh` script 
-to build and install current snapshot version of the JJava kernel.
+to build and install the current snapshot version of the DFLib JJava kernel.
 
 Alternatively, you could just build it and install as with any release version:
 
