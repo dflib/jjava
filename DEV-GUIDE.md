@@ -17,7 +17,8 @@ jupyter kernelspec install "${TARGET_PATH}" --name=java --user
 
 ### Prerequisites
 
-You will need a **JDK** >= 11 and proper credentials for the `s01-ss-sonatype-releases` repository
+You will need a **JDK** >= 11 and proper credentials for the `sonatype-central` repository
+(see [docs](https://central.sonatype.org/publish/generate-portal-token/))
 
 ### Perform the Release
 
@@ -33,6 +34,6 @@ Still everything is done through a single set of Maven commands:
 mvn release:prepare -Prelease
 mvn release:perform -Prelease
 ```
-Go to https://s01.oss.sonatype.org/ and manually close and release the staging repository.
+Go to https://central.sonatype.com/publishing and manually publish created bundle.
 
 Go to [GitHub Releases](https://github.com/dflib/jjava/releases) to manually edit the created draft and publish it.
