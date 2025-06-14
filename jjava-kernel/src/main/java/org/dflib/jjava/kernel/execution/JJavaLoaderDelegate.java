@@ -31,9 +31,15 @@ public class JJavaLoaderDelegate implements LoaderDelegate {
     @Override
     public void load(ExecutionControl.ClassBytecodes[] cbcs) throws ExecutionControl.ClassInstallException {
         boolean[] installed = new boolean[cbcs.length];
-        int i = 0;
+
+        // Must record all defined classes before attempting to load them. Otherwise, classes depending on other,
+        // not yet loaded classes, may fail (see https://github.com/dflib/jjava/issues/65)
         for (ExecutionControl.ClassBytecodes cbc : cbcs) {
             declaredClasses.put(cbc.name(), cbc.bytecodes());
+        }
+
+        int i = 0;
+        for (ExecutionControl.ClassBytecodes cbc : cbcs) {
             try {
                 Class<?> loaderClass = classLoader.findClass(cbc.name());
                 loadedClasses.put(cbc.name(), loaderClass);

@@ -114,7 +114,10 @@ public class CodeEvaluator {
                     throw new RuntimeException(e);
                 }
 
-                if (!event.status().isDefined()) {
+                // Undefined snippets are generally bad, unless we can still recover from them. E.g.,
+                // "Unresolved dependencies" errors are recoverable when those dependencies are defined in the later
+                // snippets.
+                if (event.status() != Snippet.Status.RECOVERABLE_NOT_DEFINED && !event.status().isDefined()) {
                     throw new CompilationException(event);
                 }
             }
