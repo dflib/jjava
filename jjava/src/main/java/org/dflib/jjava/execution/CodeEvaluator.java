@@ -132,14 +132,16 @@ public class CodeEvaluator {
             if (event.causeSnippet() == null) {
                 JShellException e = event.exception();
                 if (e != null) {
+
                     if (e instanceof EvalException) {
-                        switch (((EvalException) e).getExceptionClassName()) {
+                        EvalException ee = (EvalException) e;
+                        switch (ee.getExceptionClassName()) {
                             case JJavaExecutionControl.EXECUTION_TIMEOUT_NAME:
                                 throw new EvaluationTimeoutException(executionControl.getTimeoutDuration(), executionControl.getTimeoutUnit(), code.trim());
                             case JJavaExecutionControl.EXECUTION_INTERRUPTED_NAME:
                                 throw new EvaluationInterruptedException(code.trim());
                             default:
-                                throw new RuntimeException(e);
+                                throw new RuntimeException(ee.getExceptionClassName() + ", " + e.getMessage(), e);
                         }
                     }
 
