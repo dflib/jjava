@@ -1,6 +1,6 @@
 ## 1.0-a6
 
-- #68 CompilationException doesn't provide any information about the udnerlying problem
+- #68 CompilationException doesn't provide any information about the underlying problem
 - #69 Expose EvalException details
 
 ## 1.0-a5
