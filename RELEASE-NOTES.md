@@ -1,3 +1,7 @@
+## 1.0-a6
+
+- #68 CompilationException doesn't provide any information about the udnerlying problem
+
 ## 1.0-a5
 
 - #23 Port dependency management from Ivy to Maven 

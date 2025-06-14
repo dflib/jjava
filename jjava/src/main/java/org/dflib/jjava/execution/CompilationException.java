@@ -29,6 +29,11 @@ public class CompilationException extends RuntimeException {
     private final SnippetEvent badSnippetCompilation;
 
     public CompilationException(SnippetEvent badSnippetCompilation) {
+        super(
+                badSnippetCompilation.toString(),
+                badSnippetCompilation.exception()
+        );
+
         this.badSnippetCompilation = badSnippetCompilation;
     }
 
