@@ -1,5 +1,6 @@
 ## 1.0-a6
 
+- #65 mutual dependent class not working
 - #68 CompilationException doesn't provide any information about the udnerlying problem
 - #69 Expose EvalException details
 
