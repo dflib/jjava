@@ -25,7 +25,10 @@ public class MagicParserTest {
                 "//%magicName arg1 arg2",
                 "Inline magic = //%magicName2 arg1",
                 "//Just a comment",
-                "//%magicName3 arg1 \"arg2 arg2\""
+                "//%magicName3 arg1 \"arg2 arg2\"",
+                "//%magicName4 escaped\\\\backslash escaped\\\"quote",
+                "//%magicName5 \"quoted-escaped\\\\backslash\" \"quoated-escaped\\\"quote\"",
+                "//%magicName6 \"\" quoted-empty-string"
         );
 
         String transformedCell = this.inlineParser.transformLineMagics(cell, ctx ->
@@ -36,7 +39,10 @@ public class MagicParserTest {
                 "**magicName-arg1,arg2",
                 "Inline magic = **magicName2-arg1",
                 "//Just a comment",
-                "**magicName3-arg1,arg2 arg2"
+                "**magicName3-arg1,arg2 arg2",
+                "**magicName4-escaped\\backslash,escaped\"quote",
+                "**magicName5-quoted-escaped\\backslash,quoted-escaped\"quote",
+                "**magicName6-,quoted-empty-string"
         );
 
         assertEquals(expectedTransformedCell, transformedCell);
