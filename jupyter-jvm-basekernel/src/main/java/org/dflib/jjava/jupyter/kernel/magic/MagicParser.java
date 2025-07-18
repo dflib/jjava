@@ -29,7 +29,7 @@ public class MagicParser {
                     break;
                 case '\\':
                     if (escape) {
-                        current.append("\\\\");
+                        current.append("\\");
                         escape = false;
                     } else {
                         escape = true;
