@@ -27,7 +27,7 @@ public class MagicParserTest {
                 "//Just a comment",
                 "//%magicName3 arg1 \"arg2 arg2\"",
                 "//%magicName4 escaped\\\\backslash escaped\\\"quote",
-                "//%magicName5 \"quoted-escaped\\\\backslash\" \"quoated-escaped\\\"quote\"",
+                "//%magicName5 \"quoted-escaped\\\\backslash\" \"quoted-escaped\\\"quote\"",
                 "//%magicName6 \"\" quoted-empty-string"
         );
 
