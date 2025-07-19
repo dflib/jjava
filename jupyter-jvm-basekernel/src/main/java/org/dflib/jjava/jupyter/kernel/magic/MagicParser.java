@@ -29,7 +29,7 @@ public class MagicParser {
                     break;
                 case '\\':
                     if (escape) {
-                        current.append("\\\\");
+                        current.append("\\");
                         escape = false;
                     } else {
                         escape = true;
@@ -40,7 +40,7 @@ public class MagicParser {
                         current.append('"');
                         escape = false;
                     } else {
-                        if (current.length() > 0 && inQuotes) {
+                        if (inQuotes) {
                             split.add(current.toString());
                             current.setLength(0);
                             inQuotes = false;
