@@ -8,6 +8,7 @@ import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class Magics {
     private final Map<String, LineMagicFunction<?>> lineMagics;
@@ -231,5 +232,13 @@ public class Magics {
             throw new IllegalArgumentException("Cell magic must accept a List<String> and String as parameters. (Magic arguments and cell body)");
 
         registerCellMagic(method, cellMagic, new CellReflectionMagicFunction(instance, method));
+    }
+
+    public Set<String> getAllCellMagicNames() {
+        return this.cellMagics.keySet();
+    }
+
+    public Set<String> getAllLineMagicNames() {
+        return this.lineMagics.keySet();
     }
 }

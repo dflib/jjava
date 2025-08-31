@@ -398,7 +398,36 @@ public class JavaKernel extends BaseKernel {
     @Override
     public ReplacementOptions complete(String code, int at) {
         int[] replaceStart = new int[1]; // As of now this is always the same as the cursor...
-        List<SourceCodeAnalysis.Suggestion> suggestions = this.evaluator.getShell().sourceCodeAnalysis().completionSuggestions(code, at, replaceStart);
+        // Check if the cursor is at the end of a line starting with % or %% (cell/line magic)
+        // and if so, offer completions for all magic aliases and names.
+        int lineStart = code.lastIndexOf('\n', at - 1) + 1;
+        String line = code.substring(lineStart, at);
+        // Match % or %% at start of line, followed by an identifier, and cursor is at end of that identifier
+        java.util.regex.Matcher magicMatcher = java.util.regex.Pattern
+                .compile("^(%{1,2})([\\w\\-]*)$")
+                .matcher(line);
+        if (magicMatcher.find()) {
+            String percent = magicMatcher.group(1);
+            String prefix = magicMatcher.group(2);
+
+            java.util.Set<String> magics = percent.equals("%%") ? this.magics.getAllCellMagicNames() : this.magics.getAllLineMagicNames();
+            
+            // Get all magic names and aliases
+            
+            // Filter by prefix if present
+            java.util.List<String> options = magics.stream()
+                    .filter(name -> name.startsWith(prefix))
+                    .map(name -> percent + name)
+                    .sorted()
+                    .collect(java.util.stream.Collectors.toList());
+            if (!options.isEmpty()) {
+                int replaceFrom = lineStart;
+                int replaceTo = at;
+                return new ReplacementOptions(options, replaceFrom, replaceTo);
+            }
+        }
+
+       List<SourceCodeAnalysis.Suggestion> suggestions = this.evaluator.getShell().sourceCodeAnalysis().completionSuggestions(code, at, replaceStart);
         if (suggestions == null || suggestions.isEmpty()) return null;
 
         List<String> options = suggestions.stream()
