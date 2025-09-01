@@ -3,6 +3,7 @@
 - #68 CompilationException doesn't provide any information about the underlying problem
 - #69 Expose EvalException details
 - #72 Magic parser - handling escapes and empty strings
+- #75 Completion of % and %% magics
 
 
 ## 1.0-a5

@@ -54,6 +54,9 @@ import org.dflib.jjava.magics.MavenResolver;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class JavaKernel extends BaseKernel {
@@ -77,6 +80,9 @@ public class JavaKernel extends BaseKernel {
             .match('_')
             .build();
     private static final CharPredicate WS = CharPredicate.anyOf(" \t\n\r");
+
+    // Match % or %% at start of line, followed by an identifier, and cursor is at end of that identifier
+    private static final Pattern MAGIC_PATTERN = Pattern.compile("^(%{1,2})([\\w\\-]*)$");
 
     private final String version;
     private final CodeEvaluator evaluator;
@@ -232,7 +238,8 @@ public class JavaKernel extends BaseKernel {
         return new MavenResolver(this::addToClasspath,
                 autoLoadExtensions()
                         ? this::handleExtensionLoading
-                        : ext -> {});
+                        : ext -> {
+                });
     }
 
     private List<String> formatCompilationException(CompilationException e) {
@@ -402,24 +409,23 @@ public class JavaKernel extends BaseKernel {
         // and if so, offer completions for all magic aliases and names.
         int lineStart = code.lastIndexOf('\n', at - 1) + 1;
         String line = code.substring(lineStart, at);
+
         // Match % or %% at start of line, followed by an identifier, and cursor is at end of that identifier
-        java.util.regex.Matcher magicMatcher = java.util.regex.Pattern
-                .compile("^(%{1,2})([\\w\\-]*)$")
-                .matcher(line);
+        Matcher magicMatcher = MAGIC_PATTERN.matcher(line);
         if (magicMatcher.find()) {
             String percent = magicMatcher.group(1);
             String prefix = magicMatcher.group(2);
 
-            java.util.Set<String> magics = percent.equals("%%") ? this.magics.getAllCellMagicNames() : this.magics.getAllLineMagicNames();
-            
+            Set<String> magics = percent.equals("%%") ? this.magics.getCellMagicNames() : this.magics.getLineMagicNames();
+
             // Get all magic names and aliases
-            
+
             // Filter by prefix if present
-            java.util.List<String> options = magics.stream()
+            List<String> options = magics.stream()
                     .filter(name -> name.startsWith(prefix))
                     .map(name -> percent + name)
                     .sorted()
-                    .collect(java.util.stream.Collectors.toList());
+                    .collect(Collectors.toList());
             if (!options.isEmpty()) {
                 int replaceFrom = lineStart;
                 int replaceTo = at;
@@ -427,7 +433,7 @@ public class JavaKernel extends BaseKernel {
             }
         }
 
-       List<SourceCodeAnalysis.Suggestion> suggestions = this.evaluator.getShell().sourceCodeAnalysis().completionSuggestions(code, at, replaceStart);
+        List<SourceCodeAnalysis.Suggestion> suggestions = this.evaluator.getShell().sourceCodeAnalysis().completionSuggestions(code, at, replaceStart);
         if (suggestions == null || suggestions.isEmpty()) return null;
 
         List<String> options = suggestions.stream()

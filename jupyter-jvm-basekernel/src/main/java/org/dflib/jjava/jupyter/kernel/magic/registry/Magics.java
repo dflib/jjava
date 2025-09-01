@@ -234,11 +234,11 @@ public class Magics {
         registerCellMagic(method, cellMagic, new CellReflectionMagicFunction(instance, method));
     }
 
-    public Set<String> getAllCellMagicNames() {
+    public Set<String> getCellMagicNames() {
         return this.cellMagics.keySet();
     }
 
-    public Set<String> getAllLineMagicNames() {
+    public Set<String> getLineMagicNames() {
         return this.lineMagics.keySet();
     }
 }
