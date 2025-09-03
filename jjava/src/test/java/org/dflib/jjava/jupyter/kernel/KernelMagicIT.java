@@ -95,4 +95,18 @@ class KernelMagicIT extends ContainerizedKernelCase {
         assertThat(snippetResult.getStderr(), not(containsString("|")));
         assertThat(snippetResult.getStdout(), containsString("jakarta.annotation.Nullable"));
     }
+
+    @Test
+    void loadFromJBang() throws Exception {
+        String snippet = String.join("\n",
+                "%%jbang",
+                "//DEPS jakarta.annotation:jakarta.annotation-api:3.0.0",
+                "import jakarta.annotation.Nullable;",
+                "Nullable.class.getName()"
+        );
+        Container.ExecResult snippetResult = executeInKernel(snippet);
+
+        assertThat(snippetResult.getStderr(), not(containsString("|")));
+        assertThat(snippetResult.getStdout(), containsString("jakarta.annotation.Nullable"));
+    }
 }
