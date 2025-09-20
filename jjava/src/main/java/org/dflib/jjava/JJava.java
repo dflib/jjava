@@ -50,12 +50,7 @@ public class JJava {
     }
 
     /**
-     * Obtain a reference to the kernel created by running {@link #main(String[])}. This
-     * kernel may be null if one is not present but as the main use for this method is
-     * for the kernel user code to access kernel services.
-     *
-     * @return the kernel created by running {@link #main(String[])} or {@code null} if
-     * one has not yet (or already created and finished) been created.
+     * Returns the kernel instance created in {@link #main(String[])}.
      */
     public static JavaKernel getKernelInstance() {
         return JJava.kernel;

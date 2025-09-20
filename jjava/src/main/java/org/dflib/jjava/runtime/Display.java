@@ -1,90 +1,72 @@
 package org.dflib.jjava.runtime;
 
-import org.dflib.jjava.JavaKernel;
+import org.dflib.jjava.JJava;
 import org.dflib.jjava.jupyter.kernel.display.DisplayData;
 
+import java.util.Objects;
 import java.util.UUID;
 
+/**
+ * Display-related static methods exposed in each notebook via static imports.
+ */
 public class Display {
-    public static DisplayData render(Object o) {
-        JavaKernel kernel = Kernel.getKernelInstance();
 
-        if (kernel != null) {
-            return kernel.getRenderer().render(o);
-        } else {
-            throw new RuntimeException("No JJava kernel running");
-        }
+    public static DisplayData render(Object o) {
+        return Objects
+                .requireNonNull(JJava.getKernelInstance(), "No JJava kernel running")
+                .getRenderer()
+                .render(o);
     }
 
     public static DisplayData render(Object o, String... as) {
-        JavaKernel kernel = Kernel.getKernelInstance();
-
-        if (kernel != null) {
-            return kernel.getRenderer().renderAs(o, as);
-        } else {
-            throw new RuntimeException("No JJava kernel running");
-        }
+        return Objects
+                .requireNonNull(JJava.getKernelInstance(), "No JJava kernel running")
+                .getRenderer()
+                .renderAs(o, as);
     }
 
     public static String display(Object o) {
-        JavaKernel kernel = Kernel.getKernelInstance();
 
-        if (kernel != null) {
-            DisplayData data = kernel.getRenderer().render(o);
+        DisplayData data = render(o);
 
-            String id = data.getDisplayId();
-            if (id == null) {
-                id = UUID.randomUUID().toString();
-                data.setDisplayId(id);
-            }
-
-            kernel.display(data);
-
-            return id;
-        } else {
-            throw new RuntimeException("No JJava kernel running");
+        String id = data.getDisplayId();
+        if (id == null) {
+            id = UUID.randomUUID().toString();
+            data.setDisplayId(id);
         }
+
+        Objects
+                .requireNonNull(JJava.getKernelInstance(), "No JJava kernel running")
+                .display(data);
+        return id;
     }
 
     public static String display(Object o, String... as) {
-        JavaKernel kernel = Kernel.getKernelInstance();
+        DisplayData data = render(o, as);
 
-        if (kernel != null) {
-            DisplayData data = kernel.getRenderer().renderAs(o, as);
-
-            String id = data.getDisplayId();
-            if (id == null) {
-                id = UUID.randomUUID().toString();
-                data.setDisplayId(id);
-            }
-
-            kernel.display(data);
-
-            return id;
-        } else {
-            throw new RuntimeException("No JJava kernel running");
+        String id = data.getDisplayId();
+        if (id == null) {
+            id = UUID.randomUUID().toString();
+            data.setDisplayId(id);
         }
+
+        Objects
+                .requireNonNull(JJava.getKernelInstance(), "No JJava kernel running")
+                .display(data);
+        return id;
     }
 
     public static void updateDisplay(String id, Object o) {
-        JavaKernel kernel = Kernel.getKernelInstance();
-
-        if (kernel != null) {
-            DisplayData data = kernel.getRenderer().render(o);
-            kernel.getIO().display.updateDisplay(id, data);
-        } else {
-            throw new RuntimeException("No JJava kernel running");
-        }
+        DisplayData data = render(o);
+        Objects.requireNonNull(JJava.getKernelInstance(), "No JJava kernel running")
+                .getIO()
+                .display.updateDisplay(id, data);
     }
 
     public static void updateDisplay(String id, Object o, String... as) {
-        JavaKernel kernel = Kernel.getKernelInstance();
-
-        if (kernel != null) {
-            DisplayData data = kernel.getRenderer().renderAs(o, as);
-            kernel.getIO().display.updateDisplay(id, data);
-        } else {
-            throw new RuntimeException("No JJava kernel running");
-        }
+        DisplayData data = render(o, as);
+        Objects.requireNonNull(JJava.getKernelInstance(), "No JJava kernel running")
+                .getIO()
+                .display.updateDisplay(id, data);
     }
 }
