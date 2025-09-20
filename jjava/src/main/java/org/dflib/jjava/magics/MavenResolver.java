@@ -330,7 +330,6 @@ public class MavenResolver {
                         .collect(Collectors.toList());
                 addJarsToClasspath(resolvedJars);
             } catch (Exception e) {
-                System.out.println(e);
                 throw new RuntimeException("Failed to resolve dependency: " + dep, e);
             }
         }

@@ -102,34 +102,42 @@ public abstract class JupyterSocket extends ZMQ.Socket {
         byte[] contentRaw = super.recv();
 
         List<byte[]> blobs = new ArrayList<>();
-        while (super.hasReceiveMore()) blobs.add(super.recv());
+        while (super.hasReceiveMore()) {
+            blobs.add(super.recv());
+        }
 
-        String calculatedSig = this.hmacGenerator.calculateSignature(headerRaw, parentHeaderRaw, metadataRaw, contentRaw);
+        String calculatedSig = hmacGenerator.calculateSignature(headerRaw, parentHeaderRaw, metadataRaw, contentRaw);
 
-        if (calculatedSig != null && !calculatedSig.equals(receivedSig))
+        if (calculatedSig != null && !calculatedSig.equals(receivedSig)) {
             throw new SecurityException("Message received had invalid signature");
+        }
 
         Header<?> header = gson.fromJson(new String(headerRaw, UTF_8), Header.class);
 
         Header<?> parentHeader = null;
         JsonElement parentHeaderJson = JsonParser.parseString(new String(parentHeaderRaw, UTF_8));
-        if (parentHeaderJson.isJsonObject() && !parentHeaderJson.getAsJsonObject().isEmpty())
+        if (parentHeaderJson.isJsonObject() && !parentHeaderJson.getAsJsonObject().isEmpty()) {
             parentHeader = gson.fromJson(parentHeaderJson, Header.class);
+        }
 
         Map<String, Object> metadata = gson.fromJson(new String(metadataRaw, UTF_8), JSON_OBJ_AS_MAP);
         Object content = gson.fromJson(new String(contentRaw, UTF_8), header.getType().getContentType());
-        if (content instanceof ErrorReply)
-            header = new Header<>(header.getId(), header.getUsername(), header.getSessionId(), header.getTimestamp(), header.getType().error(), header.getVersion());
+        if (content instanceof ErrorReply) {
+            header = new Header<>(
+                    header.getId(),
+                    header.getUsername(),
+                    header.getSessionId(),
+                    header.getTimestamp(),
+                    header.getType().error(),
+                    header.getVersion());
+        }
 
-        @SuppressWarnings({"unchecked", "rawtypes"})
         Message<?> message = new Message(identities, header, parentHeader, metadata, content, blobs);
-
         logger.finer(() -> "Received from " + super.base().getSocketOptx(zmq.ZMQ.ZMQ_LAST_ENDPOINT) + ":\n" + gson.toJson(message));
 
         return message;
     }
 
-    @SuppressWarnings("unchecked")
     public <T> Message<T> readMessage(MessageType<T> type) {
         Message<?> message = readMessage();
         if (message.getHeader().getType() != type) {

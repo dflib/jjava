@@ -61,7 +61,7 @@ public class JJavaExecutionControlProvider implements ExecutionControlProvider {
     }
 
     @Override
-    public ExecutionControl generate(ExecutionEnv env, Map<String, String> parameters) throws Throwable {
+    public ExecutionControl generate(ExecutionEnv env, Map<String, String> parameters) {
         long timeout = -1;
         TimeUnit timeUnit = TimeUnit.MILLISECONDS;
 

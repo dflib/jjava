@@ -45,6 +45,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 public class CodeEvaluatorBuilder {
+
     private static final Pattern PATH_SPLITTER = Pattern.compile(File.pathSeparator, Pattern.LITERAL);
     private static final Pattern BLANK = Pattern.compile("^\\s*$");
     private static final int BUFFER_SIZE = 1024;
@@ -53,13 +54,15 @@ public class CodeEvaluatorBuilder {
     private static final OutputStream STDERR = new LazyOutputStreamDelegate(() -> System.err);
     private static final InputStream STDIN = new LazyInputStreamDelegate(() -> System.in);
 
-    private String timeout;
     private final List<String> classpath;
     private final List<String> compilerOpts;
+    private final List<String> startupScripts;
+
     private PrintStream out;
     private PrintStream err;
     private InputStream in;
-    private List<String> startupScripts;
+
+    private String timeout;
 
     public CodeEvaluatorBuilder() {
         this.classpath = new ArrayList<>();

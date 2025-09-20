@@ -6,6 +6,7 @@ public class LauncherMain {
 
     public static void main(String[] args) {
         KernelLauncher launcher = new KernelLauncher(Arrays.asList(args));
-        launcher.launchKernel();
+        int exitCode = launcher.launchKernel();
+        System.exit(exitCode);
     }
 }

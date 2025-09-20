@@ -2,12 +2,10 @@ package org.dflib.jjava.jupyter.kernel;
 
 import org.dflib.jjava.jupyter.channels.JupyterInputStream;
 import org.dflib.jjava.jupyter.channels.JupyterOutputStream;
-import org.dflib.jjava.jupyter.channels.JupyterSocket;
 import org.dflib.jjava.jupyter.channels.ShellReplyEnvironment;
 
 import java.io.InputStream;
 import java.io.PrintStream;
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 
 public class JupyterIO {
@@ -28,17 +26,9 @@ public class JupyterIO {
 
         this.display = new DisplayStream();
 
-        try {
-            this.out = new PrintStream(this.jupyterOut, true, encoding.name());
-            this.err = new PrintStream(this.jupyterErr, true, encoding.name());
-            this.in = this.jupyterIn;
-        } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException("Couldn't lookup the charset by name even though it is already a charset...", e);
-        }
-    }
-
-    public JupyterIO() {
-        this(JupyterSocket.UTF_8);
+        this.out = new PrintStream(this.jupyterOut, true, encoding);
+        this.err = new PrintStream(this.jupyterErr, true, encoding);
+        this.in = this.jupyterIn;
     }
 
     public boolean isAttached() {

@@ -7,8 +7,8 @@ import org.dflib.jjava.jupyter.messages.MessageType;
 import org.dflib.jjava.jupyter.messages.publish.PublishStatus;
 import org.dflib.jjava.jupyter.messages.reply.ErrorReply;
 
+import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.LinkedList;
 
 public class DefaultReplyEnvironment implements ReplyEnvironment {
     private final JupyterSocket shell;
@@ -22,7 +22,7 @@ public class DefaultReplyEnvironment implements ReplyEnvironment {
         this.shell = shell;
         this.iopub = iopub;
         this.context = context;
-        this.deferred = new LinkedList<>();
+        this.deferred = new ArrayDeque<>();
     }
 
     public JupyterSocket getShell() {

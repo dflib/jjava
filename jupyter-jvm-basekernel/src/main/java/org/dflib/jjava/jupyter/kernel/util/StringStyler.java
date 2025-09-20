@@ -2,7 +2,6 @@ package org.dflib.jjava.jupyter.kernel.util;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;

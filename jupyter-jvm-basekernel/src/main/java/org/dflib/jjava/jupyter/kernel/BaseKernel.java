@@ -65,16 +65,11 @@ public abstract class BaseKernel {
 
         InputStream metaStream = BaseKernel.class.getClassLoader().getResourceAsStream("kernel-metadata.json");
         if (metaStream != null) {
-            Reader metaReader = new InputStreamReader(metaStream);
-            try {
+            try (Reader metaReader = new InputStreamReader(metaStream)) {
                 meta = new Gson().fromJson(metaReader, new TypeToken<Map<String, String>>() {
                 }.getType());
-            } finally {
-                try {
-                    metaReader.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
 
@@ -179,9 +174,8 @@ public abstract class BaseKernel {
      * Return null if the expression produces no displayable result.
      *
      * @param expr The code expression to evaluate as received from the Jupyter frontend
-     *
      * @return A {@link DisplayData} object containing the evaluation result in one or more
-     *         MIME formats, or null if there is no displayable result
+     * MIME formats, or null if there is no displayable result
      */
     public abstract DisplayData eval(String expr);
 
@@ -197,9 +191,7 @@ public abstract class BaseKernel {
      * @param at          the character position within the code cell
      * @param extraDetail true if more in depth detail is requested (for example IPython
      *                    includes the function source in addition to the documentation)
-     *
      * @return an output bundle for displaying the documentation or null if nothing is found
-     *
      * @throws RuntimeException if the code cannot be inspected for some reason (such as it not compiling)
      */
     public DisplayData inspect(String code, int at, boolean extraDetail) {
@@ -221,10 +213,8 @@ public abstract class BaseKernel {
      *
      * @param code the entire code cell containing the code to complete
      * @param at   the character position that the completion is requested at
-     *
      * @return the replacement options containing a list of replacement texts and a
-     *         source range to overwrite with a user selected replacement from the list
-     *
+     * source range to overwrite with a user selected replacement from the list
      * @throws RuntimeException if code cannot be completed due to code compilation issues, or similar.
      *                          This should not be thrown if not replacements are available but rather just
      *                          an empty replacements returned.
@@ -256,9 +246,8 @@ public abstract class BaseKernel {
      * following the for loop). <br>
      *
      * @param code the code to analyze
-     *
      * @return {@link #IS_COMPLETE_MAYBE}, {@link #IS_COMPLETE_BAD}, {@link #IS_COMPLETE_YES},
-     *         or an indent string
+     * or an indent string
      */
     public String isComplete(String code) {
         return IS_COMPLETE_MAYBE;
@@ -299,10 +288,9 @@ public abstract class BaseKernel {
      * to add the output of this call to the end of the output list.
      *
      * @param e the error to format
-     *
      * @return a list of lines that make up the formatted error. This format should
-     *         not include strings with newlines but rather separate strings each to go on a
-     *         new line.
+     * not include strings with newlines but rather separate strings each to go on a
+     * new line.
      */
     public List<String> formatError(Throwable e) {
         List<String> lines = new ArrayList<>();
