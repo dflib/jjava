@@ -61,7 +61,6 @@ public class JavaKernel extends BaseKernel {
 
     private final StringStyler errorStyler;
 
-    @SuppressWarnings("removal")
     public JavaKernel(String version) {
         this.version = version;
         this.evaluator = new CodeEvaluatorBuilder()
