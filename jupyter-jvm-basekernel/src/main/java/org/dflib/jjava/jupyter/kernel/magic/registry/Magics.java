@@ -55,9 +55,7 @@ public class Magics {
         this.lineMagics.put(name, magic);
         this.cellMagics.put(name, magic);
     }
-
-    // Reflective magic registration
-
+    
     public void registerMagics(Object magics) {
         registerMagics(magics.getClass(), magics);
     }
