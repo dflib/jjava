@@ -6,6 +6,7 @@
 - #75 Completion of % and %% magics
 - #77 Relicense under Apache License
 - #78 Remove deprecated API and IJava startup vars
+- #79 Remove unused magics
 
 
 ## 1.0-a5
