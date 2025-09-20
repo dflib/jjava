@@ -1,0 +1,5 @@
+DFLib JJava
+Copyright 2025 ObjectStyle LLC and Individual Authors
+
+* This software was created based on IJava code developed by Spencer Park (https://github.com/SpencerPark/IJava)
+

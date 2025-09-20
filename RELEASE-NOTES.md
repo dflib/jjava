@@ -4,6 +4,7 @@
 - #69 Expose EvalException details
 - #72 Magic parser - handling escapes and empty strings
 - #75 Completion of % and %% magics
+- #77 Relicense under Apache License
 
 
 ## 1.0-a5
