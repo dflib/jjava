@@ -37,18 +37,6 @@ import java.util.stream.Collectors;
 
 public class JavaKernel extends BaseKernel {
 
-    public static String completeCodeSignifier() {
-        return IS_COMPLETE_YES;
-    }
-
-    public static String invalidCodeSignifier() {
-        return IS_COMPLETE_BAD;
-    }
-
-    public static String maybeCompleteCodeSignifier() {
-        return IS_COMPLETE_MAYBE;
-    }
-
     private static final CharPredicate IDENTIFIER_CHAR = CharPredicate.builder()
             .inRange('a', 'z')
             .inRange('A', 'Z')
@@ -315,9 +303,7 @@ public class JavaKernel extends BaseKernel {
     }
 
     public Object evalRaw(String expr) {
-        expr = this.magicsTransformer.transformMagics(expr);
-
-        return this.evaluator.eval(expr);
+        return this.evaluator.eval(magicsTransformer.transformMagics(expr));
     }
 
     @Override

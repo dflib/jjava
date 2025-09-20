@@ -50,38 +50,35 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public abstract class BaseKernel {
-    protected final AtomicInteger executionCount = new AtomicInteger(1);
-    protected static final Map<String, String> KERNEL_META;
 
-    static {
-        Map<String, String> meta = null;
+    public static final String IS_COMPLETE_YES = "complete";
+    public static final String IS_COMPLETE_BAD = "invalid";
+    public static final String IS_COMPLETE_MAYBE = "unknown";
+
+    protected static final Map<String, String> KERNEL_META = createMetadata();
+
+    private static Map<String, String> createMetadata() {
 
         InputStream metaStream = BaseKernel.class.getClassLoader().getResourceAsStream("kernel-metadata.json");
         if (metaStream != null) {
             try (Reader metaReader = new InputStreamReader(metaStream)) {
-                meta = new Gson().fromJson(metaReader, new TypeToken<Map<String, String>>() {
+                return new Gson().fromJson(metaReader, new TypeToken<Map<String, String>>() {
                 }.getType());
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
 
-        if (meta == null) {
-            meta = new HashMap<>(2);
-            meta.put("version", "unknown");
-            meta.put("project", "unknown");
-        }
-
-        KERNEL_META = meta;
+        return Map.of("version", "unknown", "project", "unknown");
     }
 
+    protected final AtomicInteger executionCount = new AtomicInteger(1);
     private final JupyterIO io;
     private boolean shouldReplaceStdStreams;
 
@@ -222,10 +219,6 @@ public abstract class BaseKernel {
     public ReplacementOptions complete(String code, int at) {
         return null;
     }
-
-    protected static final String IS_COMPLETE_YES = "complete";
-    protected static final String IS_COMPLETE_BAD = "invalid";
-    protected static final String IS_COMPLETE_MAYBE = "unknown";
 
     /**
      * Check if the code is complete. This gives frontends the tools to provide

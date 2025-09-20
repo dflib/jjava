@@ -6,7 +6,7 @@ import jdk.jshell.JShellException;
 import jdk.jshell.Snippet;
 import jdk.jshell.SnippetEvent;
 import jdk.jshell.SourceCodeAnalysis;
-import org.dflib.jjava.JavaKernel;
+import org.dflib.jjava.jupyter.kernel.BaseKernel;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -21,6 +21,7 @@ public class CodeEvaluator {
     private static final String NO_MAGIC_RETURN = "\"__NO_MAGIC_RETURN\"";
 
     private static final Method SNIPPET_CLASS_NAME_METHOD;
+
     static {
         try {
             SNIPPET_CLASS_NAME_METHOD = Snippet.class.getDeclaredMethod("classFullName");
@@ -29,6 +30,7 @@ public class CodeEvaluator {
             throw new RuntimeException("Unable to access jdk.jshell.Snippet.classFullName() method.", e);
         }
     }
+
     private static final String INDENTATION = "  ";
 
     private final JShell shell;
@@ -74,7 +76,7 @@ public class CodeEvaluator {
         // We iterate twice to make sure throwing an early exception doesn't leak the memory
         // and we `takeResult` everything.
         for (SnippetEvent event : events) {
-            if(event.status() == Snippet.Status.OVERWRITTEN) {
+            if (event.status() == Snippet.Status.OVERWRITTEN) {
                 // if a new snippet changed some other definition, drop the older one
                 dropSnippet(event.snippet());
                 continue;
@@ -164,7 +166,7 @@ public class CodeEvaluator {
         // snippet.classFullName() returns name of a wrapper class created for a snippet
         String className = snippetClassName(snippet);
         // check that this class is not used by other snippets
-        if(this.shell.snippets()
+        if (this.shell.snippets()
                 .map(this::snippetClassName)
                 .noneMatch(className::equals)) {
             executionControl.unloadClass(className);
@@ -230,20 +232,19 @@ public class CodeEvaluator {
 
         switch (info.completeness()) {
             case UNKNOWN:
-                // Unknown means "bad code" and the only way to see if is complete is
-                // to execute it.
-                return JavaKernel.invalidCodeSignifier();
+                // Unknown means "bad code" and the only way to see if is complete is to execute it.
+                return BaseKernel.IS_COMPLETE_BAD;
             case COMPLETE:
             case COMPLETE_WITH_SEMI:
             case EMPTY:
-                return JavaKernel.completeCodeSignifier();
+                return BaseKernel.IS_COMPLETE_YES;
             case CONSIDERED_INCOMPLETE:
             case DEFINITELY_INCOMPLETE:
                 // Compute the indent of the last line and match it
                 return this.computeIndentation(info.remaining());
             default:
                 // For completeness, return an "I don't know" if we somehow get down here
-                return JavaKernel.maybeCompleteCodeSignifier();
+                return BaseKernel.IS_COMPLETE_MAYBE;
         }
     }
 
