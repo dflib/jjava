@@ -42,7 +42,7 @@ public abstract class ContainerizedKernelCase {
                 .withCommand("bash", "-c", getStartupCommand())
                 .withLogConsumer(new Slf4jLogConsumer(LOGGER))
                 .waitingFor(Wait.forSuccessfulCommand(getSuccessfulCommand()))
-                .withStartupTimeout(Duration.ofMinutes(5));
+                .withStartupTimeout(Duration.ofMinutes(1));
         container.start();
     }
 
