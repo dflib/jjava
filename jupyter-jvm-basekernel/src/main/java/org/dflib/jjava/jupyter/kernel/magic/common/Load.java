@@ -18,9 +18,10 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class Load {
+
     @FunctionalInterface
-    public static interface Executor {
-        public void execute(String code) throws Exception;
+    public interface Executor {
+        void execute(String code) throws Exception;
     }
 
     private static final ThreadLocal<Gson> GSON = ThreadLocal.withInitial(() ->
@@ -100,8 +101,8 @@ public class Load {
         this.fileExtensions = fileExtensions == null
                 ? Collections.emptyList()
                 : fileExtensions.stream()
-                        .map(e -> e.startsWith(".") ? e : "." + e)
-                        .collect(Collectors.toList());
+                .map(e -> e.startsWith(".") ? e : "." + e)
+                .collect(Collectors.toList());
         this.exec = exec;
     }
 
@@ -118,7 +119,7 @@ public class Load {
                 return;
             }
 
-            String sourceContents = new String(Files.readAllBytes(sourcePath), StandardCharsets.UTF_8);
+            String sourceContents = Files.readString(sourcePath);
             this.exec.execute(sourceContents);
             return;
         }
@@ -129,7 +130,7 @@ public class Load {
         for (String extension : this.fileExtensions) {
             Path scriptPath = sourcePath.resolveSibling(file + extension);
             if (Files.isRegularFile(scriptPath)) {
-                String sourceContents = new String(Files.readAllBytes(scriptPath), StandardCharsets.UTF_8);
+                String sourceContents = Files.readString(scriptPath);
                 this.exec.execute(sourceContents);
                 return;
             }
@@ -143,6 +144,8 @@ public class Load {
             return;
         }
 
-        throw new FileNotFoundException("Could not find any source at '" + sourcePath + "'. Also tried with extensions: [.ipynb, " + this.fileExtensions.stream().collect(Collectors.joining(", ")) + "].");
+        String exts = String.join(", ", this.fileExtensions);
+        throw new FileNotFoundException(
+                "Could not find any source at '" + sourcePath + "'. Also tried with extensions: [.ipynb, " + exts + "].");
     }
 }

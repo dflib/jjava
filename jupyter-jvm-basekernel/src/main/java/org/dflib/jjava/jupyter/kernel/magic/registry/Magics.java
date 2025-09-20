@@ -71,7 +71,9 @@ public class Magics {
             LineMagic lineMagic = method.getAnnotation(LineMagic.class);
             CellMagic cellMagic = method.getAnnotation(CellMagic.class);
 
-            if (lineMagic == null && cellMagic == null) continue;
+            if (lineMagic == null && cellMagic == null) {
+                continue;
+            }
 
             if (method.getParameterCount() == 0) {
                 // Magic function with no arguments
