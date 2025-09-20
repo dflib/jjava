@@ -21,36 +21,6 @@ public class JJava {
 
     private static final String KERNEL_METADATA_FILE = "jjava-kernel-metadata.json";
 
-    /**
-     * @deprecated in favor of {@link Env#JJAVA_COMPILER_OPTS}
-     */
-    @Deprecated(since = "1.0", forRemoval = true)
-    public static final String COMPILER_OPTS_KEY = "IJAVA_COMPILER_OPTS";
-
-    /**
-     * @deprecated in favor of {@link Env#JJAVA_TIMEOUT}
-     */
-    @Deprecated(since = "1.0", forRemoval = true)
-    public static final String TIMEOUT_DURATION_KEY = "IJAVA_TIMEOUT";
-
-    /**
-     * @deprecated in favor of  {@link Env#JJAVA_CLASSPATH}
-     */
-    @Deprecated(since = "1.0", forRemoval = true)
-    public static final String CLASSPATH_KEY = "IJAVA_CLASSPATH";
-
-    /**
-     * @deprecated in favor of  {@link Env#JJAVA_STARTUP_SCRIPTS_PATH}
-     */
-    @Deprecated(since = "1.0", forRemoval = true)
-    public static final String STARTUP_SCRIPTS_KEY = "IJAVA_STARTUP_SCRIPTS_PATH";
-
-    /**
-     * @deprecated in favor of  {@link Env#JJAVA_STARTUP_SCRIPT}
-     */
-    @Deprecated(since = "1.0", forRemoval = true)
-    public static final String STARTUP_SCRIPT_KEY = "IJAVA_STARTUP_SCRIPT";
-
     private static JavaKernel kernel;
 
     public static void main(String[] args) throws Exception {

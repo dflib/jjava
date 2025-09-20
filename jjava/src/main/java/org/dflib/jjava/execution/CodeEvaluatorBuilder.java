@@ -3,13 +3,11 @@ package org.dflib.jjava.execution;
 import jdk.jshell.JShell;
 import org.dflib.jjava.jupyter.kernel.util.GlobFinder;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -106,37 +104,6 @@ public class CodeEvaluatorBuilder {
     public CodeEvaluatorBuilder startupScript(String script) {
         if (script == null) return this;
         this.startupScripts.add(script);
-        return this;
-    }
-
-    /**
-     * @deprecated in favor of {@link #startupScript(String)}
-     */
-    @Deprecated(since = "1.0", forRemoval = true)
-    public CodeEvaluatorBuilder startupScript(InputStream scriptStream) {
-        if (scriptStream == null) return this;
-
-        try {
-            ByteArrayOutputStream result = new ByteArrayOutputStream();
-
-            byte[] buffer = new byte[BUFFER_SIZE];
-            int read;
-            while ((read = scriptStream.read(buffer)) != -1)
-                result.write(buffer, 0, read);
-
-            String script = result.toString(StandardCharsets.UTF_8.name());
-
-            this.startupScripts.add(script);
-        } catch (IOException e) {
-            throw new RuntimeException(String.format("IOException while reading startup script from stream: %s", e.getMessage()), e);
-        } finally {
-            try {
-                scriptStream.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
         return this;
     }
 

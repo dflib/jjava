@@ -65,24 +65,11 @@ public class JavaKernel extends BaseKernel {
     public JavaKernel(String version) {
         this.version = version;
         this.evaluator = new CodeEvaluatorBuilder()
-
-                .addClasspathFromString(System.getenv(JJava.CLASSPATH_KEY))
                 .addClasspathFromString(System.getenv(Env.JJAVA_CLASSPATH))
-
-                .compilerOptsFromString(System.getenv(JJava.COMPILER_OPTS_KEY))
                 .compilerOptsFromString(System.getenv(Env.JJAVA_COMPILER_OPTS))
-
-                .startupScriptFiles(System.getenv(JJava.STARTUP_SCRIPTS_KEY))
                 .startupScriptFiles(System.getenv(Env.JJAVA_STARTUP_SCRIPTS_PATH))
-
-                .startupScript(System.getenv(JJava.STARTUP_SCRIPT_KEY))
                 .startupScript(System.getenv(Env.JJAVA_STARTUP_SCRIPT))
-
-                // TODO: this property is not additive, so IJAVA_TIMEOUT is overridden by JJAVA_TIMEOUT,
-                //  even if the latter is null
-                .timeoutFromString(System.getenv(JJava.TIMEOUT_DURATION_KEY))
                 .timeoutFromString(System.getenv(Env.JJAVA_TIMEOUT))
-
                 .sysStdout()
                 .sysStderr()
                 .sysStdin()
