@@ -3,15 +3,13 @@ package org.dflib.jjava.jupyter.kernel.magic.registry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class MagicsTest {
     private Magics magics;
@@ -34,7 +32,7 @@ public class MagicsTest {
     @Test
     public void cellMagic() throws Exception {
         magics.registerCellMagic("test", (args, body) -> {
-            List<String> out = new LinkedList<>(args);
+            List<String> out = new ArrayList<>(args);
             out.add(body);
             return out;
         });
@@ -43,7 +41,7 @@ public class MagicsTest {
         String body = "body";
         List<String> out = magics.applyCellMagic("test", args, body);
 
-        List<String> expected = new LinkedList<>(args);
+        List<String> expected = new ArrayList<>(args);
         expected.add(body);
 
         assertEquals(expected, out);
@@ -54,7 +52,7 @@ public class MagicsTest {
         class Magic implements LineMagicFunction<List<String>>, CellMagicFunction<List<String>> {
             @Override
             public List<String> execute(List<String> args, String body) {
-                List<String> out = new LinkedList<>(args);
+                List<String> out = new ArrayList<>(args);
                 out.add(body);
                 return out;
             }
@@ -73,7 +71,7 @@ public class MagicsTest {
         List<String> lineOut = magics.applyLineMagic("test", args);
         List<String> cellOut = magics.applyCellMagic("test", args, body);
 
-        List<String> expectedCell = new LinkedList<>(args);
+        List<String> expectedCell = new ArrayList<>(args);
         expectedCell.add(body);
 
         assertEquals(args, lineOut);

@@ -4,7 +4,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -62,7 +62,7 @@ public class InheritanceIteratorTest {
     }
 
     private List<Class<?>> collectIteration(Class<?> root) {
-        List<Class<?>> data = new LinkedList<>();
+        List<Class<?>> data = new ArrayList<>();
         InheritanceIterator it = new InheritanceIterator(root);
         while (it.hasNext()) data.add(it.next());
         return data;

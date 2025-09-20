@@ -13,16 +13,16 @@ import java.util.LinkedList;
 public class DefaultReplyEnvironment implements ReplyEnvironment {
     private final JupyterSocket shell;
     private final JupyterSocket iopub;
-
     private final MessageContext context;
+    private final Deque<Runnable> deferred;
 
-    private Deque<Runnable> deferred = new LinkedList<>();
-    private boolean defer = false;
+    private boolean defer;
 
     public DefaultReplyEnvironment(JupyterSocket shell, JupyterSocket iopub, MessageContext context) {
         this.shell = shell;
         this.iopub = iopub;
         this.context = context;
+        this.deferred = new LinkedList<>();
     }
 
     public JupyterSocket getShell() {

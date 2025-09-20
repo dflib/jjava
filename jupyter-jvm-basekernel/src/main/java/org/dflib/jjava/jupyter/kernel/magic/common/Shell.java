@@ -4,7 +4,7 @@ import org.dflib.jjava.jupyter.kernel.magic.registry.LineMagic;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 public class Shell {
@@ -14,7 +14,7 @@ public class Shell {
                 .command(args)
                 .start();
 
-        List<String> output = new LinkedList<>();
+        List<String> output = new ArrayList<>();
         BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
 
         String line;

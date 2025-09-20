@@ -47,15 +47,14 @@ import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.StringWriter;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Supplier;
 
 public abstract class BaseKernel {
     protected final AtomicInteger executionCount = new AtomicInteger(1);
@@ -306,7 +305,7 @@ public abstract class BaseKernel {
      *         new line.
      */
     public List<String> formatError(Throwable e) {
-        List<String> lines = new LinkedList<>();
+        List<String> lines = new ArrayList<>();
         lines.add(this.errorStyler.secondary("---------------------------------------------------------------------------"));
 
         StringWriter stringWriter = new StringWriter();

@@ -35,9 +35,9 @@ import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -62,9 +62,9 @@ public class CodeEvaluatorBuilder {
     private List<String> startupScripts;
 
     public CodeEvaluatorBuilder() {
-        this.classpath = new LinkedList<>();
-        this.compilerOpts = new LinkedList<>();
-        this.startupScripts = new LinkedList<>();
+        this.classpath = new ArrayList<>();
+        this.compilerOpts = new ArrayList<>();
+        this.startupScripts = new ArrayList<>();
     }
 
     public CodeEvaluatorBuilder addClasspathFromString(String classpath) {
@@ -234,7 +234,7 @@ public class CodeEvaluatorBuilder {
     private static List<String> split(String opts) {
         opts = opts.trim();
 
-        List<String> split = new LinkedList<>();
+        List<String> split = new ArrayList<>();
 
         StringBuilder current = new StringBuilder();
         boolean inQuotes = false;

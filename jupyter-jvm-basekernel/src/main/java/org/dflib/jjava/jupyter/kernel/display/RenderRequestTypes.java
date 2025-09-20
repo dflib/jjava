@@ -2,10 +2,10 @@ package org.dflib.jjava.jupyter.kernel.display;
 
 import org.dflib.jjava.jupyter.kernel.display.mime.MIMEType;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -74,7 +74,7 @@ public class RenderRequestTypes {
         this.requestedTypesByGroup = new LinkedHashMap<>();
         requestedTypes.forEach(t ->
                 this.requestedTypesByGroup.compute(t.getGroup(), (k, v) -> {
-                    List<MIMEType> l = v == null ? new LinkedList<>() : v;
+                    List<MIMEType> l = v == null ? new ArrayList<>() : v;
                     l.add(t);
                     return l;
                 })

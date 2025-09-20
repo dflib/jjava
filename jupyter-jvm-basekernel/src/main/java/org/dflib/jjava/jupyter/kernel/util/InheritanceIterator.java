@@ -1,8 +1,8 @@
 package org.dflib.jjava.jupyter.kernel.util;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
@@ -45,7 +45,7 @@ public class InheritanceIterator implements Iterator<Class> {
      * @return and iterator over the implemented interfaces.
      */
     private Iterator<Class> initializeImplementedInterfaces() {
-        List<Class> implemented = new LinkedList<>();
+        List<Class> implemented = new ArrayList<>();
         getAllInterfaces(implemented, this.concrete.getInterfaces());
         return implemented.iterator();
     }

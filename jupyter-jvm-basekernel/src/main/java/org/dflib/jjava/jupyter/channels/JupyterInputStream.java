@@ -12,19 +12,15 @@ public class JupyterInputStream extends InputStream {
     private byte[] data = null;
     private int bufferPos = 0;
 
+    public JupyterInputStream(Charset encoding) {
+        this(encoding, null, false);
+    }
+
     public JupyterInputStream(Charset encoding, ShellReplyEnvironment env, boolean enabled) {
         this.encoding = encoding;
 
         this.env = env;
         this.enabled = enabled;
-    }
-
-    public JupyterInputStream(Charset encoding) {
-        this(encoding, null, false);
-    }
-
-    public JupyterInputStream(ShellReplyEnvironment env, boolean enabled) {
-        this(JupyterSocket.UTF_8, env, enabled);
     }
 
     public void setEnv(ShellReplyEnvironment env) {

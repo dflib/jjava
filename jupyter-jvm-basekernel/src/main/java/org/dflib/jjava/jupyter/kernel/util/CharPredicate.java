@@ -2,27 +2,26 @@ package org.dflib.jjava.jupyter.kernel.util;
 
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 
 @FunctionalInterface
 public interface CharPredicate {
 
-    public boolean test(char c);
+    boolean test(char c);
 
-    public default CharPredicate and(CharPredicate condition) {
+    default CharPredicate and(CharPredicate condition) {
         return c -> this.test(c) && condition.test(c);
     }
 
-    public default CharPredicate or(CharPredicate condition) {
+    default CharPredicate or(CharPredicate condition) {
         return c -> this.test(c) || condition.test(c);
     }
 
-    public default CharPredicate not() {
+    default CharPredicate not() {
         return new NotCharPredicate(this);
     }
 
-    public static class NotCharPredicate implements CharPredicate {
+    class NotCharPredicate implements CharPredicate {
         private final CharPredicate test;
 
         public NotCharPredicate(CharPredicate test) {
@@ -45,11 +44,10 @@ public interface CharPredicate {
      *
      * @param low  the lower bound of the range (inclusive)
      * @param high the upper bound of the range (inclusive)
-     *
      * @return a predicate that returns true when testing a character in this range
-     *         and false otherwise.
+     * and false otherwise.
      */
-    public static CharPredicate inRange(char low, char high) {
+    static CharPredicate inRange(char low, char high) {
         return c -> low <= c && c <= high;
     }
 
@@ -57,11 +55,10 @@ public interface CharPredicate {
      * Match a character that is the same as the {@code match} character.
      *
      * @param match the character to match with
-     *
      * @return a predicate that returns true when testing a character that is
-     *         the same as the {@code match} character and false otherwise.
+     * the same as the {@code match} character and false otherwise.
      */
-    public static CharPredicate match(char match) {
+    static CharPredicate match(char match) {
         return c -> c == match;
     }
 
@@ -69,11 +66,10 @@ public interface CharPredicate {
      * Match any character in the {@code chars} string.
      *
      * @param chars a set of chars to match
-     *
      * @return a predicate that returns true when testing a character that is
-     *         the same as any character in the {@code chars} and false otherwise.
+     * the same as any character in the {@code chars} and false otherwise.
      */
-    public static CharPredicate anyOf(String chars) {
+    static CharPredicate anyOf(String chars) {
         int[] cs = chars.chars().sorted().distinct().toArray();
         return c -> {
             for (int cmpTo : cs) {
@@ -84,7 +80,7 @@ public interface CharPredicate {
         };
     }
 
-    public static class CharRange {
+    class CharRange {
         public final char low;
         public final char high;
 
@@ -94,15 +90,15 @@ public interface CharPredicate {
         }
     }
 
-    public static Builder builder() {
+    static Builder builder() {
         return new Builder();
     }
 
-    public static class Builder {
+    class Builder {
         private final List<CharRange> segments;
 
         public Builder() {
-            this.segments = new LinkedList<>();
+            this.segments = new ArrayList<>();
         }
 
         public Builder inRange(char low, char high) {

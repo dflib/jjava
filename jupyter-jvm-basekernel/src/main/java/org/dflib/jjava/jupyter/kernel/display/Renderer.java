@@ -3,12 +3,12 @@ package org.dflib.jjava.jupyter.kernel.display;
 import org.dflib.jjava.jupyter.kernel.display.mime.MIMEType;
 import org.dflib.jjava.jupyter.kernel.util.InheritanceIterator;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -116,7 +116,7 @@ public class Renderer {
         RenderFunctionProps props = new RenderFunctionProps(function, supported, preferred);
 
         types.forEach(c -> this.renderFunctions.compute(c, (k, v) -> {
-            List<RenderFunctionProps> functions = v != null ? v : new LinkedList<>();
+            List<RenderFunctionProps> functions = v != null ? v : new ArrayList<>();
             functions.add(props);
             return functions;
         }));

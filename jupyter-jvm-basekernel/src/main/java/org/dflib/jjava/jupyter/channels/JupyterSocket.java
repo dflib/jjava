@@ -31,9 +31,9 @@ import org.zeromq.ZMQ;
 import java.lang.reflect.Type;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -86,7 +86,7 @@ public abstract class JupyterSocket extends ZMQ.Socket {
         if (this.closed)
             return null;
 
-        List<byte[]> identities = new LinkedList<>();
+        List<byte[]> identities = new ArrayList<>();
         byte[] identity = super.recv();
         while (!Arrays.equals(IDENTITY_BLOB_DELIMITER, identity)) {
             identities.add(identity);
@@ -101,7 +101,7 @@ public abstract class JupyterSocket extends ZMQ.Socket {
         byte[] metadataRaw = super.recv();
         byte[] contentRaw = super.recv();
 
-        List<byte[]> blobs = new LinkedList<>();
+        List<byte[]> blobs = new ArrayList<>();
         while (super.hasReceiveMore()) blobs.add(super.recv());
 
         String calculatedSig = this.hmacGenerator.calculateSignature(headerRaw, parentHeaderRaw, metadataRaw, contentRaw);

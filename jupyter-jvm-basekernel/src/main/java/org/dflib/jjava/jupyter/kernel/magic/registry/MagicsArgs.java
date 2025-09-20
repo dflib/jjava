@@ -5,7 +5,6 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -25,8 +24,8 @@ public class MagicsArgs {
     }
 
     public static class MagicsArgsBuilder {
-        private final List<String> requiredPositional = new LinkedList<>();
-        private final List<String> optionalPositional = new LinkedList<>();
+        private final List<String> requiredPositional = new ArrayList<>();
+        private final List<String> optionalPositional = new ArrayList<>();
         private String varargs;
 
         private boolean acceptAnyKeyword = true;
@@ -148,7 +147,7 @@ public class MagicsArgs {
                 return (name, value, rest, args) -> {
                     args.compute(name, (k, values) -> {
                         if (values == null)
-                            values = new LinkedList<>();
+                            values = new ArrayList<>();
 
                         if (value != null) {
                             values.add(value);
@@ -227,11 +226,11 @@ public class MagicsArgs {
 
     public Map<String, List<String>> parse(List<String> args) throws MagicArgsParseException {
         Map<String, List<String>> collectedArgs = new LinkedHashMap<>();
-        this.positional.forEach(a -> collectedArgs.put(a, new LinkedList<>()));
-        this.optional.forEach(a -> collectedArgs.put(a, new LinkedList<>()));
+        this.positional.forEach(a -> collectedArgs.put(a, new ArrayList<>()));
+        this.optional.forEach(a -> collectedArgs.put(a, new ArrayList<>()));
         if (this.varargs != null)
-            collectedArgs.put(this.varargs, new LinkedList<>());
-        this.keywords.keySet().forEach(a -> collectedArgs.put(a, new LinkedList<>()));
+            collectedArgs.put(this.varargs, new ArrayList<>());
+        this.keywords.keySet().forEach(a -> collectedArgs.put(a, new ArrayList<>()));
 
         int positionalsMatched = 0;
 
@@ -275,19 +274,19 @@ public class MagicsArgs {
 
             if (positionalsMatched < this.positional.size())
                 collectedArgs.compute(this.positional.get(positionalsMatched), (n, values) -> {
-                    values = values != null ? values : new LinkedList<>();
+                    values = values != null ? values : new ArrayList<>();
                     values.add(arg);
                     return values;
                 });
             else if (positionalsMatched < this.positional.size() + this.optional.size())
                 collectedArgs.compute(this.optional.get(positionalsMatched - this.positional.size()), (n, values) -> {
-                    values = values != null ? values : new LinkedList<>();
+                    values = values != null ? values : new ArrayList<>();
                     values.add(arg);
                     return values;
                 });
             else if (this.varargs != null)
                 collectedArgs.compute(this.varargs, (n, values) -> {
-                    values = values != null ? values : new LinkedList<>();
+                    values = values != null ? values : new ArrayList<>();
                     values.add(arg);
                     return values;
                 });

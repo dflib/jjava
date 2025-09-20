@@ -30,7 +30,6 @@ import org.dflib.jjava.jupyter.channels.JupyterSocket;
 import org.dflib.jjava.jupyter.kernel.KernelConnectionProperties;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.file.Files;
@@ -115,9 +114,6 @@ public class JJava {
         return JJava.kernel;
     }
 
-    private static InputStream resource(String path) {
-        return JJava.class.getClassLoader().getResourceAsStream(path);
-    }
 
     private static String loadKernelVersion() {
         JsonObject meta = loadKernelMetadata();
@@ -125,7 +121,8 @@ public class JJava {
     }
 
     private static JsonObject loadKernelMetadata() {
-        try (Reader metaReader = new InputStreamReader(resource(KERNEL_METADATA_FILE))) {
+
+        try (Reader metaReader = new InputStreamReader(JJava.class.getClassLoader().getResourceAsStream(KERNEL_METADATA_FILE))) {
             return JsonParser.parseReader(metaReader).getAsJsonObject();
         } catch (IOException e) {
             e.printStackTrace();

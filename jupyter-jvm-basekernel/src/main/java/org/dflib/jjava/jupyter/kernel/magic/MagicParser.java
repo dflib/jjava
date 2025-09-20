@@ -1,6 +1,6 @@
 package org.dflib.jjava.jupyter.kernel.magic;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 import java.util.regex.Matcher;
@@ -10,7 +10,7 @@ public class MagicParser {
     protected static List<String> split(String args) {
         args = args.trim();
 
-        List<String> split = new LinkedList<>();
+        List<String> split = new ArrayList<>();
 
         StringBuilder current = new StringBuilder();
         boolean inQuotes = false;

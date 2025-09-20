@@ -151,7 +151,7 @@ public class StringStyler {
     }
 
     public List<String> highlightSubstringLines(String src, int start, int end) {
-        List<String> fmt = new LinkedList<>();
+        List<String> fmt = new ArrayList<>();
 
         int lastLinePos = 0;
         int line = 0;

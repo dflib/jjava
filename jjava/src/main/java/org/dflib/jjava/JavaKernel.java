@@ -52,7 +52,6 @@ import org.dflib.jjava.magics.ClasspathMagics;
 import org.dflib.jjava.magics.MavenResolver;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -230,7 +229,7 @@ public class JavaKernel extends BaseKernel {
         } else if (e instanceof EvaluationInterruptedException) {
             return formatEvaluationInterruptedException((EvaluationInterruptedException) e);
         } else {
-            return new LinkedList<>(super.formatError(e));
+            return new ArrayList<>(super.formatError(e));
         }
     }
 
@@ -427,14 +426,18 @@ public class JavaKernel extends BaseKernel {
                     .sorted()
                     .collect(Collectors.toList());
             if (!options.isEmpty()) {
-                int replaceFrom = lineStart;
-                int replaceTo = at;
-                return new ReplacementOptions(options, replaceFrom, replaceTo);
+                return new ReplacementOptions(options, lineStart, at);
             }
         }
 
-        List<SourceCodeAnalysis.Suggestion> suggestions = this.evaluator.getShell().sourceCodeAnalysis().completionSuggestions(code, at, replaceStart);
-        if (suggestions == null || suggestions.isEmpty()) return null;
+        List<SourceCodeAnalysis.Suggestion> suggestions = evaluator
+                .getShell()
+                .sourceCodeAnalysis()
+                .completionSuggestions(code, at, replaceStart);
+
+        if (suggestions == null || suggestions.isEmpty()) {
+            return null;
+        }
 
         List<String> options = suggestions.stream()
                 .sorted((s1, s2) ->
