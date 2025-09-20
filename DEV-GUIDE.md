@@ -1,16 +1,13 @@
 # JJava Developer Guide
 
-## Installing the latest snapshot version of the Kernel
+## Building and Installing Locally-built Kernel
 
-On macOS (and possibly on Linux) you could just run `install-snapshot.sh` script 
-to build and install the current snapshot version of the DFLib JJava kernel.
-
-Alternatively, you could just build it and install as with any release version:
+On MacOS and Linux, run the following commands:
 
 ```bash
 mvn clean package
-unzip -u "${BUILD_DIR}".zip -d "${TARGET_PATH}"
-jupyter kernelspec install "${TARGET_PATH}" --name=java --user
+unzip -u jjava/target/jjava-*-kernelspec.zip -d jjava/target/unzip
+jupyter kernelspec install jjava/target/unzip --name=java --user
 ```
 
 ## Releasing New Version
