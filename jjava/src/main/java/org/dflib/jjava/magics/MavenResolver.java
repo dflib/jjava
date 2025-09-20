@@ -8,6 +8,8 @@ import org.apache.maven.model.Model;
 import org.apache.maven.model.building.DefaultModelBuilderFactory;
 import org.apache.maven.model.building.ModelBuilder;
 import org.apache.maven.model.building.ModelBuildingRequest;
+import org.dflib.jjava.JJava;
+import org.dflib.jjava.JavaKernel;
 import org.dflib.jjava.jupyter.Extension;
 import org.dflib.jjava.jupyter.ExtensionLoader;
 import org.dflib.jjava.jupyter.kernel.magic.registry.CellMagic;
@@ -27,6 +29,9 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -385,4 +390,106 @@ public class MavenResolver {
             throw new RuntimeException(message, e);
         }
     }
+
+    /**
+     * Builds a JBang script and adds the resolved dependencies to the classpath.
+     * @param args
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    @LineMagic
+    public void jbang(List<String> args) throws IOException, InterruptedException {
+        if (args.isEmpty()) {
+            throw new IllegalArgumentException("Loading from JBang requires at least a path to a JBang script reference.");
+        }
+
+        MagicsArgs schema = MagicsArgs.builder()
+                .required("scriptRef")
+                .onlyKnownKeywords().onlyKnownFlags().build();
+
+        Map<String, List<String>> vals = schema.parse(args);
+        String scriptRef = vals.get("scriptRef").get(0);
+
+        ProcessBuilder pb = new ProcessBuilder("jbang", "build", scriptRef);
+        pb.redirectErrorStream(false);
+        Process process = pb.start();
+
+        int exitCode = process.waitFor();
+        if (exitCode != 0) {
+            throw new RuntimeException("Building failed with exit code " + exitCode);
+        }
+
+        try {
+            List<String> resolvedDependencies = getJBangResolvedDependencies(scriptRef, null, true);
+            addJarsToClasspath(resolvedDependencies);
+            // let the kernel evaluate the body after the dependencies are resolved
+            // TODO: this is not right way as extensions can't give callback
+            //JavaKernel kernel = JJava.getKernproelInstance();
+            //kernel.eval(body);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @CellMagic("jbang")
+    public void handleJBang(List<String> args, String body) throws Exception {
+        try {
+        List<String> resolvedDependencies = getJBangResolvedDependencies("-", body,false);
+        addJarsToClasspath(resolvedDependencies);
+        // let the kernel evaluate the body after the dependencies are resolved
+        // TODO: this is not right way as extensions can't give callback
+        //JavaKernel kernel = JJava.getKernelInstance();
+        //kernel.eval(body);
+    } catch (Exception e) {
+        throw new RuntimeException(e);
+    }
+}
+        
+    List<String> getJBangResolvedDependencies(String scriptRef, String body, boolean inclAppJar) throws IOException {
+        try {
+            ProcessBuilder pb = new ProcessBuilder("jbang", "info", "tools", scriptRef);
+            pb.redirectErrorStream(false);
+            Process process = pb.start();
+    
+            if(body != null) {
+            try (java.io.OutputStream os = process.getOutputStream()) {
+                    os.write(body.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                    os.flush();
+                }
+            }
+    
+            StringBuilder output = new StringBuilder();
+            try (java.io.InputStream is = process.getInputStream();
+                 java.util.Scanner scanner = new java.util.Scanner(is, java.nio.charset.StandardCharsets.UTF_8.name())) {
+                while (scanner.hasNextLine()) {
+                    output.append(scanner.nextLine()).append(System.lineSeparator());
+                }
+            }
+    
+            int exitCode = process.waitFor();
+            if (exitCode != 0) {
+                throw new RuntimeException("jbang info tools failed with exit code " + exitCode + ":\n" + output);
+            }
+    
+    
+            JsonObject json = JsonParser.parseString(output.toString()).getAsJsonObject();
+    
+            List<String> resolvedDependencies = Collections.emptyList();
+            if (json.has("resolvedDependencies") && json.get("resolvedDependencies").isJsonArray()) {
+                resolvedDependencies = StreamSupport.stream(json.getAsJsonArray("resolvedDependencies").spliterator(), false)
+                        .map(e -> e.getAsString())
+                        .collect(Collectors.toList());
+            }
+
+            if(inclAppJar) {
+                resolvedDependencies.add(json.get("applicationJar").getAsString());
+            }
+            
+            return resolvedDependencies;
+    
+            
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
 }
