@@ -65,38 +65,7 @@ public class MagicParserTest {
         assertEquals("//%%cellMagicName arg1 \"arg2 arg2\" arg3  ", ctx.getRawArgsLine());
         assertEquals(cell, ctx.getRawCell());
     }
-
-    @Test
-    public void transformCellMagic() {
-        String cell = String.join("\n",
-                "//%%cellMagicName arg1 \"arg2 arg2\" arg3  ",
-                "This is the body",
-                "with multiple lines"
-        );
-
-        String transformedCell = this.inlineParser.transformCellMagic(cell, ctx ->
-                ctx.getMagicCall().getName() + "(" + String.join(",", ctx.getMagicCall().getArgs()) + ")" + "\n"
-                        + ctx.getMagicCall().getBody()
-        );
-
-        String expectedTransformedCell = "cellMagicName(arg1,arg2 arg2,arg3)\nThis is the body\nwith multiple lines";
-
-        assertEquals(expectedTransformedCell, transformedCell);
-    }
-
-    @Test
-    public void dontTransformNonMagicCell() {
-        String cell = String.join("\n",
-                "//%cellMagicName arg1 \"arg2 arg2\" arg3  ",
-                "This is the body",
-                "with multiple lines"
-        );
-
-        String transformedCell = this.inlineParser.transformCellMagic(cell, ctx -> "transformer applied");
-
-        assertEquals(cell, transformedCell);
-    }
-
+    
     @Test
     public void startOfLineParserSkipsInlineMagics() {
         String cell = "System.out.printf(\"Fmt //%s string\", \"test\");";

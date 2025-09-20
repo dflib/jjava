@@ -108,10 +108,4 @@ public class MagicParser {
         CellMagicArgs args = CellMagicArgs.of(split.get(0), split.subList(1, split.size()), body);
         return CellMagicParseContext.of(args, rawArgsLine, cell);
     }
-
-    public String transformCellMagic(String cell, Function<CellMagicParseContext, String> transformer) {
-        CellMagicParseContext ctx = this.parseCellMagic(cell);
-
-        return ctx == null ? cell : transformer.apply(ctx);
-    }
 }
