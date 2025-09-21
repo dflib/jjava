@@ -1,89 +1,85 @@
 package org.dflib.jjava.jupyter.kernel.magic;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class MagicParserTest {
-    private MagicParser inlineParser;
-    private MagicParser solParser;
 
-    @BeforeEach
-    public void setUp() {
-        this.inlineParser = new MagicParser("//%", "//%%");
-        this.solParser = new MagicParser("^\\s*//%", "//%%");
+    @Test
+    public void parseCellMagic() {
+        String cell = "//%%cellMagicName arg1 \"arg2 arg2\" arg3  \n" +
+                "This is the body\n" +
+                "with multiple lines";
+
+        ParsedCellMagic parsed = inlineParser(emptyTranspiler).parseCellMagic(cell);
+
+        assertNotNull(parsed);
+        assertEquals("cellMagicName", parsed.magicCall.name);
+        assertEquals(Arrays.asList("arg1", "arg2 arg2", "arg3"), parsed.magicCall.args);
+        assertEquals("This is the body\nwith multiple lines", parsed.magicCall.body);
+        assertEquals("//%%cellMagicName arg1 \"arg2 arg2\" arg3  ", parsed.rawArgsLine);
+        assertEquals(cell, parsed.rawCell);
     }
 
     @Test
-    public void transformLineMagics() {
+    public void transpileLineMagics() {
+        String cell = "//%magicName arg1 arg2\n" +
+                "Inline magic = //%magicName2 arg1\n" +
+                "//Just a comment\n" +
+                "//%magicName3 arg1 \"arg2 arg2\"\n" +
+                "//%magicName4 escaped\\\\backslash escaped\\\"quote\n" +
+                "//%magicName5 \"quoted-escaped\\\\backslash\" \"quoted-escaped\\\"quote\"\n" +
+                "//%magicName6 \"\" quoted-empty-string";
+
+        String transpiled = inlineParser(joinTranspiler).transpileLineMagics(cell);
+
+        String transpiledExpected = "**magicName-arg1,arg2\n" +
+                "Inline magic = **magicName2-arg1\n" +
+                "//Just a comment\n" +
+                "**magicName3-arg1,arg2 arg2\n" +
+                "**magicName4-escaped\\backslash,escaped\"quote\n" +
+                "**magicName5-quoted-escaped\\backslash,quoted-escaped\"quote\n" +
+                "**magicName6-,quoted-empty-string";
+
+        assertEquals(transpiledExpected, transpiled);
+    }
+
+    @Test
+    public void transpileLineMagics_startOfLineParserSkipsInline1() {
+        String cell = "System.out.printf(\"Fmt //%s string\", \"test\");";
+        String transpiled = startOfLineParser(emptyTranspiler).transpileLineMagics(cell);
+        assertEquals(cell, transpiled);
+    }
+
+    @Test
+    public void transpileLineMagics_startOfLineParserSkipsInline2() {
         String cell = String.join("\n",
-                "//%magicName arg1 arg2",
-                "Inline magic = //%magicName2 arg1",
-                "//Just a comment",
-                "//%magicName3 arg1 \"arg2 arg2\"",
-                "//%magicName4 escaped\\\\backslash escaped\\\"quote",
-                "//%magicName5 \"quoted-escaped\\\\backslash\" \"quoted-escaped\\\"quote\"",
-                "//%magicName6 \"\" quoted-empty-string"
+                "//%sol",
+                "Not //%sol"
         );
 
-        String transformedCell = this.inlineParser.transformLineMagics(cell, ctx ->
-                "**" + ctx.getMagicCall().getName() + "-" + String.join(",", ctx.getMagicCall().getArgs())
-        );
-
+        String transformedCell = startOfLineParser(nameTranspiler).transpileLineMagics(cell);
         String expectedTransformedCell = String.join("\n",
-                "**magicName-arg1,arg2",
-                "Inline magic = **magicName2-arg1",
-                "//Just a comment",
-                "**magicName3-arg1,arg2 arg2",
-                "**magicName4-escaped\\backslash,escaped\"quote",
-                "**magicName5-quoted-escaped\\backslash,quoted-escaped\"quote",
-                "**magicName6-,quoted-empty-string"
+                "sol",
+                "Not //%sol"
         );
 
         assertEquals(expectedTransformedCell, transformedCell);
     }
 
     @Test
-    public void parseCellMagic() {
-        String cell = String.join("\n",
-                "//%%cellMagicName arg1 \"arg2 arg2\" arg3  ",
-                "This is the body",
-                "with multiple lines"
-        );
-
-        CellMagicParseContext ctx = this.inlineParser.parseCellMagic(cell);
-
-        assertNotNull(ctx);
-        assertEquals("cellMagicName", ctx.getMagicCall().getName());
-        assertEquals(Arrays.asList("arg1", "arg2 arg2", "arg3"), ctx.getMagicCall().getArgs());
-        assertEquals("This is the body\nwith multiple lines", ctx.getMagicCall().getBody());
-        assertEquals("//%%cellMagicName arg1 \"arg2 arg2\" arg3  ", ctx.getRawArgsLine());
-        assertEquals(cell, ctx.getRawCell());
-    }
-    
-    @Test
-    public void startOfLineParserSkipsInlineMagics() {
-        String cell = "System.out.printf(\"Fmt //%s string\", \"test\");";
-
-        String transformedCell = this.solParser.transformLineMagics(cell, ctx -> "");
-
-        assertEquals(cell, transformedCell);
-    }
-
-    @Test
-    public void startOfLineParserAllowsWhitespace() {
+    public void transpileLineMagics_startOfLineParserAllowsWhitespace() {
         String cell = String.join("\n",
                 "//%sol",
                 "  //%sol2",
                 "\t//%sol3"
         );
 
-        String transformedCell = this.solParser.transformLineMagics(cell, ctx -> ctx.getMagicCall().getName());
+        String transformedCell = startOfLineParser(nameTranspiler).transpileLineMagics(cell);
         String expectedTransformedCell = String.join("\n",
                 "sol",
                 "sol2",
@@ -93,23 +89,49 @@ public class MagicParserTest {
         assertEquals(expectedTransformedCell, transformedCell);
     }
 
-    @Test
-    public void startOfLineParserSkipsInline() {
-        String cell = String.join("\n",
-                "//%sol",
-                "Not //%sol"
-        );
-
-        String transformedCell = this.solParser.transformLineMagics(cell, ctx -> ctx.getMagicCall().getName());
-        String expectedTransformedCell = String.join("\n",
-                "sol",
-                "Not //%sol"
-        );
-
-        assertEquals(expectedTransformedCell, transformedCell);
+    static MagicParser inlineParser(MagicTranspiler transpiler) {
+        return new MagicParser("//%", "//%%", transpiler);
     }
 
-    public static List<String> split(String args) {
-        return MagicParser.split(args);
+    static MagicParser startOfLineParser(MagicTranspiler transpiler) {
+        return new MagicParser("^\\s*//%", "//%%", transpiler);
     }
+
+    static final MagicTranspiler emptyTranspiler = new MagicTranspiler() {
+        @Override
+        public String transpileCell(ParsedCellMagic magic) {
+            return "";
+        }
+
+        @Override
+        public String transpileLine(ParsedLineMagic magic) {
+            return "";
+        }
+    };
+
+    static final MagicTranspiler joinTranspiler = new MagicTranspiler() {
+
+        @Override
+        public String transpileCell(ParsedCellMagic magic) {
+            throw new UnsupportedOperationException("TODO");
+        }
+
+        @Override
+        public String transpileLine(ParsedLineMagic magic) {
+            return "**" + magic.magicCall.name + "-" + String.join(",", magic.magicCall.args);
+        }
+    };
+
+    static final MagicTranspiler nameTranspiler = new MagicTranspiler() {
+
+        @Override
+        public String transpileCell(ParsedCellMagic magic) {
+            throw new UnsupportedOperationException("TODO");
+        }
+
+        @Override
+        public String transpileLine(ParsedLineMagic magic) {
+            return magic.magicCall.name;
+        }
+    };
 }

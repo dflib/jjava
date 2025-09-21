@@ -7,6 +7,7 @@
 - #77 Relicense under Apache License
 - #78 Remove deprecated API and IJava startup vars
 - #79 Remove unused magics
+- #80 Magics as interfaces
 
 
 ## 1.0-a5

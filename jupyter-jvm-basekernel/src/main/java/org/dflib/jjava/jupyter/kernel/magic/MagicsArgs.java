@@ -1,4 +1,4 @@
-package org.dflib.jjava.jupyter.kernel.magic.registry;
+package org.dflib.jjava.jupyter.kernel.magic;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -185,7 +185,7 @@ public class MagicsArgs {
     }
 
     @FunctionalInterface
-    private static interface KeywordAggregator {
+    private interface KeywordAggregator {
         /**
          * Consume the argument.
          *
@@ -193,10 +193,9 @@ public class MagicsArgs {
          * @param value the value attached to the keyword or null
          * @param rest  the remaining arguments
          * @param args  the collection to append to
-         *
          * @return the new {@code rest}
          */
-        public List<String> consume(String name, String value, List<String> rest, Map<String, List<String>> args) throws MagicArgsParseException;
+        List<String> consume(String name, String value, List<String> rest, Map<String, List<String>> args) throws MagicArgsParseException;
     }
 
     private static final Pattern KEYWORD_ARG_PATTERN = Pattern.compile("^--(?<name>[^=]+)(?:=(?<val>.+))?$");
@@ -213,7 +212,16 @@ public class MagicsArgs {
     private final KeywordAggregator defaultKeywordAggregator;
     private final KeywordAggregator defaultFlagAggregator;
 
-    public MagicsArgs(List<String> positional, List<String> optional, String varargs, Map<String, KeywordAggregator> keywords, Map<Character, String> keywordFromFlag, Map<String, String> flagSuppliedDefaults, KeywordAggregator defaultKeywordAggregator, KeywordAggregator defaultFlagAggregator) {
+    MagicsArgs(
+            List<String> positional,
+            List<String> optional,
+            String varargs,
+            Map<String, KeywordAggregator> keywords,
+            Map<Character, String> keywordFromFlag,
+            Map<String, String> flagSuppliedDefaults,
+            KeywordAggregator defaultKeywordAggregator,
+            KeywordAggregator defaultFlagAggregator) {
+
         this.positional = positional;
         this.optional = optional;
         this.varargs = varargs;
@@ -245,8 +253,9 @@ public class MagicsArgs {
 
                 KeywordAggregator aggregator = this.keywords.getOrDefault(name, this.defaultKeywordAggregator);
 
-                if (aggregator == null)
+                if (aggregator == null) {
                     throw new MagicArgsParseException("Unknown keyword argument '%s'.", name);
+                }
 
                 args = aggregator.consume(name, value, args, collectedArgs);
 
@@ -263,8 +272,9 @@ public class MagicsArgs {
 
                     KeywordAggregator aggregator = this.keywords.getOrDefault(name, this.defaultFlagAggregator);
 
-                    if (aggregator == null)
+                    if (aggregator == null) {
                         throw new MagicArgsParseException("Unknown flag argument '%s'.", name);
+                    }
 
                     args = aggregator.consume(name, this.flagSuppliedDefaults.getOrDefault(name, ""), args, collectedArgs);
                 }
@@ -290,14 +300,18 @@ public class MagicsArgs {
                     values.add(arg);
                     return values;
                 });
-            else
+            else {
                 throw new MagicArgsParseException("Too many positional arguments.");
+            }
 
             positionalsMatched += 1;
         }
 
-        if (positionalsMatched < this.positional.size())
-            throw new MagicArgsParseException("Missing required positional arguments: %s", this.positional.subList(positionalsMatched, this.positional.size()));
+        if (positionalsMatched < this.positional.size()) {
+            throw new MagicArgsParseException(
+                    "Missing required positional arguments: %s",
+                    positional.subList(positionalsMatched, positional.size()));
+        }
 
         return collectedArgs;
     }
@@ -308,18 +322,22 @@ public class MagicsArgs {
 
         this.positional.forEach(s::add);
         this.optional.forEach(a -> s.add("[" + a + "]"));
-        if (this.varargs != null)
+        if (this.varargs != null) {
             s.add(this.varargs + "...");
+        }
 
         this.keywordFromFlag.keySet().forEach(c -> s.add("-" + c));
-        if (this.defaultFlagAggregator != null)
+        if (this.defaultFlagAggregator != null) {
             s.add("-*");
+        }
 
         this.keywords.keySet().stream()
                 .filter(a -> !this.keywordFromFlag.values().contains(a))
                 .forEach(a -> s.add("--" + a));
-        if (this.defaultKeywordAggregator != null)
+
+        if (this.defaultKeywordAggregator != null) {
             s.add("--**");
+        }
 
         return s.toString();
     }

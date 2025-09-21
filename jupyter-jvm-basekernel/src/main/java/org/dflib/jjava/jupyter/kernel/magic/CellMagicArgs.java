@@ -2,25 +2,12 @@ package org.dflib.jjava.jupyter.kernel.magic;
 
 import java.util.List;
 
-public interface CellMagicArgs extends LineMagicArgs {
-    public static CellMagicArgs of(String name, List<String> args, String body) {
-        return new CellMagicArgs() {
-            @Override
-            public String getBody() {
-                return body;
-            }
+public class CellMagicArgs extends LineMagicArgs {
 
-            @Override
-            public String getName() {
-                return name;
-            }
+    public final String body;
 
-            @Override
-            public List<String> getArgs() {
-                return args;
-            }
-        };
+    public CellMagicArgs(String name, List<String> args, String body) {
+        super(name, args);
+        this.body = body;
     }
-
-    public String getBody();
 }

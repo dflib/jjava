@@ -1,4 +1,4 @@
-package org.dflib.jjava.jupyter.kernel.magic.registry;
+package org.dflib.jjava.jupyter.kernel.magic;
 
 public class MagicArgsParseException extends RuntimeException {
     public MagicArgsParseException() {

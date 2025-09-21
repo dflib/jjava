@@ -15,8 +15,7 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 /**
- * This class is responsible for discovering and initializing
- * a set of {@link Extension} instances.
+ * This class is responsible for discovering and initializing a set of {@link Extension} instances.
  *
  * <p>Example usage:
  * <pre>
@@ -32,7 +31,7 @@ public final class ExtensionLoader {
     private final Set<String> usedExtensions;
 
     public ExtensionLoader() {
-        usedExtensions = new HashSet<>();
+        this.usedExtensions = new HashSet<>();
     }
 
     /**
@@ -43,9 +42,6 @@ public final class ExtensionLoader {
      * <p>This method will use classloader that manages JJava runtime to discover extensions
      *
      * @return list of the available extensions
-     *
-     * @see #loadExtensions(Iterable)
-     *
      * @since 1.0-M4
      */
     public List<Extension> loadExtensions() {
@@ -59,16 +55,16 @@ public final class ExtensionLoader {
      * <p>This method performs discovery of extension classes based on a {@link ServiceLoader} API.
      * <p>This method will only scan jars provided by the caller
      *
-     *
      * @param jarPaths paths to jar files to scan for extensions
      * @return list of the available extensions
-     *
-     * @see #loadExtensions()
      */
     public List<Extension> loadExtensions(Iterable<String> jarPaths) {
         URL[] urls = StreamSupport.stream(jarPaths.spliterator(), false)
                 .map(ExtensionLoader::toURL)
                 .toArray(URL[]::new);
+
+        // TODO: using URLClassLoader for scanning META-INF/services may be a security issue. Do we really need it, and
+        //  and should we switch to a local ClassLoader
         try (URLClassLoader classLoader = URLClassLoader.newInstance(urls)) {
             return getExtensions(classLoader);
         } catch (IOException e) {

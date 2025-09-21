@@ -13,23 +13,33 @@ import org.dflib.jjava.execution.CompilationException;
 import org.dflib.jjava.execution.EvaluationInterruptedException;
 import org.dflib.jjava.execution.EvaluationTimeoutException;
 import org.dflib.jjava.execution.IncompleteSourceException;
-import org.dflib.jjava.execution.MagicsSourceTransformer;
-import org.dflib.jjava.jupyter.Extension;
+import org.dflib.jjava.execution.JJavaMagicTranspiler;
+import org.dflib.jjava.jupyter.ExtensionLoader;
 import org.dflib.jjava.jupyter.kernel.BaseKernel;
 import org.dflib.jjava.jupyter.kernel.LanguageInfo;
 import org.dflib.jjava.jupyter.kernel.ReplacementOptions;
 import org.dflib.jjava.jupyter.kernel.display.DisplayData;
-import org.dflib.jjava.jupyter.kernel.magic.common.Load;
-import org.dflib.jjava.jupyter.kernel.magic.registry.Magics;
+import org.dflib.jjava.jupyter.kernel.magic.CellMagic;
+import org.dflib.jjava.jupyter.kernel.magic.LineMagic;
+import org.dflib.jjava.jupyter.kernel.magic.MagicParser;
+import org.dflib.jjava.jupyter.kernel.magic.MagicsRegistry;
 import org.dflib.jjava.jupyter.kernel.util.CharPredicate;
 import org.dflib.jjava.jupyter.kernel.util.StringStyler;
 import org.dflib.jjava.jupyter.kernel.util.TextColor;
 import org.dflib.jjava.jupyter.messages.Header;
-import org.dflib.jjava.magics.ClasspathMagics;
-import org.dflib.jjava.magics.MavenResolver;
+import org.dflib.jjava.magics.ClasspathMagic;
+import org.dflib.jjava.magics.JarsMagic;
+import org.dflib.jjava.magics.LoadCodeMagic;
+import org.dflib.jjava.magics.LoadFromPomCellMagic;
+import org.dflib.jjava.magics.LoadFromPomLineMagic;
+import org.dflib.jjava.magics.MavenMagic;
+import org.dflib.jjava.magics.MavenRepoMagic;
+import org.dflib.jjava.maven.MavenResolver;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -50,15 +60,14 @@ public class JavaKernel extends BaseKernel {
 
     private final String version;
     private final CodeEvaluator evaluator;
+    private final ExtensionLoader extensionLoader;
+    private final boolean willLoadExtensions;
     private final MavenResolver mavenResolver;
-
-    private final MagicsSourceTransformer magicsTransformer;
-    private final Magics magics;
-
+    private final MagicParser magicParser;
+    private final MagicsRegistry magics;
     private final LanguageInfo languageInfo;
     private final String banner;
     private final List<LanguageInfo.Help> helpLinks;
-
     private final StringStyler errorStyler;
 
     public JavaKernel(String version) {
@@ -74,14 +83,9 @@ public class JavaKernel extends BaseKernel {
                 .sysStdin()
                 .build();
 
-        this.mavenResolver = buildDependencyResolver();
-
-        this.magicsTransformer = new MagicsSourceTransformer();
-        this.magics = new Magics();
-        this.magics.registerMagics(this.mavenResolver);
-        this.magics.registerMagics(new ClasspathMagics(this::addToClasspath));
-        this.magics.registerMagics(new Load(List.of(".jsh", ".jshell", ".java", ".jjava"), this::eval));
-
+        this.mavenResolver = new MavenResolver(this);
+        this.magics = buildMagicsRegistry(mavenResolver);
+        this.magicParser = new MagicParser("(?<=(?:^|=))\\s*%", "%%", new JJavaMagicTranspiler());
         this.languageInfo = new LanguageInfo.Builder("Java")
                 .version(Runtime.version().toString())
                 .mimetype("text/x-java-source")
@@ -110,22 +114,36 @@ public class JavaKernel extends BaseKernel {
                 .withLinePrefix(TextColor.BOLD_RESET_FG + "|   ")
                 .build();
 
-        this.mavenResolver.initImplicitExtensions();
+        this.extensionLoader = new ExtensionLoader();
+        this.willLoadExtensions = shouldLoadExtensions();
+        if (willLoadExtensions) {
+            extensionLoader.loadExtensions().forEach(e -> e.install(this));
+        }
     }
 
-    public void addToClasspath(String path) {
-        this.evaluator.getShell().addToClasspath(path);
-    }
+    /**
+     * Adds multiple classpath entries to the JShell classpath and triggers extension loading for them.
+     */
+    public void addToClasspath(Iterable<String> paths) {
+        paths.forEach(p -> evaluator.getShell().addToClasspath(p));
 
-    public void handleExtensionLoading(Extension extension) {
-        extension.install(this);
+        // Need to "addToClasspath" all entries in a collection before we can install any extensions, as an extension
+        // may depend on other entries in the collection
+
+        if (willLoadExtensions) {
+            extensionLoader.loadExtensions(paths).forEach(e -> e.install(this));
+        }
     }
 
     public MavenResolver getMavenResolver() {
         return this.mavenResolver;
     }
 
-    public Magics getMagics() {
+    public ExtensionLoader getExtensionLoader() {
+        return extensionLoader;
+    }
+
+    public MagicsRegistry getMagics() {
         return this.magics;
     }
 
@@ -144,17 +162,23 @@ public class JavaKernel extends BaseKernel {
         return this.helpLinks;
     }
 
-    /**
-     * Determines whether auto-loading of extensions is enabled based on the value of the
-     * {@code JJAVA_LOAD_EXTENSIONS} environment variable.
-     * <br>
-     * The feature is considered disabled if this variable is defined and its value is falsy ("", "0", "false").<br>
-     * The feature is considered enabled in other cases.
-     *
-     * @return true if auto-loading of extensions is enabled, false otherwise
-     * @since 1.0
-     */
-    public boolean autoLoadExtensions() {
+    private MagicsRegistry buildMagicsRegistry(MavenResolver mavenResolver) {
+        Map<String, LineMagic<?>> lineMagics = new HashMap<>();
+        lineMagics.put("classpath", new ClasspathMagic(this));
+        lineMagics.put("maven", new MavenMagic(mavenResolver));
+        lineMagics.put("mavenRepo", new MavenRepoMagic(mavenResolver));
+        lineMagics.put("load", new LoadCodeMagic(this, "", ".jsh", ".jshell", ".java", ".jjava"));
+        lineMagics.put("loadFromPOM", new LoadFromPomLineMagic(mavenResolver));
+        lineMagics.put("jars", new JarsMagic(this)); // TODO: deprecate redundant "jars" alias; "classpath" is a superset of this
+        lineMagics.put("addMavenDependency", new MavenMagic(mavenResolver)); // TODO: deprecate redundant "addMavenDependency" alias
+
+        Map<String, CellMagic<?>> cellMagics = new HashMap<>();
+        cellMagics.put("loadFromPOM", new LoadFromPomCellMagic(mavenResolver));
+
+        return new MagicsRegistry(lineMagics, cellMagics);
+    }
+
+    private boolean shouldLoadExtensions() {
         String envValue = System.getenv(Env.JJAVA_LOAD_EXTENSIONS);
         if (envValue == null) {
             return true;
@@ -182,14 +206,6 @@ public class JavaKernel extends BaseKernel {
         } else {
             return new ArrayList<>(super.formatError(e));
         }
-    }
-
-    private MavenResolver buildDependencyResolver() {
-        return new MavenResolver(this::addToClasspath,
-                autoLoadExtensions()
-                        ? this::handleExtensionLoading
-                        : ext -> {
-                });
     }
 
     private List<String> formatCompilationException(CompilationException e) {
@@ -288,19 +304,19 @@ public class JavaKernel extends BaseKernel {
         return fmt;
     }
 
-    public Object evalRaw(String expr) {
-        return this.evaluator.eval(magicsTransformer.transformMagics(expr));
+    public Object evalRaw(String source) {
+        return evaluator.eval(magicParser.resolveMagics(source));
     }
 
     @Override
-    public DisplayData eval(String expr) {
-        Object result = this.evalRaw(expr);
+    public DisplayData eval(String source) {
+        Object result = evalRaw(source);
         if (result == null) {
             return null;
         }
         return result instanceof DisplayData
                 ? (DisplayData) result
-                : this.getRenderer().render(result);
+                : getRenderer().render(result);
     }
 
     @Override

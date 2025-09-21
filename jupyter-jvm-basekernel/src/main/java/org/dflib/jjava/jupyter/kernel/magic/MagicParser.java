@@ -2,12 +2,16 @@ package org.dflib.jjava.jupyter.kernel.magic;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Function;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * Locates line and cell magic syntax in the cell code and replaces it with code native to the underlying kernel.
+ */
 public class MagicParser {
-    protected static List<String> split(String args) {
+
+    static List<String> split(String args) {
         args = args.trim();
 
         List<String> split = new ArrayList<>();
@@ -63,49 +67,66 @@ public class MagicParser {
 
     private final Pattern lineMagicPattern;
     private final Pattern cellMagicPattern;
+    private final MagicTranspiler transpiler;
 
-    public MagicParser() {
-        this("^%", "%%");
-    }
-
-    public MagicParser(String lineMagicStart, String cellMagicStart) {
+    public MagicParser(String lineMagicStart, String cellMagicStart, MagicTranspiler transpiler) {
         this.lineMagicPattern = Pattern.compile(lineMagicStart + "(?<args>\\w.*?)$", Pattern.MULTILINE);
         this.cellMagicPattern = Pattern.compile("^(?<argsLine>" + cellMagicStart + "(?<args>\\w.*?))\\R(?<body>(?sU).+?)$");
+        this.transpiler = transpiler;
     }
 
-    public String transformLineMagics(String cell, Function<LineMagicParseContext, String> transformer) {
-        StringBuffer transformedCell = new StringBuffer();
+    /**
+     * Replaces cell and line magics in the source with native kernel code.
+     */
+    public String resolveMagics(String cellSource) {
+        return transpileCellMagic(cellSource).orElse(transpileLineMagics(cellSource));
+    }
 
-        Matcher m = this.lineMagicPattern.matcher(cell);
+    private Optional<String> transpileCellMagic(String cellSource) {
+        ParsedCellMagic parsedCell = parseCellMagic(cellSource);
+        return Optional.ofNullable(parsedCell).map(transpiler::transpileCell);
+    }
+
+    String transpileLineMagics(String cellSource) {
+
+        StringBuffer out = new StringBuffer();
+        Matcher m = lineMagicPattern.matcher(cellSource);
+
         while (m.find()) {
-            String raw = m.group();
-            String rawArgs = m.group("args");
-            List<String> split = split(rawArgs);
-
-            LineMagicArgs args = LineMagicArgs.of(split.get(0), split.subList(1, split.size()));
-            LineMagicParseContext ctx = LineMagicParseContext.of(args, raw, cell, cell.substring(0, m.start()));
-
-            String transformed = transformer.apply(ctx);
-            if (transformed == null) transformed = raw;
-
-            m.appendReplacement(transformedCell, Matcher.quoteReplacement(transformed));
+            ParsedLineMagic parsed = parseLineMagic(cellSource, m);
+            String transformed = transpiler.transpileLine(parsed);
+            m.appendReplacement(out, Matcher.quoteReplacement(transformed));
         }
-        m.appendTail(transformedCell);
 
-        return transformedCell.toString();
+        m.appendTail(out);
+        return out.toString();
     }
 
-    public CellMagicParseContext parseCellMagic(String cell) {
-        Matcher m = this.cellMagicPattern.matcher(cell);
+    ParsedCellMagic parseCellMagic(String cellSource) {
+        Matcher m = this.cellMagicPattern.matcher(cellSource);
 
-        if (!m.matches()) return null;
+        if (!m.matches()) {
+            return null;
+        }
 
         String rawArgsLine = m.group("argsLine");
         String rawArgs = m.group("args");
         String body = m.group("body");
         List<String> split = split(rawArgs);
 
-        CellMagicArgs args = CellMagicArgs.of(split.get(0), split.subList(1, split.size()), body);
-        return CellMagicParseContext.of(args, rawArgsLine, cell);
+        CellMagicArgs args = new CellMagicArgs(split.get(0), split.subList(1, split.size()), body);
+        return new ParsedCellMagic(args, rawArgsLine, cellSource);
+    }
+
+    private ParsedLineMagic parseLineMagic(String cellSource, Matcher matchedLine) {
+        String raw = matchedLine.group();
+        String rawArgs = matchedLine.group("args");
+        List<String> split = split(rawArgs);
+
+        LineMagicArgs args = new LineMagicArgs(split.get(0), split.subList(1, split.size()));
+
+        String rawLinePrefix = cellSource.substring(0, matchedLine.start());
+        String linePrefix = rawLinePrefix.substring(rawLinePrefix.lastIndexOf('\n') + 1);
+        return new ParsedLineMagic(args, raw, cellSource, linePrefix);
     }
 }
