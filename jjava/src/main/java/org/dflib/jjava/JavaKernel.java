@@ -146,7 +146,7 @@ public class JavaKernel extends BaseKernel {
     }
 
     public MavenResolver getMavenResolver() {
-        return this.mavenResolver;
+        return mavenResolver;
     }
 
     public ExtensionLoader getExtensionLoader() {
@@ -154,22 +154,22 @@ public class JavaKernel extends BaseKernel {
     }
 
     public MagicsRegistry getMagics() {
-        return this.magics;
+        return magics;
     }
 
     @Override
     public LanguageInfo getLanguageInfo() {
-        return this.languageInfo;
+        return languageInfo;
     }
 
     @Override
     public String getBanner() {
-        return this.banner;
+        return banner;
     }
 
     @Override
     public List<LanguageInfo.Help> getHelpLinks() {
-        return this.helpLinks;
+        return helpLinks;
     }
 
     private MagicsRegistry buildMagicsRegistry(MavenResolver mavenResolver) {
@@ -246,8 +246,7 @@ public class JavaKernel extends BaseKernel {
             if (!unresolvedDependencies.isEmpty()) {
                 fmt.addAll(this.errorStyler.primaryLines(snippet.source()));
                 fmt.add(this.errorStyler.secondary("Unresolved dependencies:"));
-                unresolvedDependencies.forEach(dep ->
-                        fmt.add(this.errorStyler.secondary("   - " + dep)));
+                unresolvedDependencies.forEach(dep -> fmt.add(this.errorStyler.secondary("   - " + dep)));
             }
         }
 
@@ -258,8 +257,8 @@ public class JavaKernel extends BaseKernel {
         List<String> fmt = new ArrayList<>();
 
         String source = e.getSource();
-        fmt.add(this.errorStyler.secondary("Incomplete input:"));
-        fmt.addAll(this.errorStyler.primaryLines(source));
+        fmt.add(errorStyler.secondary("Incomplete input:"));
+        fmt.addAll(errorStyler.primaryLines(source));
 
         return fmt;
     }
@@ -285,19 +284,19 @@ public class JavaKernel extends BaseKernel {
         List<String> unresolvedDependencies = jShell.unresolvedDependencies(snippet)
                 .collect(Collectors.toList());
         if (!unresolvedDependencies.isEmpty()) {
-            fmt.addAll(this.errorStyler.primaryLines(snippet.source()));
-            fmt.add(this.errorStyler.secondary("Unresolved dependencies:"));
+            fmt.addAll(errorStyler.primaryLines(snippet.source()));
+            fmt.add(errorStyler.secondary("Unresolved dependencies:"));
             unresolvedDependencies.forEach(dep ->
-                    fmt.add(this.errorStyler.secondary("   - " + dep)));
+                    fmt.add(errorStyler.secondary("   - " + dep)));
         }
 
         return fmt;
     }
 
     private List<String> formatEvaluationTimeoutException(EvaluationTimeoutException e) {
-        List<String> fmt = new ArrayList<>(this.errorStyler.primaryLines(e.getSource()));
+        List<String> fmt = new ArrayList<>(errorStyler.primaryLines(e.getSource()));
 
-        fmt.add(this.errorStyler.secondary(String.format(
+        fmt.add(errorStyler.secondary(String.format(
                 "Evaluation timed out after %d %s.",
                 e.getDuration(),
                 e.getUnit().name().toLowerCase())
@@ -307,9 +306,9 @@ public class JavaKernel extends BaseKernel {
     }
 
     private List<String> formatEvaluationInterruptedException(EvaluationInterruptedException e) {
-        List<String> fmt = new ArrayList<>(this.errorStyler.primaryLines(e.getSource()));
+        List<String> fmt = new ArrayList<>(errorStyler.primaryLines(e.getSource()));
 
-        fmt.add(this.errorStyler.secondary("Evaluation interrupted."));
+        fmt.add(errorStyler.secondary("Evaluation interrupted."));
 
         return fmt;
     }
