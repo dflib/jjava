@@ -98,7 +98,6 @@ public class MavenResolver {
                 kernel.addToClasspath(resolved);
 
             } catch (Exception e) {
-                e.printStackTrace();
                 throw new RuntimeException("Failed to resolve dependency: " + dep, e);
             }
         }
