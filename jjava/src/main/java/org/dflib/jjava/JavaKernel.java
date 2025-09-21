@@ -65,7 +65,6 @@ public class JavaKernel extends BaseKernel {
     private final CodeEvaluator evaluator;
     private final ExtensionLoader extensionLoader;
     private final boolean willLoadExtensions;
-    private final MavenResolver mavenResolver;
     private final MagicParser magicParser;
     private final MagicsRegistry magics;
     private final LanguageInfo languageInfo;
@@ -93,8 +92,7 @@ public class JavaKernel extends BaseKernel {
                 .startupScript(System.getenv(Env.JJAVA_STARTUP_SCRIPT))
                 .build(this.jShell, execControlProvider, execControlID);
 
-        this.mavenResolver = new MavenResolver(this);
-        this.magics = buildMagicsRegistry(mavenResolver);
+        this.magics = buildMagicsRegistry(new MavenResolver(this));
         this.magicParser = new MagicParser("(?<=(?:^|=))\\s*%", "%%", new JJavaMagicTranspiler());
         this.languageInfo = new LanguageInfo.Builder("Java")
                 .version(Runtime.version().toString())
@@ -143,10 +141,6 @@ public class JavaKernel extends BaseKernel {
         if (willLoadExtensions) {
             extensionLoader.loadExtensions(paths).forEach(e -> e.install(this));
         }
-    }
-
-    public MavenResolver getMavenResolver() {
-        return mavenResolver;
     }
 
     public ExtensionLoader getExtensionLoader() {
