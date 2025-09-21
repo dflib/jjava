@@ -8,12 +8,13 @@ import jdk.jshell.SnippetEvent;
 import jdk.jshell.SourceCodeAnalysis;
 import jdk.jshell.UnresolvedReferenceException;
 import org.dflib.jjava.execution.CodeEvaluator;
-import org.dflib.jjava.execution.CodeEvaluatorBuilder;
 import org.dflib.jjava.execution.CompilationException;
 import org.dflib.jjava.execution.EvaluationInterruptedException;
 import org.dflib.jjava.execution.EvaluationTimeoutException;
 import org.dflib.jjava.execution.IncompleteSourceException;
+import org.dflib.jjava.execution.JJavaExecutionControlProvider;
 import org.dflib.jjava.execution.JJavaMagicTranspiler;
+import org.dflib.jjava.execution.JJavaJShellBuilder;
 import org.dflib.jjava.jupyter.ExtensionLoader;
 import org.dflib.jjava.jupyter.kernel.BaseKernel;
 import org.dflib.jjava.jupyter.kernel.LanguageInfo;
@@ -41,6 +42,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -59,6 +61,7 @@ public class JavaKernel extends BaseKernel {
     private static final Pattern MAGIC_PATTERN = Pattern.compile("^(%{1,2})([\\w\\-]*)$");
 
     private final String version;
+    private final JShell jShell;
     private final CodeEvaluator evaluator;
     private final ExtensionLoader extensionLoader;
     private final boolean willLoadExtensions;
@@ -72,16 +75,23 @@ public class JavaKernel extends BaseKernel {
 
     public JavaKernel(String version) {
         this.version = version;
-        this.evaluator = new CodeEvaluatorBuilder()
+
+        JJavaExecutionControlProvider execControlProvider = new JJavaExecutionControlProvider();
+        String execControlID = UUID.randomUUID().toString();
+
+        this.jShell = JJavaJShellBuilder.builder()
                 .addClasspathFromString(System.getenv(Env.JJAVA_CLASSPATH))
                 .compilerOptsFromString(System.getenv(Env.JJAVA_COMPILER_OPTS))
+                .timeoutFromString(System.getenv(Env.JJAVA_TIMEOUT))
+                .stdout(System.out)
+                .stderr(System.err)
+                .stdin(System.in)
+                .build(execControlProvider, execControlID);
+
+        this.evaluator = CodeEvaluator.builder()
                 .startupScriptFiles(System.getenv(Env.JJAVA_STARTUP_SCRIPTS_PATH))
                 .startupScript(System.getenv(Env.JJAVA_STARTUP_SCRIPT))
-                .timeoutFromString(System.getenv(Env.JJAVA_TIMEOUT))
-                .sysStdout()
-                .sysStderr()
-                .sysStdin()
-                .build();
+                .build(this.jShell, execControlProvider, execControlID);
 
         this.mavenResolver = new MavenResolver(this);
         this.magics = buildMagicsRegistry(mavenResolver);
@@ -125,7 +135,7 @@ public class JavaKernel extends BaseKernel {
      * Adds multiple classpath entries to the JShell classpath and triggers extension loading for them.
      */
     public void addToClasspath(Iterable<String> paths) {
-        paths.forEach(p -> evaluator.getShell().addToClasspath(p));
+        paths.forEach(p -> jShell.addToClasspath(p));
 
         // Need to "addToClasspath" all entries in a collection before we can install any extensions, as an extension
         // may depend on other entries in the collection
@@ -212,7 +222,7 @@ public class JavaKernel extends BaseKernel {
         List<String> fmt = new ArrayList<>();
         SnippetEvent event = e.getBadSnippetCompilation();
         Snippet snippet = event.snippet();
-        this.evaluator.getShell().diagnostics(snippet)
+        jShell.diagnostics(snippet)
                 .forEach(d -> {
                     // If has line information related, highlight that span
                     if (d.getStartPosition() >= 0 && d.getEndPosition() >= 0)
@@ -231,7 +241,7 @@ public class JavaKernel extends BaseKernel {
                     fmt.add(""); // Add a blank line
                 });
         if (snippet instanceof DeclarationSnippet) {
-            List<String> unresolvedDependencies = this.evaluator.getShell().unresolvedDependencies((DeclarationSnippet) snippet)
+            List<String> unresolvedDependencies = jShell.unresolvedDependencies((DeclarationSnippet) snippet)
                     .collect(Collectors.toList());
             if (!unresolvedDependencies.isEmpty()) {
                 fmt.addAll(this.errorStyler.primaryLines(snippet.source()));
@@ -272,7 +282,7 @@ public class JavaKernel extends BaseKernel {
 
         DeclarationSnippet snippet = e.getSnippet();
 
-        List<String> unresolvedDependencies = this.evaluator.getShell().unresolvedDependencies(snippet)
+        List<String> unresolvedDependencies = jShell.unresolvedDependencies(snippet)
                 .collect(Collectors.toList());
         if (!unresolvedDependencies.isEmpty()) {
             fmt.addAll(this.errorStyler.primaryLines(snippet.source()));
@@ -331,7 +341,7 @@ public class JavaKernel extends BaseKernel {
         while (parenIdx + 1 < code.length() && WS.test(code.charAt(parenIdx + 1))) parenIdx++;
         if (parenIdx + 1 < code.length() && code.charAt(parenIdx + 1) == '(') at = parenIdx + 1;
 
-        List<SourceCodeAnalysis.Documentation> documentations = this.evaluator.getShell().sourceCodeAnalysis().documentation(code, at + 1, true);
+        List<SourceCodeAnalysis.Documentation> documentations = jShell.sourceCodeAnalysis().documentation(code, at + 1, true);
         if (documentations == null || documentations.isEmpty()) {
             return null;
         }
@@ -395,8 +405,7 @@ public class JavaKernel extends BaseKernel {
             }
         }
 
-        List<SourceCodeAnalysis.Suggestion> suggestions = evaluator
-                .getShell()
+        List<SourceCodeAnalysis.Suggestion> suggestions = jShell
                 .sourceCodeAnalysis()
                 .completionSuggestions(code, at, replaceStart);
 
@@ -424,7 +433,7 @@ public class JavaKernel extends BaseKernel {
 
     @Override
     public void onShutdown(boolean isRestarting) {
-        this.evaluator.shutdown();
+        jShell.close();
     }
 
     @Override
@@ -437,7 +446,7 @@ public class JavaKernel extends BaseKernel {
      * @since 1.0-M3
      */
     public JShell getJShell() {
-        return evaluator.getShell();
+        return jShell;
     }
 
     /**

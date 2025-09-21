@@ -8,6 +8,7 @@
 - #78 Remove deprecated API and IJava startup vars
 - #79 Remove unused magics
 - #80 Magics as interfaces
+- #81 Refactoring: JavaKernel must manage JShell
 
 
 ## 1.0-a5

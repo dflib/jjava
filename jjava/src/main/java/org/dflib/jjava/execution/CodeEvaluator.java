@@ -7,9 +7,14 @@ import jdk.jshell.Snippet;
 import jdk.jshell.SnippetEvent;
 import jdk.jshell.SourceCodeAnalysis;
 import org.dflib.jjava.jupyter.kernel.BaseKernel;
+import org.dflib.jjava.jupyter.kernel.util.GlobFinder;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -41,6 +46,10 @@ public class CodeEvaluator {
 
     private volatile boolean initialized;
 
+    public static Builder builder() {
+        return new Builder();
+    }
+
     public CodeEvaluator(
             JShell shell,
             JJavaExecutionControlProvider execControlProvider,
@@ -50,12 +59,8 @@ public class CodeEvaluator {
         this.shell = shell;
         this.execControlProvider = execControlProvider;
         this.execControlID = execControlID;
-        this.sourceAnalyzer = this.shell.sourceCodeAnalysis();
+        this.sourceAnalyzer = shell.sourceCodeAnalysis();
         this.startupScripts = startupScripts;
-    }
-
-    public JShell getShell() {
-        return shell;
     }
 
     private SourceCodeAnalysis.CompletionInfo analyzeCompletion(String source) {
@@ -174,11 +179,11 @@ public class CodeEvaluator {
      */
     private void dropSnippet(Snippet snippet) {
         JJavaExecutionControl execControl = execControlProvider.getRegisteredControlByID(this.execControlID);
-        this.shell.drop(snippet);
+        shell.drop(snippet);
         // snippet.classFullName() returns name of a wrapper class created for a snippet
         String className = snippetClassName(snippet);
         // check that this class is not used by other snippets
-        if (this.shell.snippets()
+        if (shell.snippets()
                 .map(this::snippetClassName)
                 .noneMatch(className::equals)) {
             execControl.unloadClass(className);
@@ -269,7 +274,71 @@ public class CodeEvaluator {
         }
     }
 
-    public void shutdown() {
-        shell.close();
+    public static class Builder {
+
+        private final List<String> startupScripts;
+
+        protected Builder() {
+            this.startupScripts = new ArrayList<>();
+        }
+
+        public Builder startupScript(String script) {
+            if (script != null) {
+                startupScripts.add(script);
+            }
+            return this;
+        }
+
+        public Builder startupScriptFiles(String paths) {
+            if (paths == null) {
+                return this;
+            }
+
+            if (JJavaJShellBuilder.BLANK.matcher(paths).matches()) {
+                return this;
+            }
+
+            for (String glob : JJavaJShellBuilder.PATH_SPLITTER.split(paths)) {
+                GlobFinder resolver = new GlobFinder(glob);
+                try {
+                    for (Path path : resolver.computeMatchingPaths())
+                        this.startupScriptFile(path);
+                } catch (IOException e) {
+                    throw new RuntimeException(String.format("IOException while computing startup scripts for '%s': %s", glob, e.getMessage()), e);
+                }
+            }
+
+            return this;
+        }
+
+        public Builder startupScriptFile(Path path) {
+            if (path == null) {
+                return this;
+            }
+
+            if (!Files.isRegularFile(path)) {
+                return this;
+            }
+
+            if (!Files.isReadable(path)) {
+                return this;
+            }
+
+            try {
+                String script = Files.readString(path);
+                startupScripts.add(script);
+            } catch (IOException e) {
+                throw new RuntimeException(String.format("IOException while loading startup script for '%s': %s", path, e.getMessage()), e);
+            }
+
+            return this;
+        }
+
+        public CodeEvaluator build(
+                JShell shell,
+                JJavaExecutionControlProvider execControlProvider,
+                String execControlID) {
+            return new CodeEvaluator(shell, execControlProvider, execControlID, startupScripts);
+        }
     }
 }
