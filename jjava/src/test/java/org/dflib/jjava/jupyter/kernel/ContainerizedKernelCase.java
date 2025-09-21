@@ -81,7 +81,7 @@ public abstract class ContainerizedKernelCase {
         LOGGER.info("snippet = {}", snippet);
         LOGGER.info("exitCode = {}", execResult.getExitCode());
         LOGGER.debug("stderr = {}", execResult.getStderr());
-        LOGGER.info("stdout = {}", execResult.getStdout());
+        LOGGER.debug("stdout = {}", execResult.getStdout());
         return execResult;
     }
 

@@ -163,12 +163,17 @@ public class CodeEvaluator {
                     // Runs startup scripts in the shell to initialize the environment. The call is deferred until the
                     // first user requested evaluation to cleanly return errors when they happen.
 
+                    // Reset init flag before running the scripts though, as we are calling "eval" below, and it
+                    // would call "initIfNeeded()" again, resulting in stack overflow
+
+                    initialized = true;
+                    
                     for (String script : startupScripts) {
                         eval(script);
                     }
 
                     startupScripts.clear();
-                    initialized = true;
+
                 }
             }
         }
