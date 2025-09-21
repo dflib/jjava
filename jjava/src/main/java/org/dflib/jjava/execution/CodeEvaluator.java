@@ -34,42 +34,38 @@ public class CodeEvaluator {
     private static final String INDENTATION = "  ";
 
     private final JShell shell;
-    private final JJavaExecutionControlProvider executionControlProvider;
-    private final String executionControlID;
+    private final JJavaExecutionControlProvider execControlProvider;
+    private final String execControlID;
     private final SourceCodeAnalysis sourceAnalyzer;
-
-    private boolean isInitialized = false;
     private final List<String> startupScripts;
 
+    private volatile boolean initialized;
 
-    public CodeEvaluator(JShell shell, JJavaExecutionControlProvider executionControlProvider, String executionControlID, List<String> startupScripts) {
+    public CodeEvaluator(
+            JShell shell,
+            JJavaExecutionControlProvider execControlProvider,
+            String execControlID,
+            List<String> startupScripts) {
+
         this.shell = shell;
-        this.executionControlProvider = executionControlProvider;
-        this.executionControlID = executionControlID;
+        this.execControlProvider = execControlProvider;
+        this.execControlID = execControlID;
         this.sourceAnalyzer = this.shell.sourceCodeAnalysis();
         this.startupScripts = startupScripts;
     }
 
     public JShell getShell() {
-        return this.shell;
+        return shell;
     }
 
     private SourceCodeAnalysis.CompletionInfo analyzeCompletion(String source) {
-        return this.sourceAnalyzer.analyzeCompletion(source);
-    }
-
-    private void init() {
-        for (String script : this.startupScripts)
-            eval(script);
-
-        this.startupScripts.clear();
+        return sourceAnalyzer.analyzeCompletion(source);
     }
 
     protected Object evalSingle(String code) {
-        JJavaExecutionControl executionControl =
-                this.executionControlProvider.getRegisteredControlByID(this.executionControlID);
 
-        List<SnippetEvent> events = this.shell.eval(code);
+        JJavaExecutionControl executionControl = execControlProvider.getRegisteredControlByID(execControlID);
+        List<SnippetEvent> events = shell.eval(code);
 
         Object result = null;
 
@@ -136,32 +132,48 @@ public class CodeEvaluator {
     }
 
     public Object eval(String code) {
-        // The init() method runs some code in the shell to initialize the environment. As such
-        // it is deferred until the first user requested evaluation to cleanly return errors when
-        // they happen.
-        if (!this.isInitialized) {
-            this.isInitialized = true;
-            init();
-        }
+        initIfNeeded();
 
         Object lastEvalResult = null;
-        SourceCodeAnalysis.CompletionInfo info;
+        SourceCodeAnalysis.CompletionInfo info = this.sourceAnalyzer.analyzeCompletion(code);
 
-        for (info = this.sourceAnalyzer.analyzeCompletion(code); info.completeness().isComplete(); info = analyzeCompletion(info.remaining()))
-            lastEvalResult = this.evalSingle(info.source());
+        while (info.completeness().isComplete()) {
+            lastEvalResult = evalSingle(info.source());
+            info = analyzeCompletion(info.remaining());
+        }
 
-        if (info.completeness() != SourceCodeAnalysis.Completeness.EMPTY)
+        if (info.completeness() != SourceCodeAnalysis.Completeness.EMPTY) {
             throw new IncompleteSourceException(info.remaining().trim());
+        }
 
         return lastEvalResult;
+    }
+
+    private void initIfNeeded() {
+
+        if (!initialized) {
+            synchronized (this) {
+                if (!initialized) {
+
+                    // Runs startup scripts in the shell to initialize the environment. The call is deferred until the
+                    // first user requested evaluation to cleanly return errors when they happen.
+
+                    for (String script : startupScripts) {
+                        eval(script);
+                    }
+
+                    startupScripts.clear();
+                    initialized = true;
+                }
+            }
+        }
     }
 
     /**
      * Try to clean up information linked to a code snippet and the snippet itself
      */
     private void dropSnippet(Snippet snippet) {
-        JJavaExecutionControl executionControl =
-                this.executionControlProvider.getRegisteredControlByID(this.executionControlID);
+        JJavaExecutionControl execControl = execControlProvider.getRegisteredControlByID(this.execControlID);
         this.shell.drop(snippet);
         // snippet.classFullName() returns name of a wrapper class created for a snippet
         String className = snippetClassName(snippet);
@@ -169,7 +181,7 @@ public class CodeEvaluator {
         if (this.shell.snippets()
                 .map(this::snippetClassName)
                 .noneMatch(className::equals)) {
-            executionControl.unloadClass(className);
+            execControl.unloadClass(className);
         }
     }
 
@@ -227,8 +239,9 @@ public class CodeEvaluator {
 
     public String isComplete(String code) {
         SourceCodeAnalysis.CompletionInfo info = this.sourceAnalyzer.analyzeCompletion(code);
-        while (info.completeness().isComplete())
+        while (info.completeness().isComplete()) {
             info = analyzeCompletion(info.remaining());
+        }
 
         switch (info.completeness()) {
             case UNKNOWN:
@@ -249,14 +262,14 @@ public class CodeEvaluator {
     }
 
     public void interrupt() {
-        JJavaExecutionControl executionControl =
-                this.executionControlProvider.getRegisteredControlByID(this.executionControlID);
+        JJavaExecutionControl execControl = execControlProvider.getRegisteredControlByID(execControlID);
 
-        if (executionControl != null)
-            executionControl.interrupt();
+        if (execControl != null) {
+            execControl.interrupt();
+        }
     }
 
     public void shutdown() {
-        this.shell.close();
+        shell.close();
     }
 }

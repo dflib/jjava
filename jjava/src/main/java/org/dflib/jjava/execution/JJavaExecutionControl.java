@@ -145,13 +145,12 @@ public class JJavaExecutionControl extends DirectExecutionControl {
     }
 
     public void interrupt() {
-        this.running.forEach((id, future) ->
-                future.cancel(true));
+        running.forEach((id, f) -> f.cancel(true));
     }
 
     @Override
     public void stop() {
-        this.executor.shutdownNow();
+        executor.shutdownNow();
     }
 
     @Override

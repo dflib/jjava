@@ -23,7 +23,6 @@ public class CodeEvaluatorBuilder {
 
     private static final Pattern PATH_SPLITTER = Pattern.compile(File.pathSeparator, Pattern.LITERAL);
     private static final Pattern BLANK = Pattern.compile("^\\s*$");
-    private static final int BUFFER_SIZE = 1024;
 
     private static final OutputStream STDOUT = new LazyOutputStreamDelegate(() -> System.out);
     private static final OutputStream STDERR = new LazyOutputStreamDelegate(() -> System.err);
@@ -64,8 +63,9 @@ public class CodeEvaluatorBuilder {
     }
 
     public CodeEvaluatorBuilder compilerOptsFromString(String opts) {
-        if (opts == null) return this;
-        this.compilerOpts.addAll(split(opts));
+        if (opts != null) {
+            compilerOpts.addAll(split(opts));
+        }
         return this;
     }
 
@@ -90,26 +90,32 @@ public class CodeEvaluatorBuilder {
     }
 
     public CodeEvaluatorBuilder sysStdout() {
-        return this.stdout(new PrintStream(CodeEvaluatorBuilder.STDOUT));
+        return stdout(new PrintStream(CodeEvaluatorBuilder.STDOUT));
     }
 
     public CodeEvaluatorBuilder sysStderr() {
-        return this.stderr(new PrintStream(CodeEvaluatorBuilder.STDERR));
+        return stderr(new PrintStream(CodeEvaluatorBuilder.STDERR));
     }
 
     public CodeEvaluatorBuilder sysStdin() {
-        return this.stdin(CodeEvaluatorBuilder.STDIN);
+        return stdin(CodeEvaluatorBuilder.STDIN);
     }
 
     public CodeEvaluatorBuilder startupScript(String script) {
-        if (script == null) return this;
-        this.startupScripts.add(script);
+        if (script != null) {
+            startupScripts.add(script);
+        }
         return this;
     }
 
     public CodeEvaluatorBuilder startupScriptFiles(String paths) {
-        if (paths == null) return this;
-        if (BLANK.matcher(paths).matches()) return this;
+        if (paths == null) {
+            return this;
+        }
+
+        if (BLANK.matcher(paths).matches()) {
+            return this;
+        }
 
         for (String glob : PATH_SPLITTER.split(paths)) {
             GlobFinder resolver = new GlobFinder(glob);
@@ -125,17 +131,21 @@ public class CodeEvaluatorBuilder {
     }
 
     public CodeEvaluatorBuilder startupScriptFile(Path path) {
-        if (path == null) return this;
-
-        if (!Files.isRegularFile(path))
+        if (path == null) {
             return this;
+        }
 
-        if (!Files.isReadable(path))
+        if (!Files.isRegularFile(path)) {
             return this;
+        }
+
+        if (!Files.isReadable(path)) {
+            return this;
+        }
 
         try {
             String script = new String(Files.readAllBytes(path), "UTF-8");
-            this.startupScripts.add(script);
+            startupScripts.add(script);
         } catch (IOException e) {
             throw new RuntimeException(String.format("IOException while loading startup script for '%s': %s", path, e.getMessage()), e);
         }
@@ -144,27 +154,37 @@ public class CodeEvaluatorBuilder {
     }
 
     public CodeEvaluator build() {
-        JJavaExecutionControlProvider executionControlProvider = new JJavaExecutionControlProvider();
+        JJavaExecutionControlProvider execControlProvider = new JJavaExecutionControlProvider();
 
         String executionControlID = UUID.randomUUID().toString();
         Map<String, String> executionControlParams = new LinkedHashMap<>();
         executionControlParams.put(JJavaExecutionControlProvider.REGISTRATION_ID_KEY, executionControlID);
 
-        if (this.timeout != null)
+        if (this.timeout != null) {
             executionControlParams.put(JJavaExecutionControlProvider.TIMEOUT_KEY, this.timeout);
+        }
 
         JShell.Builder builder = JShell.builder();
-        if (this.out != null) builder.out(this.out);
-        if (this.err != null) builder.err(this.err);
-        if (this.in != null) builder.in(this.in);
+        if (this.out != null) {
+            builder.out(this.out);
+        }
+        if (this.err != null) {
+            builder.err(this.err);
+        }
+        if (this.in != null) {
+            builder.in(this.in);
+        }
 
         JShell shell = builder
-                .executionEngine(executionControlProvider, executionControlParams)
+                .executionEngine(execControlProvider, executionControlParams)
                 .compilerOptions(this.compilerOpts.toArray(new String[0]))
                 .build();
 
         for (String cp : this.classpath) {
-            if (BLANK.matcher(cp).matches()) continue;
+            
+            if (BLANK.matcher(cp).matches()) {
+                continue;
+            }
 
             GlobFinder resolver = new GlobFinder(cp);
             try {
@@ -175,7 +195,7 @@ public class CodeEvaluatorBuilder {
             }
         }
 
-        return new CodeEvaluator(shell, executionControlProvider, executionControlID, this.startupScripts);
+        return new CodeEvaluator(shell, execControlProvider, executionControlID, this.startupScripts);
     }
 
     private static List<String> split(String opts) {
