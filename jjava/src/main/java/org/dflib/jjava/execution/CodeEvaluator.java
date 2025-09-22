@@ -138,7 +138,34 @@ public class CodeEvaluator {
 
     public Object eval(String code) {
         initIfNeeded();
+        return doEval(code);
+    }
 
+    private void initIfNeeded() {
+
+        // TODO: should we even bother trying to avoid a race condition with locking? Does Jupyter guarantee serial
+        //  cell execution?
+        if (!initialized) {
+            synchronized (this) {
+                if (!initialized) {
+
+                    // Runs startup scripts in the shell to initialize the environment. The call is deferred until the
+                    // first user requested evaluation to cleanly return errors when they happen.
+
+                    for (String script : startupScripts) {
+                        // call "doEval" to bypass "initIfNeeded" and avoid infinite recursion
+                        doEval(script);
+                    }
+
+                    startupScripts.clear();
+                    initialized = true;
+                }
+            }
+        }
+    }
+
+
+    private Object doEval(String code) {
         Object lastEvalResult = null;
         SourceCodeAnalysis.CompletionInfo info = this.sourceAnalyzer.analyzeCompletion(code);
 
@@ -152,30 +179,6 @@ public class CodeEvaluator {
         }
 
         return lastEvalResult;
-    }
-
-    private void initIfNeeded() {
-
-        if (!initialized) {
-            synchronized (this) {
-                if (!initialized) {
-
-                    // Runs startup scripts in the shell to initialize the environment. The call is deferred until the
-                    // first user requested evaluation to cleanly return errors when they happen.
-
-                    // Reset init flag before running the scripts, as we are calling "eval" below, and it
-                    // would call "initIfNeeded()" again, resulting in infinite recursion
-                    initialized = true;
-
-                    for (String script : startupScripts) {
-                        eval(script);
-                    }
-
-                    startupScripts.clear();
-
-                }
-            }
-        }
     }
 
     /**
