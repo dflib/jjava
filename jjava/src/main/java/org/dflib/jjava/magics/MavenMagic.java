@@ -3,21 +3,21 @@ package org.dflib.jjava.magics;
 import org.dflib.jjava.JavaKernel;
 import org.dflib.jjava.jupyter.kernel.magic.LineMagic;
 import org.dflib.jjava.jupyter.kernel.magic.MagicsArgs;
-import org.dflib.jjava.maven.MavenResolver;
+import org.dflib.jjava.maven.MavenDependencyResolver;
 
 import java.util.List;
 import java.util.Map;
 
-public class MavenMagic implements LineMagic<Void, JavaKernel> {
+public class MavenMagic implements LineMagic<Map<String, List<String>>, JavaKernel> {
 
-    private final MavenResolver mavenResolver;
+    private final MavenDependencyResolver mavenResolver;
 
-    public MavenMagic(MavenResolver mavenResolver) {
+    public MavenMagic(MavenDependencyResolver mavenResolver) {
         this.mavenResolver = mavenResolver;
     }
 
     @Override
-    public Void execute(JavaKernel kernel, List<String> args) {
+    public Map<String, List<String>> eval(JavaKernel kernel, List<String> args) {
         MagicsArgs schema = MagicsArgs.builder()
                 .varargs("deps")
                 .keyword("from")
@@ -26,7 +26,9 @@ public class MavenMagic implements LineMagic<Void, JavaKernel> {
                 .build();
 
         Map<String, List<String>> parsed = schema.parse(args);
-        mavenResolver.loadFromRemoteRepos(parsed.get("from"), parsed.get("deps"));
-        return null;
+        Map<String, List<String>> deps = mavenResolver.loadDependencies(parsed.get("from"), parsed.get("deps"));
+
+        deps.values().forEach(kernel::addToClasspath);
+        return deps;
     }
 }

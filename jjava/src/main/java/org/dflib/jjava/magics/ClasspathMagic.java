@@ -13,7 +13,7 @@ import java.util.stream.StreamSupport;
 public class ClasspathMagic implements LineMagic<List<String>, JavaKernel> {
 
     @Override
-    public List<String> execute(JavaKernel kernel, List<String> args) {
+    public List<String> eval(JavaKernel kernel, List<String> args) {
         List<String> resolved = args.stream()
                 .flatMap(a -> StreamSupport.stream(resolveGlob(a).spliterator(), false))
                 .map(p -> p.toAbsolutePath().toString())

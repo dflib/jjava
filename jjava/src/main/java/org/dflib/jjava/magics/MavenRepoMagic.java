@@ -3,21 +3,21 @@ package org.dflib.jjava.magics;
 import org.dflib.jjava.JavaKernel;
 import org.dflib.jjava.jupyter.kernel.magic.LineMagic;
 import org.dflib.jjava.jupyter.kernel.magic.MagicsArgs;
-import org.dflib.jjava.maven.MavenResolver;
+import org.dflib.jjava.maven.MavenDependencyResolver;
 
 import java.util.List;
 import java.util.Map;
 
 public class MavenRepoMagic implements LineMagic<Void, JavaKernel> {
 
-    private final MavenResolver mavenResolver;
+    private final MavenDependencyResolver mavenResolver;
 
-    public MavenRepoMagic(MavenResolver mavenResolver) {
+    public MavenRepoMagic(MavenDependencyResolver mavenResolver) {
         this.mavenResolver = mavenResolver;
     }
 
     @Override
-    public Void execute(JavaKernel kernel, List<String> args) {
+    public Void eval(JavaKernel kernel, List<String> args) {
 
         MagicsArgs schema = MagicsArgs.builder().required("id").required("url").build();
         Map<String, List<String>> vals = schema.parse(args);

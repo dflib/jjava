@@ -10,5 +10,5 @@ import java.util.List;
 @FunctionalInterface
 public interface CellMagic<T, K extends BaseKernel> {
 
-    T execute(K kernel, List<String> args, String body) throws Exception;
+    T eval(K kernel, List<String> args, String body) throws Exception;
 }

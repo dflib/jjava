@@ -1,5 +1,7 @@
 package org.dflib.jjava.jupyter.kernel.magic;
 
+import org.dflib.jjava.jupyter.kernel.BaseKernel;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -17,24 +19,24 @@ public class MagicsRegistry {
         this.cellMagics = cellMagics;
     }
 
-    public <T> T evalLineMagic(String name, List<String> args) throws Exception {
-        LineMagic<T> magic = (LineMagic<T>) lineMagics.get(name);
+    public <T, K extends BaseKernel> T evalLineMagic(K kernel, String name, List<String> args) throws Exception {
+        LineMagic<T, K> magic = (LineMagic<T, K>) lineMagics.get(name);
 
         if (magic == null) {
             throw new UndefinedMagicException(name, true);
         }
 
-        return magic.execute(args);
+        return magic.eval(kernel, args);
     }
 
-    public <T> T evalCellMagic(String name, List<String> args, String body) throws Exception {
-        CellMagic<T> magic = (CellMagic<T>) cellMagics.get(name);
+    public <T, K extends BaseKernel> T evalCellMagic(K kernel, String name, List<String> args, String body) throws Exception {
+        CellMagic<T, K> magic = (CellMagic<T, K>) cellMagics.get(name);
 
         if (magic == null) {
             throw new UndefinedMagicException(name, false);
         }
 
-        return magic.execute(args, body);
+        return magic.eval(kernel, args, body);
     }
 
     public Set<String> getCellMagicNames() {

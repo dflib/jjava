@@ -17,7 +17,7 @@ public class MagicsRegistryTest {
         MagicsRegistry registry = new MagicsRegistry(Map.of("test", (k, args) -> args), Map.of());
 
         List<String> args = Arrays.asList("arg1", "arg2");
-        List<String> out = registry.evalLineMagic("test", args);
+        List<String> out = registry.evalLineMagic(null, "test", args);
 
         assertEquals(args, out);
     }
@@ -32,7 +32,7 @@ public class MagicsRegistryTest {
 
         List<String> args = Arrays.asList("arg1", "arg2");
         String body = "body";
-        List<String> out = registry.evalCellMagic("test", args, body);
+        List<String> out = registry.evalCellMagic(null, "test", args, body);
 
         List<String> expected = new ArrayList<>(args);
         expected.add(body);
@@ -46,14 +46,14 @@ public class MagicsRegistryTest {
 
 
             @Override
-            public List<String> execute(BaseKernel kernel, List<String> args, String body) {
+            public List<String> eval(BaseKernel kernel, List<String> args, String body) {
                 List<String> out = new ArrayList<>(args);
                 out.add(body);
                 return out;
             }
 
             @Override
-            public List<String> execute(BaseKernel kernel, List<String> args) {
+            public List<String> eval(BaseKernel kernel, List<String> args) {
                 return args;
             }
         }
@@ -64,8 +64,8 @@ public class MagicsRegistryTest {
         List<String> args = Arrays.asList("arg1", "arg2");
         String body = "body";
 
-        List<String> lineOut = registry.evalLineMagic("test", args);
-        List<String> cellOut = registry.evalCellMagic("test", args, body);
+        List<String> lineOut = registry.evalLineMagic(null, "test", args);
+        List<String> cellOut = registry.evalCellMagic(null, "test", args, body);
 
         List<String> expectedCell = new ArrayList<>(args);
         expectedCell.add(body);

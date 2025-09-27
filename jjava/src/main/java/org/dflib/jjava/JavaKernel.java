@@ -35,7 +35,7 @@ import org.dflib.jjava.magics.LoadFromPomCellMagic;
 import org.dflib.jjava.magics.LoadFromPomLineMagic;
 import org.dflib.jjava.magics.MavenMagic;
 import org.dflib.jjava.magics.MavenRepoMagic;
-import org.dflib.jjava.maven.MavenResolver;
+import org.dflib.jjava.maven.MavenDependencyResolver;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -92,7 +92,7 @@ public class JavaKernel extends BaseKernel {
                 .startupScript(System.getenv(Env.JJAVA_STARTUP_SCRIPT))
                 .build(this.jShell, execControlProvider, execControlID);
 
-        this.magics = buildMagicsRegistry(new MavenResolver(this));
+        this.magics = buildMagicsRegistry(new MavenDependencyResolver());
         this.magicParser = new MagicParser("(?<=(?:^|=))\\s*%", "%%", new JJavaMagicTranspiler());
         this.languageInfo = new LanguageInfo.Builder("Java")
                 .version(Runtime.version().toString())
@@ -166,17 +166,17 @@ public class JavaKernel extends BaseKernel {
         return helpLinks;
     }
 
-    private MagicsRegistry buildMagicsRegistry(MavenResolver mavenResolver) {
-        Map<String, LineMagic<?>> lineMagics = new HashMap<>();
-        lineMagics.put("classpath", new ClasspathMagic(this));
+    private MagicsRegistry buildMagicsRegistry(MavenDependencyResolver mavenResolver) {
+        Map<String, LineMagic<?, ?>> lineMagics = new HashMap<>();
+        lineMagics.put("classpath", new ClasspathMagic());
         lineMagics.put("maven", new MavenMagic(mavenResolver));
         lineMagics.put("mavenRepo", new MavenRepoMagic(mavenResolver));
-        lineMagics.put("load", new LoadCodeMagic(this, "", ".jsh", ".jshell", ".java", ".jjava"));
+        lineMagics.put("load", new LoadCodeMagic("", ".jsh", ".jshell", ".java", ".jjava"));
         lineMagics.put("loadFromPOM", new LoadFromPomLineMagic(mavenResolver));
-        lineMagics.put("jars", new JarsMagic(this)); // TODO: deprecate redundant "jars" alias; "classpath" is a superset of this
+        lineMagics.put("jars", new JarsMagic()); // TODO: deprecate redundant "jars" alias; "classpath" is a superset of this
         lineMagics.put("addMavenDependency", new MavenMagic(mavenResolver)); // TODO: deprecate redundant "addMavenDependency" alias
 
-        Map<String, CellMagic<?>> cellMagics = new HashMap<>();
+        Map<String, CellMagic<?, ?>> cellMagics = new HashMap<>();
         cellMagics.put("loadFromPOM", new LoadFromPomCellMagic(mavenResolver));
 
         return new MagicsRegistry(lineMagics, cellMagics);

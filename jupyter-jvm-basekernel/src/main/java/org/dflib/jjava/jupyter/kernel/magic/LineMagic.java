@@ -10,5 +10,5 @@ import java.util.List;
 @FunctionalInterface
 public interface LineMagic<T, K extends BaseKernel> {
 
-    T execute(K kernel, List<String> args) throws Exception;
+    T eval(K kernel, List<String> args) throws Exception;
 }

@@ -37,7 +37,7 @@ public class LoadCodeMagic implements LineMagic<Void, JavaKernel> {
     }
 
     @Override
-    public Void execute(JavaKernel kernel, List<String> args) throws Exception {
+    public Void eval(JavaKernel kernel, List<String> args) throws Exception {
 
         Map<String, List<String>> vals = LOAD_ARGS.parse(args);
         Path sourcePath = Paths.get(vals.get("source").get(0)).toAbsolutePath();
