@@ -12,16 +12,10 @@ import java.util.stream.StreamSupport;
 
 // TODO: this is a subset of ClasspathMagic. The only difference is calling "computeMatchingFiles()" instead of
 //  "computeMatchingPaths()". Deprecate in favor of "classpath"?
-public class JarsMagic implements LineMagic<List<String>> {
-
-    private final JavaKernel kernel;
-
-    public JarsMagic(JavaKernel kernel) {
-        this.kernel = kernel;
-    }
+public class JarsMagic implements LineMagic<List<String>, JavaKernel> {
 
     @Override
-    public List<String> execute(List<String> args) {
+    public List<String> execute(JavaKernel kernel, List<String> args) {
         List<String> resolved = args.stream()
                 .flatMap(a -> StreamSupport.stream(resolveGlob(a).spliterator(), false))
                 .map(p -> p.toAbsolutePath().toString())

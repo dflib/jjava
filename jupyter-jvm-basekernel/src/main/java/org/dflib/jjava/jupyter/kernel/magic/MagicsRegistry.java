@@ -9,10 +9,10 @@ import java.util.Set;
  */
 public class MagicsRegistry {
 
-    private final Map<String, LineMagic<?>> lineMagics;
-    private final Map<String, CellMagic<?>> cellMagics;
+    private final Map<String, LineMagic<?, ?>> lineMagics;
+    private final Map<String, CellMagic<?, ?>> cellMagics;
 
-    public MagicsRegistry(Map<String, LineMagic<?>> lineMagics, Map<String, CellMagic<?>> cellMagics) {
+    public MagicsRegistry(Map<String, LineMagic<?, ?>> lineMagics, Map<String, CellMagic<?, ?>> cellMagics) {
         this.lineMagics = lineMagics;
         this.cellMagics = cellMagics;
     }

@@ -10,16 +10,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-public class ClasspathMagic implements LineMagic<List<String>> {
-
-    private final JavaKernel kernel;
-
-    public ClasspathMagic(JavaKernel kernel) {
-        this.kernel = kernel;
-    }
+public class ClasspathMagic implements LineMagic<List<String>, JavaKernel> {
 
     @Override
-    public List<String> execute(List<String> args) {
+    public List<String> execute(JavaKernel kernel, List<String> args) {
         List<String> resolved = args.stream()
                 .flatMap(a -> StreamSupport.stream(resolveGlob(a).spliterator(), false))
                 .map(p -> p.toAbsolutePath().toString())

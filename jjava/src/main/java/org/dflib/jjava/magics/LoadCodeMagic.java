@@ -3,7 +3,7 @@ package org.dflib.jjava.magics;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.stream.JsonReader;
-import org.dflib.jjava.jupyter.kernel.BaseKernel;
+import org.dflib.jjava.JavaKernel;
 import org.dflib.jjava.jupyter.kernel.magic.LineMagic;
 import org.dflib.jjava.jupyter.kernel.magic.MagicsArgs;
 
@@ -16,7 +16,7 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 
-public class LoadCodeMagic implements LineMagic<Void> {
+public class LoadCodeMagic implements LineMagic<Void, JavaKernel> {
 
     private static final String NOTEBOOK_EXTENSION = ".ipynb";
 
@@ -30,16 +30,14 @@ public class LoadCodeMagic implements LineMagic<Void> {
             .onlyKnownKeywords()
             .build();
 
-    private final BaseKernel kernel;
     private final String[] fileExtensions;
 
-    public LoadCodeMagic(BaseKernel kernel, String... fileExtensions) {
-        this.kernel = kernel;
+    public LoadCodeMagic(String... fileExtensions) {
         this.fileExtensions = fileExtensions;
     }
 
     @Override
-    public Void execute(List<String> args) throws Exception {
+    public Void execute(JavaKernel kernel, List<String> args) throws Exception {
 
         Map<String, List<String>> vals = LOAD_ARGS.parse(args);
         Path sourcePath = Paths.get(vals.get("source").get(0)).toAbsolutePath();
@@ -52,7 +50,7 @@ public class LoadCodeMagic implements LineMagic<Void> {
             if (Files.isRegularFile(scriptPath)) {
 
                 if (scriptPath.getFileName().endsWith(NOTEBOOK_EXTENSION)) {
-                    execNotebook(scriptPath);
+                    execNotebook(kernel, scriptPath);
                 } else {
                     String sourceContents = Files.readString(scriptPath);
                     kernel.eval(sourceContents);
@@ -70,7 +68,7 @@ public class LoadCodeMagic implements LineMagic<Void> {
     // in which we can only take what we need on the fly and pass each cell to the handler without needing
     // to keep the entire notebook in memory.
     // This should be a big help for larger notebooks.
-    private void execNotebook(Path notebookPath) throws Exception {
+    private void execNotebook(JavaKernel kernel, Path notebookPath) throws Exception {
         try (Reader in = Files.newBufferedReader(notebookPath, StandardCharsets.UTF_8)) {
             JsonReader reader = GSON.get().newJsonReader(in);
             reader.beginObject();

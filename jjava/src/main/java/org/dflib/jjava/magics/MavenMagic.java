@@ -1,5 +1,6 @@
 package org.dflib.jjava.magics;
 
+import org.dflib.jjava.JavaKernel;
 import org.dflib.jjava.jupyter.kernel.magic.LineMagic;
 import org.dflib.jjava.jupyter.kernel.magic.MagicsArgs;
 import org.dflib.jjava.maven.MavenResolver;
@@ -7,7 +8,7 @@ import org.dflib.jjava.maven.MavenResolver;
 import java.util.List;
 import java.util.Map;
 
-public class MavenMagic implements LineMagic<Void> {
+public class MavenMagic implements LineMagic<Void, JavaKernel> {
 
     private final MavenResolver mavenResolver;
 
@@ -16,7 +17,7 @@ public class MavenMagic implements LineMagic<Void> {
     }
 
     @Override
-    public Void execute(List<String> args) {
+    public Void execute(JavaKernel kernel, List<String> args) {
         MagicsArgs schema = MagicsArgs.builder()
                 .varargs("deps")
                 .keyword("from")

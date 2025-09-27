@@ -1,5 +1,6 @@
 package org.dflib.jjava.jupyter.kernel.magic;
 
+import org.dflib.jjava.jupyter.kernel.BaseKernel;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -13,7 +14,7 @@ public class MagicsRegistryTest {
 
     @Test
     public void lineMagic() throws Exception {
-        MagicsRegistry registry = new MagicsRegistry(Map.of("test", args -> args), Map.of());
+        MagicsRegistry registry = new MagicsRegistry(Map.of("test", (k, args) -> args), Map.of());
 
         List<String> args = Arrays.asList("arg1", "arg2");
         List<String> out = registry.evalLineMagic("test", args);
@@ -23,7 +24,7 @@ public class MagicsRegistryTest {
 
     @Test
     public void cellMagic() throws Exception {
-        MagicsRegistry registry = new MagicsRegistry(Map.of(), Map.of("test", (args, body) -> {
+        MagicsRegistry registry = new MagicsRegistry(Map.of(), Map.of("test", (k, args, body) -> {
             List<String> out = new ArrayList<>(args);
             out.add(body);
             return out;
@@ -41,16 +42,18 @@ public class MagicsRegistryTest {
 
     @Test
     public void lineCellMagic() throws Exception {
-        class Magic implements LineMagic<List<String>>, CellMagic<List<String>> {
+        class Magic implements LineMagic<List<String>, BaseKernel>, CellMagic<List<String>, BaseKernel> {
+
+
             @Override
-            public List<String> execute(List<String> args, String body) {
+            public List<String> execute(BaseKernel kernel, List<String> args, String body) {
                 List<String> out = new ArrayList<>(args);
                 out.add(body);
                 return out;
             }
 
             @Override
-            public List<String> execute(List<String> args) {
+            public List<String> execute(BaseKernel kernel, List<String> args) {
                 return args;
             }
         }
