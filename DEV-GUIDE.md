@@ -7,6 +7,7 @@ On MacOS and Linux, run the following commands:
 ```bash
 mvn clean package
 unzip -u jjava/target/jjava-*-kernelspec.zip -d jjava/target/unzip
+jupyter kernelspec remove java
 jupyter kernelspec install jjava/target/unzip --name=java --user
 ```
 
