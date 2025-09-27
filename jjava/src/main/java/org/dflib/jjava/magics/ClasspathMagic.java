@@ -1,6 +1,6 @@
 package org.dflib.jjava.magics;
 
-import org.dflib.jjava.JavaKernel;
+import org.dflib.jjava.JJavaKernel;
 import org.dflib.jjava.jupyter.kernel.magic.LineMagic;
 import org.dflib.jjava.jupyter.kernel.util.GlobFinder;
 
@@ -10,10 +10,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-public class ClasspathMagic implements LineMagic<List<String>, JavaKernel> {
+public class ClasspathMagic implements LineMagic<List<String>, JJavaKernel> {
 
     @Override
-    public List<String> eval(JavaKernel kernel, List<String> args) {
+    public List<String> eval(JJavaKernel kernel, List<String> args) {
         List<String> resolved = args.stream()
                 .flatMap(a -> StreamSupport.stream(resolveGlob(a).spliterator(), false))
                 .map(p -> p.toAbsolutePath().toString())

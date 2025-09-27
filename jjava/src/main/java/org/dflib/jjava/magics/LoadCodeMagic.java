@@ -3,7 +3,7 @@ package org.dflib.jjava.magics;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.stream.JsonReader;
-import org.dflib.jjava.JavaKernel;
+import org.dflib.jjava.JJavaKernel;
 import org.dflib.jjava.jupyter.kernel.magic.LineMagic;
 import org.dflib.jjava.jupyter.kernel.magic.MagicsArgs;
 
@@ -16,7 +16,7 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 
-public class LoadCodeMagic implements LineMagic<Void, JavaKernel> {
+public class LoadCodeMagic implements LineMagic<Void, JJavaKernel> {
 
     private static final String NOTEBOOK_EXTENSION = ".ipynb";
 
@@ -37,7 +37,7 @@ public class LoadCodeMagic implements LineMagic<Void, JavaKernel> {
     }
 
     @Override
-    public Void eval(JavaKernel kernel, List<String> args) throws Exception {
+    public Void eval(JJavaKernel kernel, List<String> args) throws Exception {
 
         Map<String, List<String>> vals = LOAD_ARGS.parse(args);
         Path sourcePath = Paths.get(vals.get("source").get(0)).toAbsolutePath();
@@ -68,7 +68,7 @@ public class LoadCodeMagic implements LineMagic<Void, JavaKernel> {
     // in which we can only take what we need on the fly and pass each cell to the handler without needing
     // to keep the entire notebook in memory.
     // This should be a big help for larger notebooks.
-    private void execNotebook(JavaKernel kernel, Path notebookPath) throws Exception {
+    private void execNotebook(JJavaKernel kernel, Path notebookPath) throws Exception {
         try (Reader in = Files.newBufferedReader(notebookPath, StandardCharsets.UTF_8)) {
             JsonReader reader = GSON.get().newJsonReader(in);
             reader.beginObject();

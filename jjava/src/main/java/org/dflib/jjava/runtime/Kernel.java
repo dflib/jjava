@@ -1,7 +1,7 @@
 package org.dflib.jjava.runtime;
 
 import org.dflib.jjava.JJava;
-import org.dflib.jjava.JavaKernel;
+import org.dflib.jjava.JJavaKernel;
 
 import java.util.Objects;
 
@@ -10,7 +10,7 @@ import java.util.Objects;
  */
 public class Kernel {
 
-    public static JavaKernel getKernelInstance() {
+    public static JJavaKernel getKernelInstance() {
         return JJava.getKernelInstance();
     }
 

@@ -1,7 +1,7 @@
 package org.dflib.jjava.runtime;
 
 import org.dflib.jjava.JJava;
-import org.dflib.jjava.JavaKernel;
+import org.dflib.jjava.JJavaKernel;
 import org.dflib.jjava.jupyter.kernel.magic.UndefinedMagicException;
 
 import java.util.List;
@@ -13,7 +13,7 @@ import java.util.Objects;
 public class Magics {
 
     public static <T> T lineMagic(String name, List<String> args) {
-        JavaKernel kernel = Objects.requireNonNull(JJava.getKernelInstance(), "No JJava kernel running");
+        JJavaKernel kernel = Objects.requireNonNull(JJava.getKernelInstance(), "No JJava kernel running");
 
         try {
             return kernel.getMagics().evalLineMagic(kernel, name, args);
@@ -25,7 +25,7 @@ public class Magics {
     }
 
     public static <T> T cellMagic(String name, List<String> args, String body) {
-        JavaKernel kernel = Objects.requireNonNull(JJava.getKernelInstance(), "No JJava kernel running");
+        JJavaKernel kernel = Objects.requireNonNull(JJava.getKernelInstance(), "No JJava kernel running");
 
         try {
             return kernel.getMagics().evalCellMagic(kernel, name, args, body);

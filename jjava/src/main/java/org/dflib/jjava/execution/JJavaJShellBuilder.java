@@ -87,10 +87,10 @@ public class JJavaJShellBuilder {
         return this;
     }
 
-    public JShell build(ExecutionControlProvider execControlProvider, String executionControlID) {
+    public JShell build(ExecutionControlProvider execControlProvider, String execControlID) {
 
         Map<String, String> execControlParams = new HashMap<>();
-        execControlParams.put(JJavaExecutionControlProvider.REGISTRATION_ID_KEY, executionControlID);
+        execControlParams.put(JJavaExecutionControlProvider.REGISTRATION_ID_KEY, execControlID);
 
         if (timeout != null) {
             execControlParams.put(JJavaExecutionControlProvider.TIMEOUT_KEY, timeout);

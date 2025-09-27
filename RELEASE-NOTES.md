@@ -9,6 +9,7 @@
 - #79 Remove unused magics
 - #80 Magics as interfaces
 - #81 Refactoring: JavaKernel must manage JShell
+- #82 Refactoring: Move JavaKernel init logic from constructor to Builder
 
 
 ## 1.0-a5

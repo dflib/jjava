@@ -1,6 +1,6 @@
 package org.dflib.jjava.magics;
 
-import org.dflib.jjava.JavaKernel;
+import org.dflib.jjava.JJavaKernel;
 import org.dflib.jjava.jupyter.kernel.magic.CellMagic;
 import org.dflib.jjava.maven.MavenDependencyResolver;
 import org.w3c.dom.Document;
@@ -32,7 +32,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-public class LoadFromPomCellMagic implements CellMagic<Map<String, List<String>>, JavaKernel> {
+public class LoadFromPomCellMagic implements CellMagic<Map<String, List<String>>, JJavaKernel> {
 
     private final MavenDependencyResolver mavenResolver;
 
@@ -41,7 +41,7 @@ public class LoadFromPomCellMagic implements CellMagic<Map<String, List<String>>
     }
 
     @Override
-    public Map<String, List<String>> eval(JavaKernel kernel, List<String> args, String body) throws Exception {
+    public Map<String, List<String>> eval(JJavaKernel kernel, List<String> args, String body) throws Exception {
         String rawPom = solidifyPartialPOM(body);
         File tempPomPath = File.createTempFile("jjava-maven-", ".pom").getAbsoluteFile();
         try {

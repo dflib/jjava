@@ -13,8 +13,8 @@ import org.dflib.jjava.execution.EvaluationInterruptedException;
 import org.dflib.jjava.execution.EvaluationTimeoutException;
 import org.dflib.jjava.execution.IncompleteSourceException;
 import org.dflib.jjava.execution.JJavaExecutionControlProvider;
-import org.dflib.jjava.execution.JJavaMagicTranspiler;
 import org.dflib.jjava.execution.JJavaJShellBuilder;
+import org.dflib.jjava.execution.JJavaMagicTranspiler;
 import org.dflib.jjava.jupyter.ExtensionLoader;
 import org.dflib.jjava.jupyter.kernel.BaseKernel;
 import org.dflib.jjava.jupyter.kernel.LanguageInfo;
@@ -28,17 +28,9 @@ import org.dflib.jjava.jupyter.kernel.util.CharPredicate;
 import org.dflib.jjava.jupyter.kernel.util.StringStyler;
 import org.dflib.jjava.jupyter.kernel.util.TextColor;
 import org.dflib.jjava.jupyter.messages.Header;
-import org.dflib.jjava.magics.ClasspathMagic;
-import org.dflib.jjava.magics.JarsMagic;
-import org.dflib.jjava.magics.LoadCodeMagic;
-import org.dflib.jjava.magics.LoadFromPomCellMagic;
-import org.dflib.jjava.magics.LoadFromPomLineMagic;
-import org.dflib.jjava.magics.MavenMagic;
-import org.dflib.jjava.magics.MavenRepoMagic;
-import org.dflib.jjava.maven.MavenDependencyResolver;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -47,7 +39,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-public class JavaKernel extends BaseKernel {
+public class JJavaKernel extends BaseKernel {
 
     private static final CharPredicate IDENTIFIER_CHAR = CharPredicate.builder()
             .inRange('a', 'z')
@@ -60,71 +52,48 @@ public class JavaKernel extends BaseKernel {
     // Match % or %% at start of line, followed by an identifier, and cursor is at end of that identifier
     private static final Pattern MAGIC_PATTERN = Pattern.compile("^(%{1,2})([\\w\\-]*)$");
 
+    public static Builder builder() {
+        return new Builder();
+    }
+
     private final String version;
+    private final String banner;
     private final JShell jShell;
     private final CodeEvaluator evaluator;
     private final ExtensionLoader extensionLoader;
-    private final boolean willLoadExtensions;
+    private final boolean extensionsEnabled;
     private final MagicParser magicParser;
     private final MagicsRegistry magics;
     private final LanguageInfo languageInfo;
-    private final String banner;
     private final List<LanguageInfo.Help> helpLinks;
     private final StringStyler errorStyler;
 
-    public JavaKernel(String version) {
+    protected JJavaKernel(
+            String version,
+            String banner,
+            LanguageInfo languageInfo,
+            List<LanguageInfo.Help> helpLinks,
+            JShell jShell,
+            CodeEvaluator evaluator,
+            ExtensionLoader extensionLoader,
+            boolean extensionsEnabled,
+            MagicParser magicParser,
+            MagicsRegistry magics,
+            StringStyler errorStyler) {
+
+        this.banner = banner;
         this.version = version;
+        this.jShell = jShell;
+        this.evaluator = evaluator;
+        this.extensionLoader = extensionLoader;
+        this.extensionsEnabled = extensionsEnabled;
+        this.magicParser = magicParser;
+        this.magics = magics;
+        this.languageInfo = languageInfo;
+        this.helpLinks = helpLinks;
+        this.errorStyler = errorStyler;
 
-        JJavaExecutionControlProvider execControlProvider = new JJavaExecutionControlProvider();
-        String execControlID = UUID.randomUUID().toString();
-
-        this.jShell = JJavaJShellBuilder.builder()
-                .addClasspathFromString(System.getenv(Env.JJAVA_CLASSPATH))
-                .compilerOptsFromString(System.getenv(Env.JJAVA_COMPILER_OPTS))
-                .timeoutFromString(System.getenv(Env.JJAVA_TIMEOUT))
-                .stdout(System.out)
-                .stderr(System.err)
-                .stdin(System.in)
-                .build(execControlProvider, execControlID);
-
-        this.evaluator = CodeEvaluator.builder()
-                .startupScriptFiles(System.getenv(Env.JJAVA_STARTUP_SCRIPTS_PATH))
-                .startupScript(System.getenv(Env.JJAVA_STARTUP_SCRIPT))
-                .build(this.jShell, execControlProvider, execControlID);
-
-        this.magics = buildMagicsRegistry(new MavenDependencyResolver());
-        this.magicParser = new MagicParser("(?<=(?:^|=))\\s*%", "%%", new JJavaMagicTranspiler());
-        this.languageInfo = new LanguageInfo.Builder("Java")
-                .version(Runtime.version().toString())
-                .mimetype("text/x-java-source")
-                .fileExtension(".jshell")
-                .pygments("java")
-                .codemirror("java")
-                .build();
-        this.banner = String.format("Java %s :: JJava kernel %s \nProtocol v%s implementation by %s %s",
-                Runtime.version().toString(),
-                version,
-                Header.PROTOCOL_VERISON,
-                KERNEL_META.getOrDefault("project", "UNKNOWN"),
-                KERNEL_META.getOrDefault("version", "UNKNOWN")
-        );
-        this.helpLinks = List.of(
-                new LanguageInfo.Help("Java tutorial", "https://docs.oracle.com/javase/tutorial/java/nutsandbolts/index.html"),
-                new LanguageInfo.Help("JJava homepage", "https://github.com/dflib/jjava")
-        );
-
-        this.errorStyler = new StringStyler.Builder()
-                .addPrimaryStyle(TextColor.BOLD_RESET_FG)
-                .addSecondaryStyle(TextColor.BOLD_RED_FG)
-                .addHighlightStyle(TextColor.BOLD_RESET_FG)
-                .addHighlightStyle(TextColor.RED_BG)
-                //TODO map snippet ids to code cells and put the proper line number in the margin here
-                .withLinePrefix(TextColor.BOLD_RESET_FG + "|   ")
-                .build();
-
-        this.extensionLoader = new ExtensionLoader();
-        this.willLoadExtensions = shouldLoadExtensions();
-        if (willLoadExtensions) {
+        if (extensionsEnabled) {
             extensionLoader.loadExtensions().forEach(e -> e.install(this));
         }
     }
@@ -138,7 +107,7 @@ public class JavaKernel extends BaseKernel {
         // Need to "addToClasspath" all entries in a collection before we can install any extensions, as an extension
         // may depend on other entries in the collection
 
-        if (willLoadExtensions) {
+        if (extensionsEnabled) {
             extensionLoader.loadExtensions(paths).forEach(e -> e.install(this));
         }
     }
@@ -164,33 +133,6 @@ public class JavaKernel extends BaseKernel {
     @Override
     public List<LanguageInfo.Help> getHelpLinks() {
         return helpLinks;
-    }
-
-    private MagicsRegistry buildMagicsRegistry(MavenDependencyResolver mavenResolver) {
-        Map<String, LineMagic<?, ?>> lineMagics = new HashMap<>();
-        lineMagics.put("classpath", new ClasspathMagic());
-        lineMagics.put("maven", new MavenMagic(mavenResolver));
-        lineMagics.put("mavenRepo", new MavenRepoMagic(mavenResolver));
-        lineMagics.put("load", new LoadCodeMagic("", ".jsh", ".jshell", ".java", ".jjava"));
-        lineMagics.put("loadFromPOM", new LoadFromPomLineMagic(mavenResolver));
-        lineMagics.put("jars", new JarsMagic()); // TODO: deprecate redundant "jars" alias; "classpath" is a superset of this
-        lineMagics.put("addMavenDependency", new MavenMagic(mavenResolver)); // TODO: deprecate redundant "addMavenDependency" alias
-
-        Map<String, CellMagic<?, ?>> cellMagics = new HashMap<>();
-        cellMagics.put("loadFromPOM", new LoadFromPomCellMagic(mavenResolver));
-
-        return new MagicsRegistry(lineMagics, cellMagics);
-    }
-
-    private boolean shouldLoadExtensions() {
-        String envValue = System.getenv(Env.JJAVA_LOAD_EXTENSIONS);
-        if (envValue == null) {
-            return true;
-        }
-        String envValueTrimmed = envValue.trim();
-        return !envValueTrimmed.isEmpty()
-                && !envValueTrimmed.equals("0")
-                && !envValueTrimmed.equalsIgnoreCase("false");
     }
 
     @Override
@@ -448,5 +390,144 @@ public class JavaKernel extends BaseKernel {
      */
     public String getVersion() {
         return version;
+    }
+
+    public static class Builder {
+
+        private String version;
+        private MagicParser magicParser;
+
+        private final Map<String, LineMagic<?, ?>> lineMagics;
+        private final Map<String, CellMagic<?, ?>> cellMagics;
+
+
+        protected Builder() {
+            this.cellMagics = new LinkedHashMap<>();
+            this.lineMagics = new LinkedHashMap<>();
+        }
+
+        public Builder version(String version) {
+            this.version = version;
+            return this;
+        }
+
+        public Builder lineMagic(String name, LineMagic<?, ?> magic) {
+            lineMagics.put(name, magic);
+            return this;
+        }
+
+        public Builder cellMagic(String name, CellMagic<?, ?> magic) {
+            cellMagics.put(name, magic);
+            return this;
+        }
+
+        public Builder magicParser(MagicParser magicParser) {
+            this.magicParser = magicParser;
+            return this;
+        }
+
+        public JJavaKernel build() {
+
+            JJavaExecutionControlProvider execControlProvider = new JJavaExecutionControlProvider();
+            String execControlID = UUID.randomUUID().toString();
+
+            JShell jShell = buildJShell(execControlProvider, execControlID);
+
+            return new JJavaKernel(
+                    version,
+                    buildBanner(),
+                    buildLanguageInfo(),
+                    buildHelpLinks(),
+                    jShell,
+                    buildCodeEvaluator(jShell, execControlProvider, execControlID),
+                    buildExtensionLoader(),
+                    extensionsEnabled(),
+                    magicParser != null ? magicParser : buildMagicParser(),
+                    buildMagicsRegistry(),
+                    buildErrorStyler()
+            );
+        }
+
+        protected String buildBanner() {
+            return String.format("Java %s :: JJava kernel %s \nProtocol v%s implementation by %s %s",
+                    Runtime.version().toString(),
+                    version,
+                    Header.PROTOCOL_VERISON,
+                    KERNEL_META.getOrDefault("project", "UNKNOWN"),
+                    KERNEL_META.getOrDefault("version", "UNKNOWN")
+            );
+        }
+
+        protected LanguageInfo buildLanguageInfo() {
+            return new LanguageInfo.Builder("Java")
+                    .version(Runtime.version().toString())
+                    .mimetype("text/x-java-source")
+                    .fileExtension(".jshell")
+                    .pygments("java")
+                    .codemirror("java")
+                    .build();
+        }
+
+        protected List<LanguageInfo.Help> buildHelpLinks() {
+            return List.of(
+                    new LanguageInfo.Help("Java tutorial", "https://docs.oracle.com/javase/tutorial/java/nutsandbolts/index.html"),
+                    new LanguageInfo.Help("JJava homepage", "https://github.com/dflib/jjava")
+            );
+        }
+
+        protected JShell buildJShell(JJavaExecutionControlProvider execControlProvider, String execControlID) {
+            return JJavaJShellBuilder.builder()
+                    .addClasspathFromString(System.getenv(Env.JJAVA_CLASSPATH))
+                    .compilerOptsFromString(System.getenv(Env.JJAVA_COMPILER_OPTS))
+                    .timeoutFromString(System.getenv(Env.JJAVA_TIMEOUT))
+                    .stdout(System.out)
+                    .stderr(System.err)
+                    .stdin(System.in)
+                    .build(execControlProvider, execControlID);
+        }
+
+        protected CodeEvaluator buildCodeEvaluator(
+                JShell jShell,
+                JJavaExecutionControlProvider execControlProvider,
+                String execControlID) {
+            return CodeEvaluator.builder()
+                    .startupScriptFiles(System.getenv(Env.JJAVA_STARTUP_SCRIPTS_PATH))
+                    .startupScript(System.getenv(Env.JJAVA_STARTUP_SCRIPT))
+                    .build(jShell, execControlProvider, execControlID);
+        }
+
+        protected ExtensionLoader buildExtensionLoader() {
+            return new ExtensionLoader();
+        }
+
+        protected boolean extensionsEnabled() {
+            String envValue = System.getenv(Env.JJAVA_LOAD_EXTENSIONS);
+            if (envValue == null) {
+                return true;
+            }
+            String envValueTrimmed = envValue.trim();
+            return !envValueTrimmed.isEmpty()
+                    && !envValueTrimmed.equals("0")
+                    && !envValueTrimmed.equalsIgnoreCase("false");
+        }
+
+        protected MagicParser buildMagicParser() {
+            return new MagicParser("(?<=(?:^|=))\\s*%", "%%", new JJavaMagicTranspiler());
+        }
+
+        protected MagicsRegistry buildMagicsRegistry() {
+            return new MagicsRegistry(lineMagics, cellMagics);
+        }
+
+        protected StringStyler buildErrorStyler() {
+            return new StringStyler.Builder()
+                    .addPrimaryStyle(TextColor.BOLD_RESET_FG)
+                    .addSecondaryStyle(TextColor.BOLD_RED_FG)
+                    .addHighlightStyle(TextColor.BOLD_RESET_FG)
+                    .addHighlightStyle(TextColor.RED_BG)
+                    //TODO map snippet ids to code cells and put the proper line number in the margin here
+                    .withLinePrefix(TextColor.BOLD_RESET_FG + "|   ")
+                    .build();
+        }
     }
 }
