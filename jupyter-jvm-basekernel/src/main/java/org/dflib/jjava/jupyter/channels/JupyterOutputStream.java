@@ -1,6 +1,7 @@
 package org.dflib.jjava.jupyter.channels;
 
 import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.function.BiConsumer;
 
 public class JupyterOutputStream extends ByteArrayOutputStream {
@@ -35,7 +36,7 @@ public class JupyterOutputStream extends ByteArrayOutputStream {
     @Override
     public void flush() {
         if (this.env != null) {
-            String contents = new String(super.buf, 0, super.count, JupyterSocket.UTF_8);
+            String contents = new String(super.buf, 0, super.count, StandardCharsets.UTF_8);
             if (!contents.isEmpty())
                 this.write.accept(this.env, contents);
         }

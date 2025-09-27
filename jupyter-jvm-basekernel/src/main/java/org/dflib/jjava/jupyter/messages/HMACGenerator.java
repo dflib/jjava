@@ -4,6 +4,7 @@ import org.dflib.jjava.jupyter.channels.JupyterSocket;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 
@@ -22,7 +23,7 @@ public class HMACGenerator {
 
     public HMACGenerator(String algorithm, String key) throws NoSuchAlgorithmException, InvalidKeyException {
         this.mac = Mac.getInstance(algorithm.replace("-", ""));
-        this.mac.init(new SecretKeySpec(key.getBytes(JupyterSocket.ASCII), algorithm));
+        this.mac.init(new SecretKeySpec(key.getBytes(StandardCharsets.US_ASCII), algorithm));
     }
 
     private HMACGenerator() {

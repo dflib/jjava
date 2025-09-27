@@ -11,7 +11,6 @@ import org.dflib.jjava.jupyter.kernel.BaseKernel;
  * To create an extension loader, implement this interface and provide the fully qualified class name
  * of your implementation in a file named {@code META-INF/services/org.dflib.jjava.jupyter.Extension}.
  *
- * @since 1.0
  * @see BaseKernel
  */
 public interface Extension {

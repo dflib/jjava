@@ -1,6 +1,7 @@
 package org.dflib.jjava.jupyter.messages.reply;
 
 import com.google.gson.annotations.SerializedName;
+import org.dflib.jjava.jupyter.kernel.HelpLink;
 import org.dflib.jjava.jupyter.kernel.LanguageInfo;
 import org.dflib.jjava.jupyter.messages.ContentType;
 import org.dflib.jjava.jupyter.messages.MessageType;
@@ -53,9 +54,9 @@ public class KernelInfoReply implements ContentType<KernelInfoReply>, ReplyType<
      * Optional help links about the kernel language
      */
     @SerializedName("help_links")
-    protected List<LanguageInfo.Help> helpLinks;
+    protected List<HelpLink> helpLinks;
 
-    public KernelInfoReply(String protocolVersion, String implementationName, String implementationVersion, LanguageInfo langInfo, String banner, List<LanguageInfo.Help> helpLinks) {
+    public KernelInfoReply(String protocolVersion, String implementationName, String implementationVersion, LanguageInfo langInfo, String banner, List<HelpLink> helpLinks) {
         this.protocolVersion = protocolVersion;
         this.implementationName = implementationName;
         this.implementationVersion = implementationVersion;
@@ -84,7 +85,7 @@ public class KernelInfoReply implements ContentType<KernelInfoReply>, ReplyType<
         return banner;
     }
 
-    public List<LanguageInfo.Help> getHelpLinks() {
+    public List<HelpLink> getHelpLinks() {
         return helpLinks;
     }
 }

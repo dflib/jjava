@@ -30,7 +30,6 @@ public class KernelLauncher {
      * It also provides shutdown hooks to terminate the kernel when the JVM terminates.
      *
      * @return the exit code of the kernel
-     * @since 1.0-M4
      */
     public int launchKernel() {
         List<String> command = buildCommand(args);

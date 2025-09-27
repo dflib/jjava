@@ -5,23 +5,6 @@ import com.google.gson.annotations.SerializedName;
 import java.util.Map;
 
 public class LanguageInfo {
-    public static class Help {
-        protected String text;
-        protected String url;
-
-        public Help(String text, String url) {
-            this.text = text;
-            this.url = url;
-        }
-
-        public String getText() {
-            return text;
-        }
-
-        public String getUrl() {
-            return url;
-        }
-    }
 
     public static class Builder {
         private final String name;
@@ -41,7 +24,6 @@ public class LanguageInfo {
          * is recommended to be a semantic version (eg. 1.2.3)
          *
          * @param version the version string
-         *
          * @return this builder for chaining
          */
         public Builder version(String version) {
@@ -54,7 +36,6 @@ public class LanguageInfo {
          * {@code text/html} or {@code application/javascript}.
          *
          * @param mimetype the mimetype for scripts written in this language.
-         *
          * @return this builder for chaining
          */
         public Builder mimetype(String mimetype) {
@@ -68,7 +49,6 @@ public class LanguageInfo {
          * menu option for this language.
          *
          * @param ext the file extension <b>including the dot</b>
-         *
          * @return this builder for chaining
          */
         public Builder fileExtension(String ext) {
@@ -85,7 +65,6 @@ public class LanguageInfo {
          * <a href="http://pygments.org/docs/lexers/">on the pygments website</a>
          *
          * @param lexer the name of the lexer
-         *
          * @return this builder for chaining
          */
         public Builder pygments(String lexer) {
@@ -102,7 +81,6 @@ public class LanguageInfo {
          * This may also be a mimetype or a language config (see {@link #codemirror(Map)})
          *
          * @param mode the code mirror mode
-         *
          * @return this builder for chaining
          */
         public Builder codemirror(String mode) {
@@ -118,7 +96,6 @@ public class LanguageInfo {
          * This is a <a href="https://codemirror.net/doc/manual.html#option_mode">language config</a>
          *
          * @param mode the code mirror mode config. Must contain a {@code "name"} key
-         *
          * @return this builder for chaining
          */
         public Builder codemirror(Map<String, Object> mode) {
@@ -132,7 +109,6 @@ public class LanguageInfo {
          *
          * @param exporter the name of the exporter if a custom one is also being loaded by
          *                 the kernel
-         *
          * @return this builder for chaining
          */
         public Builder exporter(String exporter) {

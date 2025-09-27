@@ -17,22 +17,24 @@ import org.dflib.jjava.execution.JJavaJShellBuilder;
 import org.dflib.jjava.execution.JJavaMagicTranspiler;
 import org.dflib.jjava.jupyter.ExtensionLoader;
 import org.dflib.jjava.jupyter.kernel.BaseKernel;
+import org.dflib.jjava.jupyter.kernel.HelpLink;
+import org.dflib.jjava.jupyter.kernel.JupyterIO;
 import org.dflib.jjava.jupyter.kernel.LanguageInfo;
 import org.dflib.jjava.jupyter.kernel.ReplacementOptions;
+import org.dflib.jjava.jupyter.kernel.comm.CommManager;
 import org.dflib.jjava.jupyter.kernel.display.DisplayData;
-import org.dflib.jjava.jupyter.kernel.magic.CellMagic;
-import org.dflib.jjava.jupyter.kernel.magic.LineMagic;
+import org.dflib.jjava.jupyter.kernel.display.Renderer;
+import org.dflib.jjava.jupyter.kernel.history.HistoryManager;
 import org.dflib.jjava.jupyter.kernel.magic.MagicParser;
 import org.dflib.jjava.jupyter.kernel.magic.MagicsRegistry;
 import org.dflib.jjava.jupyter.kernel.util.CharPredicate;
 import org.dflib.jjava.jupyter.kernel.util.StringStyler;
-import org.dflib.jjava.jupyter.kernel.util.TextColor;
-import org.dflib.jjava.jupyter.messages.Header;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Matcher;
@@ -52,49 +54,51 @@ public class JJavaKernel extends BaseKernel {
     // Match % or %% at start of line, followed by an identifier, and cursor is at end of that identifier
     private static final Pattern MAGIC_PATTERN = Pattern.compile("^(%{1,2})([\\w\\-]*)$");
 
-    public static Builder builder() {
-        return new Builder();
+    public static JJavaKernelBuilder builder() {
+        return new JJavaKernelBuilder();
     }
 
-    private final String version;
-    private final String banner;
     private final JShell jShell;
     private final CodeEvaluator evaluator;
-    private final ExtensionLoader extensionLoader;
     private final boolean extensionsEnabled;
-    private final MagicParser magicParser;
-    private final MagicsRegistry magics;
-    private final LanguageInfo languageInfo;
-    private final List<LanguageInfo.Help> helpLinks;
-    private final StringStyler errorStyler;
 
     protected JJavaKernel(
+            String name,
             String version,
-            String banner,
             LanguageInfo languageInfo,
-            List<LanguageInfo.Help> helpLinks,
+            List<HelpLink> helpLinks,
+            HistoryManager historyManager,
+            JupyterIO io,
+            CommManager commManager,
+            Renderer renderer,
+            MagicParser magicParser,
+            MagicsRegistry magicsRegistry,
+            ExtensionLoader extensionLoader,
+            StringStyler errorStyler,
             JShell jShell,
             CodeEvaluator evaluator,
-            ExtensionLoader extensionLoader,
-            boolean extensionsEnabled,
-            MagicParser magicParser,
-            MagicsRegistry magics,
-            StringStyler errorStyler) {
+            boolean extensionsEnabled) {
 
-        this.banner = banner;
-        this.version = version;
+        super(
+                name,
+                version,
+                languageInfo,
+                helpLinks,
+                historyManager,
+                io,
+                commManager,
+                renderer,
+                magicParser,
+                magicsRegistry,
+                extensionLoader,
+                errorStyler);
+
         this.jShell = jShell;
         this.evaluator = evaluator;
-        this.extensionLoader = extensionLoader;
         this.extensionsEnabled = extensionsEnabled;
-        this.magicParser = magicParser;
-        this.magics = magics;
-        this.languageInfo = languageInfo;
-        this.helpLinks = helpLinks;
-        this.errorStyler = errorStyler;
 
         if (extensionsEnabled) {
-            extensionLoader.loadExtensions().forEach(e -> e.install(this));
+            this.extensionLoader.loadFromClasspath().forEach(e -> e.install(this));
         }
     }
 
@@ -102,37 +106,14 @@ public class JJavaKernel extends BaseKernel {
      * Adds multiple classpath entries to the JShell classpath and triggers extension loading for them.
      */
     public void addToClasspath(Iterable<String> paths) {
-        paths.forEach(p -> jShell.addToClasspath(p));
+        paths.forEach(jShell::addToClasspath);
 
         // Need to "addToClasspath" all entries in a collection before we can install any extensions, as an extension
         // may depend on other entries in the collection
 
         if (extensionsEnabled) {
-            extensionLoader.loadExtensions(paths).forEach(e -> e.install(this));
+            extensionLoader.loadFromJars(paths).forEach(e -> e.install(this));
         }
-    }
-
-    public ExtensionLoader getExtensionLoader() {
-        return extensionLoader;
-    }
-
-    public MagicsRegistry getMagics() {
-        return magics;
-    }
-
-    @Override
-    public LanguageInfo getLanguageInfo() {
-        return languageInfo;
-    }
-
-    @Override
-    public String getBanner() {
-        return banner;
-    }
-
-    @Override
-    public List<LanguageInfo.Help> getHelpLinks() {
-        return helpLinks;
     }
 
     @Override
@@ -243,12 +224,13 @@ public class JJavaKernel extends BaseKernel {
 
     private List<String> formatEvaluationInterruptedException(EvaluationInterruptedException e) {
         List<String> fmt = new ArrayList<>(errorStyler.primaryLines(e.getSource()));
-
         fmt.add(errorStyler.secondary("Evaluation interrupted."));
-
         return fmt;
     }
 
+    /**
+     * Same as {@link #eval(String)}, but not applying the renderer to evaluation result.
+     */
     public Object evalRaw(String source) {
         return evaluator.eval(magicParser.resolveMagics(source));
     }
@@ -325,7 +307,7 @@ public class JJavaKernel extends BaseKernel {
             String percent = magicMatcher.group(1);
             String prefix = magicMatcher.group(2);
 
-            Set<String> magics = percent.equals("%%") ? this.magics.getCellMagicNames() : this.magics.getLineMagicNames();
+            Set<String> magics = percent.equals("%%") ? magicsRegistry.getCellMagicNames() : magicsRegistry.getLineMagicNames();
 
             // Get all magic names and aliases
 
@@ -378,100 +360,40 @@ public class JJavaKernel extends BaseKernel {
 
     /**
      * @return a JShell instance used to evaluate Java code.
-     * @since 1.0-M3
      */
     public JShell getJShell() {
         return jShell;
     }
 
-    /**
-     * @return a version of the Java kernel
-     * @since 1.0-M3
-     */
-    public String getVersion() {
-        return version;
-    }
+    public static class JJavaKernelBuilder extends BaseKernelBuilder<JJavaKernelBuilder, JJavaKernel> {
 
-    public static class Builder {
-
-        private String version;
-        private MagicParser magicParser;
-
-        private final Map<String, LineMagic<?, ?>> lineMagics;
-        private final Map<String, CellMagic<?, ?>> cellMagics;
-
-
-        protected Builder() {
-            this.cellMagics = new LinkedHashMap<>();
-            this.lineMagics = new LinkedHashMap<>();
+        protected JJavaKernelBuilder() {
         }
 
-        public Builder version(String version) {
-            this.version = version;
-            return this;
-        }
-
-        public Builder lineMagic(String name, LineMagic<?, ?> magic) {
-            lineMagics.put(name, magic);
-            return this;
-        }
-
-        public Builder cellMagic(String name, CellMagic<?, ?> magic) {
-            cellMagics.put(name, magic);
-            return this;
-        }
-
-        public Builder magicParser(MagicParser magicParser) {
-            this.magicParser = magicParser;
-            return this;
-        }
-
+        @Override
         public JJavaKernel build() {
 
             JJavaExecutionControlProvider execControlProvider = new JJavaExecutionControlProvider();
             String execControlID = UUID.randomUUID().toString();
-
             JShell jShell = buildJShell(execControlProvider, execControlID);
+            LanguageInfo langInfo = buildLanguageInfo();
 
             return new JJavaKernel(
-                    version,
-                    buildBanner(),
-                    buildLanguageInfo(),
+                    name != null ? name : buildName(),
+                    version != null ? version : buildVersion(),
+                    langInfo,
                     buildHelpLinks(),
-                    jShell,
-                    buildCodeEvaluator(jShell, execControlProvider, execControlID),
-                    buildExtensionLoader(),
-                    extensionsEnabled(),
+                    historyManager,
+                    buildJupyterIO(),
+                    buildCommManager(),
+                    buildRenderer(),
                     magicParser != null ? magicParser : buildMagicParser(),
                     buildMagicsRegistry(),
-                    buildErrorStyler()
-            );
-        }
-
-        protected String buildBanner() {
-            return String.format("Java %s :: JJava kernel %s \nProtocol v%s implementation by %s %s",
-                    Runtime.version().toString(),
-                    version,
-                    Header.PROTOCOL_VERISON,
-                    KERNEL_META.getOrDefault("project", "UNKNOWN"),
-                    KERNEL_META.getOrDefault("version", "UNKNOWN")
-            );
-        }
-
-        protected LanguageInfo buildLanguageInfo() {
-            return new LanguageInfo.Builder("Java")
-                    .version(Runtime.version().toString())
-                    .mimetype("text/x-java-source")
-                    .fileExtension(".jshell")
-                    .pygments("java")
-                    .codemirror("java")
-                    .build();
-        }
-
-        protected List<LanguageInfo.Help> buildHelpLinks() {
-            return List.of(
-                    new LanguageInfo.Help("Java tutorial", "https://docs.oracle.com/javase/tutorial/java/nutsandbolts/index.html"),
-                    new LanguageInfo.Help("JJava homepage", "https://github.com/dflib/jjava")
+                    buildExtensionLoader(),
+                    buildErrorStyler(),
+                    jShell,
+                    buildCodeEvaluator(jShell, execControlProvider, execControlID),
+                    extensionsEnabled()
             );
         }
 
@@ -496,10 +418,6 @@ public class JJavaKernel extends BaseKernel {
                     .build(jShell, execControlProvider, execControlID);
         }
 
-        protected ExtensionLoader buildExtensionLoader() {
-            return new ExtensionLoader();
-        }
-
         protected boolean extensionsEnabled() {
             String envValue = System.getenv(Env.JJAVA_LOAD_EXTENSIONS);
             if (envValue == null) {
@@ -511,22 +429,46 @@ public class JJavaKernel extends BaseKernel {
                     && !envValueTrimmed.equalsIgnoreCase("false");
         }
 
+        protected String buildName() {
+            return "JJava";
+        }
+
+        protected String buildVersion() {
+
+            InputStream in = getClass()
+                    .getClassLoader()
+                    .getResourceAsStream("META-INF/maven/org.dflib.jjava/jjava/pom.properties");
+
+            if (in == null) {
+                return "unknown";
+            }
+
+            try {
+                try {
+
+                    Properties props = new Properties();
+                    props.load(in);
+                    return (String) props.getOrDefault("version", "unknown");
+                } finally {
+                    in.close();
+                }
+            } catch (IOException e) {
+                // generally, this should be ignorable, but it should also never happen, so still rethrow
+                throw new RuntimeException("Error reading project properties");
+            }
+        }
+
         protected MagicParser buildMagicParser() {
             return new MagicParser("(?<=(?:^|=))\\s*%", "%%", new JJavaMagicTranspiler());
         }
 
-        protected MagicsRegistry buildMagicsRegistry() {
-            return new MagicsRegistry(lineMagics, cellMagics);
-        }
-
-        protected StringStyler buildErrorStyler() {
-            return new StringStyler.Builder()
-                    .addPrimaryStyle(TextColor.BOLD_RESET_FG)
-                    .addSecondaryStyle(TextColor.BOLD_RED_FG)
-                    .addHighlightStyle(TextColor.BOLD_RESET_FG)
-                    .addHighlightStyle(TextColor.RED_BG)
-                    //TODO map snippet ids to code cells and put the proper line number in the margin here
-                    .withLinePrefix(TextColor.BOLD_RESET_FG + "|   ")
+        protected LanguageInfo buildLanguageInfo() {
+            return new LanguageInfo.Builder("Java")
+                    .version(Runtime.version().toString())
+                    .mimetype("text/x-java-source")
+                    .fileExtension(".jshell")
+                    .pygments("java")
+                    .codemirror("java")
                     .build();
         }
     }

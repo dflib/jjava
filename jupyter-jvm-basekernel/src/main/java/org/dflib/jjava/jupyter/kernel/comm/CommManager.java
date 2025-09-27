@@ -19,8 +19,7 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * A CommManager is responsible for keeping track of a group of comms created by any
- * of their registered {@link CommTarget}s.
+ * Keeps track of a group of comms created by their registered {@link CommTarget}s.
  */
 public class CommManager implements Iterable<Comm> {
     protected Map<String, CommTarget> targets;
@@ -52,7 +51,6 @@ public class CommManager implements Iterable<Comm> {
      * to this manager it may return null.
      *
      * @param id the comm id
-     *
      * @return the {@link Comm} with the associated id or null if the id is unknown
      */
     public Comm getCommByID(String id) {
@@ -74,7 +72,6 @@ public class CommManager implements Iterable<Comm> {
      * to a previously {@link #registerComm(Comm) registered} comm with the {@code id}.
      *
      * @param id the id of the destination to unregister
-     *
      * @return the comm that was unregistered or null if nothing was unregistered.
      */
     public Comm unregisterComm(String id) {
@@ -90,12 +87,11 @@ public class CommManager implements Iterable<Comm> {
      * @param targetName the name of the target on the frontend to message
      * @param factory    a comm producer. This is used to create the comm.
      * @param <T>        the type of {@link Comm} that the {@code factory} produces.
-     *
      * @return a comm who's {@link Comm#send(JsonObject) send} method is targeted at a new comm
-     *         create on the frontend by the target registered with the {@code targetName} or
-     *         {@code null} if the manager could not open the comm.
-     *         <p>
-     *         The latter may happen if the manager is not connected to the frontend
+     * create on the frontend by the target registered with the {@code targetName} or
+     * {@code null} if the manager could not open the comm.
+     * <p>
+     * The latter may happen if the manager is not connected to the frontend
      */
     public <T extends Comm> T openComm(String targetName, CommFactory<T> factory) {
         if (this.iopub == null)
@@ -192,7 +188,6 @@ public class CommManager implements Iterable<Comm> {
      * Lookup a target with the given name. See {@link #registerTarget(String, CommTarget)}
      *
      * @param targetName the target name to lookup
-     *
      * @return the {@link CommTarget} registered with the {@code targetName}
      */
     public CommTarget getTarget(String targetName) {

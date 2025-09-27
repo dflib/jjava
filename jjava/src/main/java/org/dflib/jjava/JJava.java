@@ -50,8 +50,13 @@ public class JJava {
 
         MavenDependencyResolver mavenResolver = new MavenDependencyResolver();
 
+        // TODO: "jjava-kernel-metadata.json" is redundant. We have all this info in pom.properties, and the name of the
+        //  kernel can be hardcoded; also this can be moved to the builder
+        JsonObject meta = loadKernelMetadata();
+
         kernel = JJavaKernel.builder()
-                .version(loadKernelVersion())
+                .name(meta != null && meta.get("project") != null ? meta.get("project").getAsString() : null)
+                .version(meta != null && meta.get("version") != null ? meta.get("version").getAsString() : null)
 
                 .lineMagic("load", new LoadCodeMagic("", ".jsh", ".jshell", ".java", ".jjava"))
                 .lineMagic("classpath", new ClasspathMagic())
@@ -75,12 +80,6 @@ public class JJava {
      */
     public static JJavaKernel getKernelInstance() {
         return JJava.kernel;
-    }
-
-
-    private static String loadKernelVersion() {
-        JsonObject meta = loadKernelMetadata();
-        return meta != null && meta.get("version") != null ? meta.get("version").getAsString() : "0";
     }
 
     private static JsonObject loadKernelMetadata() {

@@ -2,8 +2,8 @@ package org.dflib.jjava.jupyter.kernel;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import org.dflib.jjava.jupyter.ExtensionLoader;
 import org.dflib.jjava.jupyter.channels.JupyterConnection;
-import org.dflib.jjava.jupyter.channels.JupyterSocket;
 import org.dflib.jjava.jupyter.channels.ShellReplyEnvironment;
 import org.dflib.jjava.jupyter.kernel.comm.CommManager;
 import org.dflib.jjava.jupyter.kernel.display.DisplayData;
@@ -13,6 +13,10 @@ import org.dflib.jjava.jupyter.kernel.display.common.Text;
 import org.dflib.jjava.jupyter.kernel.display.common.Url;
 import org.dflib.jjava.jupyter.kernel.history.HistoryEntry;
 import org.dflib.jjava.jupyter.kernel.history.HistoryManager;
+import org.dflib.jjava.jupyter.kernel.magic.CellMagic;
+import org.dflib.jjava.jupyter.kernel.magic.LineMagic;
+import org.dflib.jjava.jupyter.kernel.magic.MagicParser;
+import org.dflib.jjava.jupyter.kernel.magic.MagicsRegistry;
 import org.dflib.jjava.jupyter.kernel.util.StringStyler;
 import org.dflib.jjava.jupyter.kernel.util.TextColor;
 import org.dflib.jjava.jupyter.messages.Header;
@@ -47,11 +51,14 @@ import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.StringWriter;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -61,6 +68,7 @@ public abstract class BaseKernel {
     public static final String IS_COMPLETE_BAD = "invalid";
     public static final String IS_COMPLETE_MAYBE = "unknown";
 
+    // TODO: merge "kernel-metadata.json" values into "kernel.json" and stop using it
     protected static final Map<String, String> KERNEL_META = createMetadata();
 
     private static Map<String, String> createMetadata() {
@@ -78,80 +86,114 @@ public abstract class BaseKernel {
         return Map.of("version", "unknown", "project", "unknown");
     }
 
-    protected final AtomicInteger executionCount = new AtomicInteger(1);
-    private final JupyterIO io;
-    private boolean shouldReplaceStdStreams;
+    // TODO: create some kind of metadata object to combine these properties?
+    protected final String name;
+    protected final String version;
+    protected final LanguageInfo languageInfo;
+    protected final List<HelpLink> helpLinks;
 
-    protected CommManager commManager;
+    protected final HistoryManager historyManager;
+    protected final JupyterIO io;
+    protected final CommManager commManager;
+    protected final Renderer renderer;
+    protected final MagicParser magicParser;
+    protected final MagicsRegistry magicsRegistry;
+    protected final ExtensionLoader extensionLoader;
+    protected final StringStyler errorStyler;
+    protected final AtomicInteger executionCount;
 
-    protected Renderer renderer;
+    protected BaseKernel(
+            String name,
+            String version,
+            LanguageInfo languageInfo,
+            List<HelpLink> helpLinks,
+            HistoryManager historyManager,
+            JupyterIO io,
+            CommManager commManager,
+            Renderer renderer,
+            MagicParser magicParser,
+            MagicsRegistry magicsRegistry,
+            ExtensionLoader extensionLoader,
+            StringStyler errorStyler) {
 
-    protected StringStyler errorStyler;
+        this.name = name;
+        this.version = version;
+        this.languageInfo = languageInfo;
+        this.helpLinks = helpLinks;
 
-    public BaseKernel(Charset charset) {
-        this.io = new JupyterIO(charset);
-        this.shouldReplaceStdStreams = true;
+        // allowed to be null
+        this.historyManager = historyManager;
 
-        this.commManager = new CommManager();
+        this.io = Objects.requireNonNull(io);
+        this.commManager = Objects.requireNonNull(commManager);
+        this.renderer = Objects.requireNonNull(renderer);
+        this.magicParser = magicParser;
+        this.magicsRegistry = magicsRegistry;
+        this.extensionLoader = extensionLoader;
+        this.errorStyler = Objects.requireNonNull(errorStyler);
 
-        this.renderer = new Renderer();
+        this.executionCount = new AtomicInteger(1);
+
         Image.registerAll(this.renderer);
         Url.registerAll(this.renderer);
         Text.registerAll(this.renderer);
-
-        this.errorStyler = new StringStyler.Builder()
-                .addPrimaryStyle(TextColor.BOLD_RESET_FG)
-                .addSecondaryStyle(TextColor.BOLD_RED_FG)
-                .addHighlightStyle(TextColor.BOLD_RESET_FG)
-                .addHighlightStyle(TextColor.RED_BG)
-                .build();
     }
 
-    public BaseKernel() {
-        this(JupyterSocket.UTF_8);
+    public String getVersion() {
+        return version;
     }
 
     public Renderer getRenderer() {
-        return this.renderer;
+        return renderer;
     }
 
-    public void display(DisplayData data) {
-        this.io.display.display(data);
+    public MagicsRegistry getMagicsRegistry() {
+        return magicsRegistry;
+    }
+
+    public MagicParser getMagicParser() {
+        return magicParser;
     }
 
     public JupyterIO getIO() {
-        return this.io;
+        return io;
     }
 
     public CommManager getCommManager() {
-        return this.commManager;
-    }
-
-    public boolean shouldReplaceStdStreams() {
-        return this.shouldReplaceStdStreams;
-    }
-
-    public void setShouldReplaceStdStreams(boolean shouldReplaceStdStreams) {
-        this.shouldReplaceStdStreams = shouldReplaceStdStreams;
+        return commManager;
     }
 
     public String getBanner() {
-        LanguageInfo info = this.getLanguageInfo();
-        return info != null ? info.getName() + " - " + info.getVersion() : "";
+        return String.format("%s %s ::  %s v%s :: Protocol v%s",
+                languageInfo != null ? languageInfo.getName() : "Unknown",
+                languageInfo != null ? languageInfo.getVersion() : "",
+                name != null ? name : "unknown",
+                version != null ? version : "unknown",
+                Header.PROTOCOL_VERISON
+        );
     }
 
-    public List<LanguageInfo.Help> getHelpLinks() {
-        return null;
+    public ExtensionLoader getExtensionLoader() {
+        return extensionLoader;
+    }
+
+    public LanguageInfo getLanguageInfo() {
+        return languageInfo;
+    }
+
+    public List<HelpLink> getHelpLinks() {
+        return helpLinks;
     }
 
     /**
-     * Get the active history manager for the kernel. If the history is ignored this method
-     * should return {@code null}.
-     *
-     * @return the active {@link HistoryManager} or {@code null}.
+     * Get the active history manager for the kernel. If the history is ignored this method should return {@code null}.
      */
     public HistoryManager getHistoryManager() {
-        return null;
+        return historyManager;
+    }
+
+    public void display(DisplayData data) {
+        io.display.display(data);
     }
 
     /**
@@ -181,7 +223,7 @@ public abstract class BaseKernel {
      * triggered by {@code shift-tab} in the Jupyter notebook which opens a tooltip displaying
      * the returned bundle.
      * <p>
-     * This should aim to return docstrings, function signatures, variable types, etc for
+     * This should aim to return docstrings, function signatures, variable types, etc. for
      * the value at the cursor position.
      *
      * @param code        the entire code cell to inspect
@@ -191,9 +233,7 @@ public abstract class BaseKernel {
      * @return an output bundle for displaying the documentation or null if nothing is found
      * @throws RuntimeException if the code cannot be inspected for some reason (such as it not compiling)
      */
-    public DisplayData inspect(String code, int at, boolean extraDetail) {
-        return null;
-    }
+    public abstract DisplayData inspect(String code, int at, boolean extraDetail);
 
     /**
      * Try to autocomplete code at a user's cursor such as finishing a method call or
@@ -216,9 +256,7 @@ public abstract class BaseKernel {
      *                          This should not be thrown if not replacements are available but rather just
      *                          an empty replacements returned.
      */
-    public ReplacementOptions complete(String code, int at) {
-        return null;
-    }
+    public abstract ReplacementOptions complete(String code, int at);
 
     /**
      * Check if the code is complete. This gives frontends the tools to provide
@@ -242,11 +280,7 @@ public abstract class BaseKernel {
      * @return {@link #IS_COMPLETE_MAYBE}, {@link #IS_COMPLETE_BAD}, {@link #IS_COMPLETE_YES},
      * or an indent string
      */
-    public String isComplete(String code) {
-        return IS_COMPLETE_MAYBE;
-    }
-
-    public abstract LanguageInfo getLanguageInfo();
+    public abstract String isComplete(String code);
 
     /**
      * Invoked when the kernel is being shutdown. This is invoked before the
@@ -260,7 +294,7 @@ public abstract class BaseKernel {
      *                     again.
      */
     public void onShutdown(boolean isRestarting) {
-        //no-op
+        // no-op
     }
 
     /**
@@ -316,14 +350,14 @@ public abstract class BaseKernel {
         connection.setHandler(MessageType.SHUTDOWN_REQUEST, this::handleShutdownRequest);
         connection.setHandler(MessageType.INTERRUPT_REQUEST, this::handleInterruptRequest);
 
-        this.commManager.setIOPubChannel(connection.getIOPub());
+        commManager.setIOPubChannel(connection.getIOPub());
         connection.setHandler(MessageType.COMM_OPEN_COMMAND, commManager::handleCommOpenCommand);
         connection.setHandler(MessageType.COMM_MSG_COMMAND, commManager::handleCommMsgCommand);
         connection.setHandler(MessageType.COMM_CLOSE_COMMAND, commManager::handleCommCloseCommand);
         connection.setHandler(MessageType.COMM_INFO_REQUEST, commManager::handleCommInfoRequest);
     }
 
-    private void replaceOutputStreams(ShellReplyEnvironment env) {
+    protected void replaceOutputStreams(ShellReplyEnvironment env) {
         PrintStream oldStdOut = System.out;
         PrintStream oldStdErr = System.err;
         InputStream oldStdIn = System.in;
@@ -340,21 +374,18 @@ public abstract class BaseKernel {
     }
 
     private synchronized void handleExecuteRequest(ShellReplyEnvironment env, Message<ExecuteRequest> executeRequestMessage) {
-        this.commManager.setMessageContext(executeRequestMessage);
+        commManager.setMessageContext(executeRequestMessage);
 
         ExecuteRequest request = executeRequestMessage.getContent();
 
         int count = executionCount.getAndIncrement();
-        //KernelTimestamp start = KernelTimestamp.now();
 
         env.setBusyDeferIdle();
-
         env.publish(new PublishExecuteInput(request.getCode(), count));
 
-        if (this.shouldReplaceStdStreams())
-            this.replaceOutputStreams(env);
+        replaceOutputStreams(env);
 
-        this.io.setEnv(env);
+        io.setEnv(env);
         env.defer(() -> this.io.retractEnv(env));
 
         this.io.setJupyterInEnabled(request.isStdinEnabled());
@@ -404,7 +435,9 @@ public abstract class BaseKernel {
     private void handleHistoryRequest(ShellReplyEnvironment env, Message<HistoryRequest> historyRequestMessage) {
         // If the manager is unset, short circuit and skip this message
         HistoryManager manager = this.getHistoryManager();
-        if (manager == null) return;
+        if (manager == null) {
+            return;
+        }
 
         HistoryRequest request = historyRequestMessage.getContent();
         env.setBusyDeferIdle();
@@ -430,8 +463,9 @@ public abstract class BaseKernel {
                 break;
         }
 
-        if (entries != null)
+        if (entries != null) {
             env.reply(new HistoryReply(entries));
+        }
     }
 
     private void handleIsCodeCompeteRequest(ShellReplyEnvironment env, Message<IsCompleteRequest> isCompleteRequestMessage) {
@@ -462,11 +496,14 @@ public abstract class BaseKernel {
         env.setBusyDeferIdle();
         env.reply(new KernelInfoReply(
                         Header.PROTOCOL_VERISON,
+
+                        // TODO: use "name" and "version" properties
                         KERNEL_META.get("project"),
                         KERNEL_META.get("version"),
-                        this.getLanguageInfo(),
-                        this.getBanner(),
-                        this.getHelpLinks()
+
+                        getLanguageInfo(),
+                        getBanner(),
+                        getHelpLinks()
                 )
         );
     }
@@ -489,5 +526,97 @@ public abstract class BaseKernel {
         env.defer().reply(new InterruptReply());
 
         this.interrupt();
+    }
+
+    protected static abstract class BaseKernelBuilder<T extends BaseKernelBuilder<T, K>, K extends BaseKernel> {
+
+        protected String name;
+        protected String version;
+        protected Charset charset;
+        protected MagicParser magicParser;
+        protected HistoryManager historyManager;
+        protected final Map<String, LineMagic<?, ?>> lineMagics;
+        protected final Map<String, CellMagic<?, ?>> cellMagics;
+
+        protected BaseKernelBuilder() {
+            this.cellMagics = new LinkedHashMap<>();
+            this.lineMagics = new LinkedHashMap<>();
+        }
+
+        public T name(String name) {
+            this.name = name;
+            return (T) this;
+        }
+
+        public T version(String version) {
+            this.version = version;
+            return (T) this;
+        }
+
+        public T charset(Charset charset) {
+            this.charset = charset;
+            return (T) this;
+        }
+
+        public T historyManager(HistoryManager historyManager) {
+            this.historyManager = historyManager;
+            return (T) this;
+        }
+
+        public T lineMagic(String name, LineMagic<?, ?> magic) {
+            lineMagics.put(name, magic);
+            return (T) this;
+        }
+
+        public T cellMagic(String name, CellMagic<?, ?> magic) {
+            cellMagics.put(name, magic);
+            return (T) this;
+        }
+
+        public T magicParser(MagicParser magicParser) {
+            this.magicParser = magicParser;
+            return (T) this;
+        }
+
+        public abstract K build();
+
+        protected JupyterIO buildJupyterIO() {
+            return new JupyterIO(charset != null ? charset : StandardCharsets.UTF_8);
+        }
+
+        protected CommManager buildCommManager() {
+            return new CommManager();
+        }
+
+        protected Renderer buildRenderer() {
+            return new Renderer();
+        }
+
+        protected List<HelpLink> buildHelpLinks() {
+            return List.of(
+                    new HelpLink("Java tutorial", "https://docs.oracle.com/javase/tutorial/java/nutsandbolts/index.html"),
+                    new HelpLink("JJava homepage", "https://github.com/dflib/jjava")
+            );
+        }
+
+        protected ExtensionLoader buildExtensionLoader() {
+            return new ExtensionLoader();
+        }
+
+        protected MagicsRegistry buildMagicsRegistry() {
+            return new MagicsRegistry(lineMagics, cellMagics);
+        }
+
+        protected StringStyler buildErrorStyler() {
+            return new StringStyler.Builder()
+                    .addPrimaryStyle(TextColor.BOLD_RESET_FG)
+                    .addSecondaryStyle(TextColor.BOLD_RED_FG)
+                    .addHighlightStyle(TextColor.BOLD_RESET_FG)
+                    .addHighlightStyle(TextColor.RED_BG)
+
+                    // TODO map snippet ids to code cells and put the proper line number in the margin here
+                    .withLinePrefix(TextColor.BOLD_RESET_FG + "|   ")
+                    .build();
+        }
     }
 }

@@ -29,7 +29,6 @@ import org.zeromq.SocketType;
 import org.zeromq.ZMQ;
 
 import java.lang.reflect.Type;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -43,10 +42,7 @@ public abstract class JupyterSocket extends ZMQ.Socket {
         return transport + "://" + ip + ":" + port;
     }
 
-    public static final Charset ASCII = StandardCharsets.US_ASCII;
-    public static final Charset UTF_8 = StandardCharsets.UTF_8;
-
-    private static final byte[] IDENTITY_BLOB_DELIMITER = "<IDS|MSG>".getBytes(ASCII); // Comes from a python bytestring
+    private static final byte[] IDENTITY_BLOB_DELIMITER = "<IDS|MSG>".getBytes(StandardCharsets.US_ASCII); // Comes from a python bytestring
     private static final Gson replyGson = new GsonBuilder()
             .registerTypeAdapter(HistoryEntry.class, HistoryEntryAdapter.INSTANCE)
             .registerTypeAdapter(ExpressionValue.class, ExpressionValueAdapter.INSTANCE)
@@ -60,7 +56,7 @@ public abstract class JupyterSocket extends ZMQ.Socket {
             .registerTypeHierarchyAdapter(ReplyType.class, new ReplyTypeAdapter(replyGson))
             //.setPrettyPrinting()
             .create();
-    private static final byte[] EMPTY_JSON_OBJECT = "{}".getBytes(UTF_8);
+    private static final byte[] EMPTY_JSON_OBJECT = "{}".getBytes(StandardCharsets.UTF_8);
     private static final Type JSON_OBJ_AS_MAP = new TypeToken<Map<String, Object>>() {
     }.getType();
 
@@ -112,16 +108,16 @@ public abstract class JupyterSocket extends ZMQ.Socket {
             throw new SecurityException("Message received had invalid signature");
         }
 
-        Header<?> header = gson.fromJson(new String(headerRaw, UTF_8), Header.class);
+        Header<?> header = gson.fromJson(new String(headerRaw, StandardCharsets.UTF_8), Header.class);
 
         Header<?> parentHeader = null;
-        JsonElement parentHeaderJson = JsonParser.parseString(new String(parentHeaderRaw, UTF_8));
+        JsonElement parentHeaderJson = JsonParser.parseString(new String(parentHeaderRaw, StandardCharsets.UTF_8));
         if (parentHeaderJson.isJsonObject() && !parentHeaderJson.getAsJsonObject().isEmpty()) {
             parentHeader = gson.fromJson(parentHeaderJson, Header.class);
         }
 
-        Map<String, Object> metadata = gson.fromJson(new String(metadataRaw, UTF_8), JSON_OBJ_AS_MAP);
-        Object content = gson.fromJson(new String(contentRaw, UTF_8), header.getType().getContentType());
+        Map<String, Object> metadata = gson.fromJson(new String(metadataRaw, StandardCharsets.UTF_8), JSON_OBJ_AS_MAP);
+        Object content = gson.fromJson(new String(contentRaw, StandardCharsets.UTF_8), header.getType().getContentType());
         if (content instanceof ErrorReply) {
             header = new Header<>(
                     header.getId(),
@@ -150,14 +146,14 @@ public abstract class JupyterSocket extends ZMQ.Socket {
         if (this.closed)
             return;
 
-        byte[] headerRaw = gson.toJson(message.getHeader()).getBytes(UTF_8);
+        byte[] headerRaw = gson.toJson(message.getHeader()).getBytes(StandardCharsets.UTF_8);
         byte[] parentHeaderRaw = message.hasParentHeader()
-                ? gson.toJson(message.getParentHeader()).getBytes(UTF_8)
+                ? gson.toJson(message.getParentHeader()).getBytes(StandardCharsets.UTF_8)
                 : EMPTY_JSON_OBJECT;
         byte[] metadata = message.hasMetadata()
-                ? gson.toJson(message.getMetadata()).getBytes(UTF_8)
+                ? gson.toJson(message.getMetadata()).getBytes(StandardCharsets.UTF_8)
                 : EMPTY_JSON_OBJECT;
-        byte[] content = gson.toJson(message.getContent()).getBytes(UTF_8);
+        byte[] content = gson.toJson(message.getContent()).getBytes(StandardCharsets.UTF_8);
 
         String hmac = hmacGenerator.calculateSignature(headerRaw, parentHeaderRaw, metadata, content);
 
@@ -165,7 +161,7 @@ public abstract class JupyterSocket extends ZMQ.Socket {
 
         message.getIdentities().forEach(super::sendMore);
         super.sendMore(IDENTITY_BLOB_DELIMITER);
-        super.sendMore(hmac.getBytes(ASCII));
+        super.sendMore(hmac.getBytes(StandardCharsets.US_ASCII));
         super.sendMore(headerRaw);
         super.sendMore(parentHeaderRaw);
         super.sendMore(metadata);

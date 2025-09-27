@@ -16,7 +16,7 @@ public class Magics {
         JJavaKernel kernel = Objects.requireNonNull(JJava.getKernelInstance(), "No JJava kernel running");
 
         try {
-            return kernel.getMagics().evalLineMagic(kernel, name, args);
+            return kernel.getMagicsRegistry().evalLineMagic(kernel, name, args);
         } catch (UndefinedMagicException e) {
             throw e;
         } catch (Exception e) {
@@ -28,7 +28,7 @@ public class Magics {
         JJavaKernel kernel = Objects.requireNonNull(JJava.getKernelInstance(), "No JJava kernel running");
 
         try {
-            return kernel.getMagics().evalCellMagic(kernel, name, args, body);
+            return kernel.getMagicsRegistry().evalCellMagic(kernel, name, args, body);
         } catch (UndefinedMagicException e) {
             throw e;
         } catch (Exception e) {

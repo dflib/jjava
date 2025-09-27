@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Set;
 
 public interface HistoryManager {
-    public enum ResultFlag {
+    enum ResultFlag {
         /**
          * Signals that the results should include the transformed output rather than
          * the raw output.
@@ -35,10 +35,9 @@ public interface HistoryManager {
      * @param startCell     the index (inclusive) of the first cell to include in the results.
      * @param endCell       the index (exclusive) of the last cell to include in the results.
      * @param flags         result affecting flags. Inclusion in the set specifies that the flag is set.
-     *
      * @return a list of history entries in the range.
      */
-    public default List<HistoryEntry> lookupRange(int sessionOffset, int startCell, int endCell, Set<ResultFlag> flags) {
+    default List<HistoryEntry> lookupRange(int sessionOffset, int startCell, int endCell, Set<ResultFlag> flags) {
         return null;
     }
 
@@ -51,10 +50,9 @@ public interface HistoryManager {
      * @param startCell     the index (inclusive) of the first cell to include in the results.
      * @param endCell       the index (exclusive) of the last cell to include in the results.
      * @param flags         result affecting flags. Inclusion in the set specifies that the flag is set.
-     *
      * @return a list of history entries in the range or {@code null} if the method is not supported.
      */
-    public default List<HistoryEntry> lookupRange(int sessionOffset, int startCell, int endCell, ResultFlag... flags) {
+    default List<HistoryEntry> lookupRange(int sessionOffset, int startCell, int endCell, ResultFlag... flags) {
         Set<ResultFlag> flagSet = EnumSet.noneOf(ResultFlag.class);
         Collections.addAll(flagSet, flags);
         return lookupRange(sessionOffset, startCell, endCell, flagSet);
@@ -66,10 +64,9 @@ public interface HistoryManager {
      *
      * @param length the number of results to include in the results.
      * @param flags  result affecting flags. Inclusion in the set specifies that the flag is set.
-     *
      * @return a list of the last {@code length} entries in the history or {@code null} if the method is not supported.
      */
-    public default List<HistoryEntry> lookupTail(int length, Set<ResultFlag> flags) {
+    default List<HistoryEntry> lookupTail(int length, Set<ResultFlag> flags) {
         return null;
     }
 
@@ -79,10 +76,9 @@ public interface HistoryManager {
      *
      * @param length the number of results to include in the results.
      * @param flags  result affecting flags. Inclusion in the set specifies that the flag is set.
-     *
      * @return a list of the last {@code length} entries in the history or {@code null} if the method is not supported.
      */
-    public default List<HistoryEntry> lookupTail(int length, ResultFlag... flags) {
+    default List<HistoryEntry> lookupTail(int length, ResultFlag... flags) {
         Set<ResultFlag> flagSet = EnumSet.noneOf(ResultFlag.class);
         Collections.addAll(flagSet, flags);
         return lookupTail(length, flagSet);
@@ -107,11 +103,10 @@ public interface HistoryManager {
      * @param pattern a glob pattern that input cells must match.
      * @param length  the number of results to include in the results.
      * @param flags   result affecting flags. Inclusion in the set specifies that the flag is set.
-     *
      * @return a list of the last {@code length} entries in the history that match the {@code pattern} or {@code null}
-     *         if the method is not supported.
+     * if the method is not supported.
      */
-    public default List<HistoryEntry> search(String pattern, int length, Set<ResultFlag> flags) {
+    default List<HistoryEntry> search(String pattern, int length, Set<ResultFlag> flags) {
         return null;
     }
 
@@ -134,11 +129,10 @@ public interface HistoryManager {
      * @param pattern a glob pattern that input cells must match.
      * @param length  the number of results to include in the results.
      * @param flags   result affecting flags. Inclusion in the set specifies that the flag is set.
-     *
      * @return a list of the last {@code length} entries in the history that match the {@code pattern} or {@code null}
-     *         if the method is not supported.
+     * if the method is not supported.
      */
-    public default List<HistoryEntry> search(String pattern, int length, ResultFlag... flags) {
+    default List<HistoryEntry> search(String pattern, int length, ResultFlag... flags) {
         Set<ResultFlag> flagSet = EnumSet.noneOf(ResultFlag.class);
         Collections.addAll(flagSet, flags);
         return search(pattern, length, flagSet);
