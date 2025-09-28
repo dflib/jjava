@@ -11,6 +11,7 @@
 - #81 Refactoring: JavaKernel must manage JShell
 - #82 Refactoring: Move JavaKernel init logic from constructor to Builder
 - #83 Simplify Kernel metadata loading approach
+- #84 Refactoring: reorg Maven modules for reusability
 
 
 ## 1.0-a5
