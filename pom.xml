@@ -13,6 +13,7 @@
     <modules>
         <module>jjava-jupyter</module>
         <module>jjava-kernel</module>
+        <module>jjava-maven</module>
         <module>jjava-launcher</module>
         <module>jjava-distro</module>
     </modules>
