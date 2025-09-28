@@ -9,6 +9,10 @@ public final class Env {
     public static final String JJAVA_TIMEOUT = "JJAVA_TIMEOUT";
     public static final String JJAVA_CLASSPATH = "JJAVA_CLASSPATH";
     public static final String JJAVA_STARTUP_SCRIPTS_PATH = "JJAVA_STARTUP_SCRIPTS_PATH";
+
+    /**
+     * A block of Java code to run when the kernel starts up.
+     */
     public static final String JJAVA_STARTUP_SCRIPT = "JJAVA_STARTUP_SCRIPT";
     public static final String JJAVA_LOAD_EXTENSIONS = "JJAVA_LOAD_EXTENSIONS";
 

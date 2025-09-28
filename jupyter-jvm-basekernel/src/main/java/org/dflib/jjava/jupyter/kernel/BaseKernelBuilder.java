@@ -14,7 +14,6 @@ import org.dflib.jjava.jupyter.kernel.util.TextColor;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -26,7 +25,7 @@ public abstract class BaseKernelBuilder<
 
     protected String name;
     protected String version;
-    protected Charset charset;
+    protected Charset jupyterIOEncoding;
     protected MagicParser magicParser;
     protected HistoryManager historyManager;
     protected final Map<String, LineMagic<?, ?>> lineMagics;
@@ -47,8 +46,8 @@ public abstract class BaseKernelBuilder<
         return (B) this;
     }
 
-    public B charset(Charset charset) {
-        this.charset = charset;
+    public B jupyterIOEncoding(Charset jupyterIOEncoding) {
+        this.jupyterIOEncoding = jupyterIOEncoding;
         return (B) this;
     }
 
@@ -74,8 +73,12 @@ public abstract class BaseKernelBuilder<
 
     public abstract K build();
 
-    protected JupyterIO buildJupyterIO() {
-        return new JupyterIO(charset != null ? charset : StandardCharsets.UTF_8);
+    protected Charset buildJupyterIOEncoding() {
+        return jupyterIOEncoding != null ? jupyterIOEncoding : StandardCharsets.UTF_8;
+    }
+
+    protected JupyterIO buildJupyterIO(Charset encoding) {
+        return new JupyterIO(encoding);
     }
 
     protected CommManager buildCommManager() {
@@ -84,13 +87,6 @@ public abstract class BaseKernelBuilder<
 
     protected Renderer buildRenderer() {
         return new Renderer();
-    }
-
-    protected List<HelpLink> buildHelpLinks() {
-        return List.of(
-                new HelpLink("Java tutorial", "https://docs.oracle.com/javase/tutorial/java/nutsandbolts/index.html"),
-                new HelpLink("JJava homepage", "https://github.com/dflib/jjava")
-        );
     }
 
     protected ExtensionLoader buildExtensionLoader() {

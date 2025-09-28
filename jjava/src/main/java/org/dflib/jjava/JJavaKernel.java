@@ -30,6 +30,7 @@ import org.dflib.jjava.jupyter.kernel.util.StringStyler;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -376,6 +377,7 @@ public class JJavaKernel extends BaseKernel {
         public JJavaKernel build() {
 
             String name = buildName();
+            Charset jupyterEncoding = buildJupyterIOEncoding();
             JJavaExecutionControlProvider jShellExecutionControlProvider = buildJShellExecControlProvider(name);
             JShell jShell = buildJShell(jShellExecutionControlProvider);
             LanguageInfo langInfo = buildLanguageInfo();
@@ -386,7 +388,7 @@ public class JJavaKernel extends BaseKernel {
                     langInfo,
                     buildHelpLinks(),
                     buildHistoryManager(),
-                    buildJupyterIO(),
+                    buildJupyterIO(jupyterEncoding),
                     buildCommManager(),
                     buildRenderer(),
                     buildMagicParser(),
@@ -430,6 +432,13 @@ public class JJavaKernel extends BaseKernel {
                 // generally, this should be ignorable, but it should also never happen, so still rethrow
                 throw new RuntimeException("Error reading project properties");
             }
+        }
+
+        protected List<HelpLink> buildHelpLinks() {
+            return List.of(
+                    new HelpLink("Java tutorials", "https://docs.oracle.com/javase/tutorial/"),
+                    new HelpLink("JJava homepage", "https://github.com/dflib/jjava")
+            );
         }
     }
 }

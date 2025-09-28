@@ -159,7 +159,7 @@ public abstract class BaseKernel {
     }
 
     public String getBanner() {
-        return String.format("%s %s ::  %s v%s :: Protocol v%s",
+        return String.format("%s %s ::  %s %s :: Protocol v%s",
                 languageInfo != null ? languageInfo.getName() : "Unknown",
                 languageInfo != null ? languageInfo.getVersion() : "",
                 name != null ? name : "unknown",

@@ -21,8 +21,8 @@ import java.util.regex.Pattern;
  * match a single character. A glob ending in {@code "/"} will match all files in a directories matching
  * the glob.
  * <p>
- * <strong>Important note for Windows file systems:</strong> Globs should use {@code "/"} to separate the
- * glob despite it not being the platform separator.
+ * Important note for Windows file systems: Globs should use {@code "/"} to separate the glob despite it not being the
+ * platform separator.
  */
 public class GlobFinder {
     private static class GlobSegment {
@@ -71,13 +71,15 @@ public class GlobFinder {
             return s -> {
                 BasicFileAttributes attributes = Files.readAttributes(s, BasicFileAttributes.class);
 
-                if ((attributes.isRegularFile() && !restriction.acceptsFiles()) || (attributes.isDirectory() && !restriction.acceptsDirectories()))
+                if ((attributes.isRegularFile() && !restriction.acceptsFiles()) || (attributes.isDirectory() && !restriction.acceptsDirectories())) {
                     return false;
+                }
 
                 Path pathName = s.getFileName();
 
-                if (pathName == null)
+                if (pathName == null) {
                     return false;
+                }
 
                 String name = pathName.toString();
                 return this.literal != null

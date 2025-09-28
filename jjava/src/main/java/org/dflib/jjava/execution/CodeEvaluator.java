@@ -7,14 +7,9 @@ import jdk.jshell.Snippet;
 import jdk.jshell.SnippetEvent;
 import jdk.jshell.SourceCodeAnalysis;
 import org.dflib.jjava.jupyter.kernel.BaseKernel;
-import org.dflib.jjava.jupyter.kernel.util.GlobFinder;
 
-import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -45,10 +40,6 @@ public class CodeEvaluator {
     private final List<String> startupScripts;
 
     private volatile boolean initialized;
-
-    public static Builder builder() {
-        return new Builder();
-    }
 
     public CodeEvaluator(
             JShell shell,
@@ -128,8 +119,9 @@ public class CodeEvaluator {
                     throw new RuntimeException(e);
                 }
 
-                if (!event.status().isDefined())
+                if (!event.status().isDefined()) {
                     throw new CompilationException(event);
+                }
             }
         }
 
@@ -278,74 +270,6 @@ public class CodeEvaluator {
 
         if (execControl != null) {
             execControl.interrupt();
-        }
-    }
-
-    public static class Builder {
-
-        private final List<String> startupScripts;
-
-        protected Builder() {
-            this.startupScripts = new ArrayList<>();
-        }
-
-        public Builder startupScript(String script) {
-            if (script != null) {
-                startupScripts.add(script);
-            }
-            return this;
-        }
-
-        public Builder startupScriptFiles(String paths) {
-            if (paths == null) {
-                return this;
-            }
-
-            if (JJavaJShellBuilder.BLANK.matcher(paths).matches()) {
-                return this;
-            }
-
-            for (String glob : JJavaJShellBuilder.PATH_SPLITTER.split(paths)) {
-                GlobFinder resolver = new GlobFinder(glob);
-                try {
-                    for (Path path : resolver.computeMatchingPaths())
-                        this.startupScriptFile(path);
-                } catch (IOException e) {
-                    throw new RuntimeException(String.format("IOException while computing startup scripts for '%s': %s", glob, e.getMessage()), e);
-                }
-            }
-
-            return this;
-        }
-
-        public Builder startupScriptFile(Path path) {
-            if (path == null) {
-                return this;
-            }
-
-            if (!Files.isRegularFile(path)) {
-                return this;
-            }
-
-            if (!Files.isReadable(path)) {
-                return this;
-            }
-
-            try {
-                String script = Files.readString(path);
-                startupScripts.add(script);
-            } catch (IOException e) {
-                throw new RuntimeException(String.format("IOException while loading startup script for '%s': %s", path, e.getMessage()), e);
-            }
-
-            return this;
-        }
-
-        public CodeEvaluator build(
-                JShell shell,
-                JJavaExecutionControlProvider execControlProvider,
-                String execControlID) {
-            return new CodeEvaluator(shell, execControlProvider, execControlID, startupScripts);
         }
     }
 }

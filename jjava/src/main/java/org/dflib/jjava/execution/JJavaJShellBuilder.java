@@ -2,9 +2,9 @@ package org.dflib.jjava.execution;
 
 import jdk.jshell.JShell;
 import jdk.jshell.spi.ExecutionControlProvider;
+import org.dflib.jjava.JJavaKernelBuilder;
 import org.dflib.jjava.jupyter.kernel.util.GlobFinder;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
@@ -19,7 +19,6 @@ import java.util.regex.Pattern;
 
 public class JJavaJShellBuilder {
 
-    static final Pattern PATH_SPLITTER = Pattern.compile(File.pathSeparator, Pattern.LITERAL);
     static final Pattern BLANK = Pattern.compile("^\\s*$");
 
     private final JShell.Builder jshellBuilder;
@@ -46,7 +45,7 @@ public class JJavaJShellBuilder {
             return this;
         }
 
-        Collections.addAll(this.classpath, PATH_SPLITTER.split(classpath));
+        Collections.addAll(this.classpath, JJavaKernelBuilder.PATH_SPLITTER.split(classpath));
 
         return this;
     }
