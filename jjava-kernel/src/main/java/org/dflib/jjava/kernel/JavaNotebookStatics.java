@@ -13,7 +13,7 @@ public class JavaNotebookStatics implements Extension {
 
     private static final String STARTUP_SCRIPT = "import static org.dflib.jjava.kernel.JavaNotebookStatics.*;";
 
-    private static JJavaKernel kernel;
+    private static JavaKernel kernel;
 
     @Override
     public void install(BaseKernel kernel) {
@@ -22,12 +22,12 @@ public class JavaNotebookStatics implements Extension {
             throw new IllegalStateException("Already initialized with another kernel: " + JavaNotebookStatics.kernel.getBanner());
         }
 
-        if (kernel instanceof JJavaKernel) {
+        if (kernel instanceof JavaKernel) {
             kernel.eval(STARTUP_SCRIPT);
-            JavaNotebookStatics.kernel = (JJavaKernel) kernel;
+            JavaNotebookStatics.kernel = (JavaKernel) kernel;
         } else {
             // TODO: should we have some kind of abstract logger?
-            System.err.println("Ignoring unexpected kernel '" + kernel.getClass().getName() + "'. Only '" + JJavaKernel.class.getName() + "' is supported.");
+            System.err.println("Ignoring unexpected kernel '" + kernel.getClass().getName() + "'. Only '" + JavaKernel.class.getName() + "' is supported.");
         }
     }
 
@@ -35,13 +35,13 @@ public class JavaNotebookStatics implements Extension {
      * @deprecated in favor of {@link #kernel()}
      */
     @Deprecated(since = "1.0", forRemoval = true)
-    public static JJavaKernel getKernelInstance() {
+    public static JavaKernel getKernelInstance() {
         // TODO: should we have some kind of abstract logger?
         System.err.println("'getKernelInstance()' was deprecated in favor of 'kernel()' and will be eventually removed.");
         return kernel();
     }
 
-    public static JJavaKernel kernel() {
+    public static JavaKernel kernel() {
         return Objects.requireNonNull(
                 JavaNotebookStatics.kernel,
                 "No Java kernel running. Likely called outside of the notebook lifecycle");

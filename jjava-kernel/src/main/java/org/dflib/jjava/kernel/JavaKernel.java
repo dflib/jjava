@@ -40,7 +40,7 @@ import java.util.stream.Collectors;
 /**
  * A Jupyter kernel for Java programming language.
  */
-public class JJavaKernel extends BaseKernel {
+public class JavaKernel extends BaseKernel {
 
     private static final CharPredicate IDENTIFIER_CHAR = CharPredicate.builder()
             .inRange('a', 'z')
@@ -63,7 +63,7 @@ public class JJavaKernel extends BaseKernel {
     private final JShell jShell;
     private final CodeEvaluator evaluator;
 
-    protected JJavaKernel(
+    protected JavaKernel(
             String name,
             String version,
             LanguageInfo languageInfo,
@@ -356,12 +356,12 @@ public class JJavaKernel extends BaseKernel {
         return jShell;
     }
 
-    public static class Builder extends JJavaKernelBuilder<Builder, JJavaKernel> {
+    public static class Builder extends JavaKernelBuilder<Builder, JavaKernel> {
         private Builder() {
         }
 
         @Override
-        public JJavaKernel build() {
+        public JavaKernel build() {
 
             String name = buildName();
             Charset jupyterEncoding = buildJupyterIOEncoding();
@@ -370,7 +370,7 @@ public class JJavaKernel extends BaseKernel {
             LanguageInfo langInfo = buildLanguageInfo();
             MagicTranspiler magicTranspiler = buildMagicTranspiler();
 
-            return new JJavaKernel(
+            return new JavaKernel(
                     name,
                     buildVersion(),
                     langInfo,

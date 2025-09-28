@@ -20,9 +20,9 @@ import java.util.UUID;
 /**
  * A common builder superclass for JJavaKernel and subclasses.
  */
-public abstract class JJavaKernelBuilder<
-        B extends JJavaKernelBuilder<B, K>,
-        K extends JJavaKernel> extends BaseKernelBuilder<B, K> {
+public abstract class JavaKernelBuilder<
+        B extends JavaKernelBuilder<B, K>,
+        K extends JavaKernel> extends BaseKernelBuilder<B, K> {
 
     protected final String jShellExecControlID;
     protected JJavaExecutionControlProvider jShellExecControlProvider;
@@ -31,7 +31,7 @@ public abstract class JJavaKernelBuilder<
     protected final List<String> compilerOpts;
     protected final List<String> extraClasspath;
 
-    protected JJavaKernelBuilder() {
+    protected JavaKernelBuilder() {
         this.jShellExecControlID = UUID.randomUUID().toString();
         this.startupSnippets = new ArrayList<>();
         this.compilerOpts = new ArrayList<>();

@@ -1,6 +1,6 @@
 package org.dfllib.jjava.maven.magics;
 
-import org.dflib.jjava.kernel.JJavaKernel;
+import org.dflib.jjava.kernel.JavaKernel;
 import org.dflib.jjava.jupyter.kernel.magic.LineMagic;
 import org.dflib.jjava.jupyter.kernel.magic.MagicsArgs;
 import org.dfllib.jjava.maven.MavenDependencyResolver;
@@ -9,7 +9,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 
-public class LoadFromPomLineMagic implements LineMagic<Map<String, List<String>>, JJavaKernel> {
+public class LoadFromPomLineMagic implements LineMagic<Map<String, List<String>>, JavaKernel> {
 
     private final MavenDependencyResolver mavenResolver;
 
@@ -18,7 +18,7 @@ public class LoadFromPomLineMagic implements LineMagic<Map<String, List<String>>
     }
 
     @Override
-    public Map<String, List<String>> eval(JJavaKernel kernel, List<String> args) {
+    public Map<String, List<String>> eval(JavaKernel kernel, List<String> args) {
         if (args.isEmpty()) {
             throw new IllegalArgumentException("Loading from POM requires at least the path to the POM file");
         }

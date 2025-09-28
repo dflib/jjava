@@ -3,7 +3,7 @@ package org.dflib.jjava.distro;
 import org.dflib.jjava.jupyter.channels.JupyterConnection;
 import org.dflib.jjava.jupyter.channels.JupyterSocket;
 import org.dflib.jjava.jupyter.kernel.KernelConnectionProperties;
-import org.dflib.jjava.kernel.JJavaKernel;
+import org.dflib.jjava.kernel.JavaKernel;
 import org.dflib.jjava.kernel.magics.ClasspathMagic;
 import org.dflib.jjava.kernel.magics.JarsMagic;
 import org.dflib.jjava.kernel.magics.LoadCodeMagic;
@@ -47,7 +47,7 @@ public class JJava {
 
         Properties pomProps = loadPomProps();
 
-        JJavaKernel kernel = JJavaKernel.builder()
+        JavaKernel kernel = JavaKernel.builder()
                 .name("JJava")
                 .version((String) pomProps.getOrDefault("version", ""))
 
