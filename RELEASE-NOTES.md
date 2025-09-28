@@ -10,6 +10,7 @@
 - #80 Magics as interfaces
 - #81 Refactoring: JavaKernel must manage JShell
 - #82 Refactoring: Move JavaKernel init logic from constructor to Builder
+- #83 Simplify Kernel metadata loading approach
 
 
 ## 1.0-a5

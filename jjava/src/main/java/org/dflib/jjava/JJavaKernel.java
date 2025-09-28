@@ -28,12 +28,9 @@ import org.dflib.jjava.jupyter.kernel.magic.MagicsRegistry;
 import org.dflib.jjava.jupyter.kernel.util.CharPredicate;
 import org.dflib.jjava.jupyter.kernel.util.StringStyler;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -399,39 +396,6 @@ public class JJavaKernel extends BaseKernel {
                     buildCodeEvaluator(jShell, jShellExecutionControlProvider),
                     extensionsEnabled()
             );
-        }
-
-        protected String buildName() {
-            return name != null ? name : "JJava";
-        }
-
-        protected String buildVersion() {
-
-            if (version != null) {
-                return version;
-            }
-
-            InputStream in = getClass()
-                    .getClassLoader()
-                    .getResourceAsStream("META-INF/maven/org.dflib.jjava/jjava/pom.properties");
-
-            if (in == null) {
-                return "unknown";
-            }
-
-            try {
-                try {
-
-                    Properties props = new Properties();
-                    props.load(in);
-                    return (String) props.getOrDefault("version", "unknown");
-                } finally {
-                    in.close();
-                }
-            } catch (IOException e) {
-                // generally, this should be ignorable, but it should also never happen, so still rethrow
-                throw new RuntimeException("Error reading project properties");
-            }
         }
 
         protected List<HelpLink> buildHelpLinks() {

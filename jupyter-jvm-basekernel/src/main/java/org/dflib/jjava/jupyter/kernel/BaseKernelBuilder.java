@@ -73,6 +73,14 @@ public abstract class BaseKernelBuilder<
 
     public abstract K build();
 
+    protected String buildName() {
+        return name != null ? name : "";
+    }
+
+    protected String buildVersion() {
+        return version != null ? version : "";
+    }
+
     protected Charset buildJupyterIOEncoding() {
         return jupyterIOEncoding != null ? jupyterIOEncoding : StandardCharsets.UTF_8;
     }

@@ -1,7 +1,5 @@
 package org.dflib.jjava;
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import org.dflib.jjava.jupyter.channels.JupyterConnection;
 import org.dflib.jjava.jupyter.channels.JupyterSocket;
 import org.dflib.jjava.jupyter.kernel.KernelConnectionProperties;
@@ -15,11 +13,11 @@ import org.dflib.jjava.magics.MavenRepoMagic;
 import org.dflib.jjava.maven.MavenDependencyResolver;
 
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Properties;
 import java.util.logging.Level;
 
 /**
@@ -27,7 +25,7 @@ import java.util.logging.Level;
  */
 public class JJava {
 
-    private static final String KERNEL_METADATA_FILE = "jjava-kernel-metadata.json";
+    private static final String POM_PROPERTIES = "META-INF/maven/org.dflib.jjava/jjava/pom.properties";
 
     private static JJavaKernel kernel;
 
@@ -50,14 +48,11 @@ public class JJava {
 
         MavenDependencyResolver mavenResolver = new MavenDependencyResolver();
 
-        // TODO: "jjava-kernel-metadata.json" is redundant. We have all this info in pom.properties, and the name of the
-        //  kernel can be hardcoded; also this can be moved to the builder
-        JsonObject meta = loadKernelMetadata();
+        Properties pomProps = loadPOMProps();
 
         kernel = JJavaKernel.builder()
-                .name(meta != null && meta.get("project") != null ? meta.get("project").getAsString() : null)
-                .version(meta != null && meta.get("version") != null ? meta.get("version").getAsString() : null)
-
+                .name("JJava")
+                .version((String) pomProps.getOrDefault("version", ""))
                 .lineMagic("load", new LoadCodeMagic("", ".jsh", ".jshell", ".java", ".jjava"))
                 .lineMagic("classpath", new ClasspathMagic())
                 .lineMagic("maven", new MavenMagic(mavenResolver))
@@ -82,13 +77,25 @@ public class JJava {
         return JJava.kernel;
     }
 
-    private static JsonObject loadKernelMetadata() {
+    private static Properties loadPOMProps() {
 
-        try (Reader metaReader = new InputStreamReader(JJava.class.getClassLoader().getResourceAsStream(KERNEL_METADATA_FILE))) {
-            return JsonParser.parseReader(metaReader).getAsJsonObject();
+        Properties props = new Properties();
+
+        InputStream in = JJava.class.getClassLoader().getResourceAsStream(POM_PROPERTIES);
+        if (in == null) {
+            return props;
+        }
+
+        try {
+            try {
+                props.load(in);
+                return props;
+            } finally {
+                in.close();
+            }
         } catch (IOException e) {
-            e.printStackTrace();
-            return null;
+            // generally, this should be ignorable, but it should also never happen, so still rethrow
+            throw new RuntimeException("Error reading project properties");
         }
     }
 }

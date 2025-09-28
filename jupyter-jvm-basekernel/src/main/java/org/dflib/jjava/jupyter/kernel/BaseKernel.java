@@ -1,7 +1,5 @@
 package org.dflib.jjava.jupyter.kernel;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import org.dflib.jjava.jupyter.ExtensionLoader;
 import org.dflib.jjava.jupyter.channels.JupyterConnection;
 import org.dflib.jjava.jupyter.channels.ShellReplyEnvironment;
@@ -40,46 +38,23 @@ import org.dflib.jjava.jupyter.messages.request.IsCompleteRequest;
 import org.dflib.jjava.jupyter.messages.request.KernelInfoRequest;
 import org.dflib.jjava.jupyter.messages.request.ShutdownRequest;
 
-import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.io.PrintWriter;
-import java.io.Reader;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
-
 
 public abstract class BaseKernel {
 
     public static final String IS_COMPLETE_YES = "complete";
     public static final String IS_COMPLETE_BAD = "invalid";
     public static final String IS_COMPLETE_MAYBE = "unknown";
-
-    // TODO: merge "kernel-metadata.json" values into "kernel.json" and stop using it
-    protected static final Map<String, String> KERNEL_META = createMetadata();
-
-    private static Map<String, String> createMetadata() {
-
-        InputStream metaStream = BaseKernel.class.getClassLoader().getResourceAsStream("kernel-metadata.json");
-        if (metaStream != null) {
-            try (Reader metaReader = new InputStreamReader(metaStream)) {
-                return new Gson().fromJson(metaReader, new TypeToken<Map<String, String>>() {
-                }.getType());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
-        return Map.of("version", "unknown", "project", "unknown");
-    }
 
     // TODO: create some kind of metadata object to combine these properties?
     protected final String name;
@@ -132,6 +107,10 @@ public abstract class BaseKernel {
         Image.registerAll(this.renderer);
         Url.registerAll(this.renderer);
         Text.registerAll(this.renderer);
+    }
+
+    public String getName() {
+        return name;
     }
 
     public String getVersion() {
@@ -491,11 +470,8 @@ public abstract class BaseKernel {
         env.setBusyDeferIdle();
         env.reply(new KernelInfoReply(
                         Header.PROTOCOL_VERISON,
-
-                        // TODO: use "name" and "version" properties
-                        KERNEL_META.get("project"),
-                        KERNEL_META.get("version"),
-
+                        name,
+                        version,
                         getLanguageInfo(),
                         getBanner(),
                         getHelpLinks()
