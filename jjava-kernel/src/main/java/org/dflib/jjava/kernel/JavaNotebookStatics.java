@@ -6,12 +6,10 @@ import org.dflib.jjava.jupyter.kernel.BaseKernel;
 import java.util.Objects;
 
 /**
- * A collection of methods exposed in every notebook via static imports. For the methods to work, an instance of
- * JavaNotebookStatics must be loaded as a kernel extension, as this is when the kernel becomes known to the class.
+ * An automatically-loaded extension that exposes a collection of static methods for notebook code to interact with the
+ * kernel.
  */
 public class JavaNotebookStatics implements Extension {
-
-    private static final String STARTUP_SCRIPT = "import static org.dflib.jjava.kernel.JavaNotebookStatics.*;";
 
     private static JavaKernel kernel;
 
@@ -23,7 +21,6 @@ public class JavaNotebookStatics implements Extension {
         }
 
         if (kernel instanceof JavaKernel) {
-            kernel.eval(STARTUP_SCRIPT);
             JavaNotebookStatics.kernel = (JavaKernel) kernel;
         } else {
             // TODO: should we have some kind of abstract logger?

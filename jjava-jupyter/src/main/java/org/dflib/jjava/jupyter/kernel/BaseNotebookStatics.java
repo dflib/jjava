@@ -9,39 +9,26 @@ import java.util.Objects;
 import java.util.UUID;
 
 /**
- * A collection of methods exposed in every notebook via static imports. For the methods to work, an instance of
- * NotebookStatics must be loaded as a kernel extension, as this is when the kernel becomes known to the class.
+ * An automatically-loaded extension that exposes a collection of static methods for notebook code to interact with the
+ * kernel.
  */
-public class NotebookStatics implements Extension {
-
-    private static final String STARTUP_SCRIPT = "import java.util.*;\n" +
-            "import java.io.*;\n" +
-            "import java.math.*;\n" +
-            "import java.net.*;\n" +
-            "import java.time.*;\n" +
-
-            "import java.util.concurrent.*;\n" +
-            "import java.util.prefs.*;\n" +
-            "import java.util.regex.*;\n" +
-
-            "import static org.dflib.jjava.jupyter.kernel.NotebookStatics.*;";
+public class BaseNotebookStatics implements Extension {
 
     private static BaseKernel kernel;
 
     @Override
     public void install(BaseKernel kernel) {
 
-        if (NotebookStatics.kernel != null) {
-            throw new IllegalStateException("Already initialized with another kernel: " + NotebookStatics.kernel.getBanner());
+        if (BaseNotebookStatics.kernel != null) {
+            throw new IllegalStateException("Already initialized with another kernel: " + BaseNotebookStatics.kernel.getBanner());
         }
 
-        kernel.eval(STARTUP_SCRIPT);
-        NotebookStatics.kernel = kernel;
+        BaseNotebookStatics.kernel = kernel;
     }
 
     private static BaseKernel nonNullKernel() {
         return Objects.requireNonNull(
-                NotebookStatics.kernel,
+                BaseNotebookStatics.kernel,
                 "No kernel running. Likely called outside of the notebook lifecycle");
     }
 
