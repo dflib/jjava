@@ -13,12 +13,9 @@ import org.dflib.jjava.jupyter.kernel.display.common.Text;
 import org.dflib.jjava.jupyter.kernel.display.common.Url;
 import org.dflib.jjava.jupyter.kernel.history.HistoryEntry;
 import org.dflib.jjava.jupyter.kernel.history.HistoryManager;
-import org.dflib.jjava.jupyter.kernel.magic.CellMagic;
-import org.dflib.jjava.jupyter.kernel.magic.LineMagic;
 import org.dflib.jjava.jupyter.kernel.magic.MagicParser;
 import org.dflib.jjava.jupyter.kernel.magic.MagicsRegistry;
 import org.dflib.jjava.jupyter.kernel.util.StringStyler;
-import org.dflib.jjava.jupyter.kernel.util.TextColor;
 import org.dflib.jjava.jupyter.messages.Header;
 import org.dflib.jjava.jupyter.messages.Message;
 import org.dflib.jjava.jupyter.messages.MessageType;
@@ -50,17 +47,15 @@ import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.StringWriter;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+
 
 public abstract class BaseKernel {
 
@@ -528,95 +523,4 @@ public abstract class BaseKernel {
         this.interrupt();
     }
 
-    protected static abstract class BaseKernelBuilder<T extends BaseKernelBuilder<T, K>, K extends BaseKernel> {
-
-        protected String name;
-        protected String version;
-        protected Charset charset;
-        protected MagicParser magicParser;
-        protected HistoryManager historyManager;
-        protected final Map<String, LineMagic<?, ?>> lineMagics;
-        protected final Map<String, CellMagic<?, ?>> cellMagics;
-
-        protected BaseKernelBuilder() {
-            this.cellMagics = new LinkedHashMap<>();
-            this.lineMagics = new LinkedHashMap<>();
-        }
-
-        public T name(String name) {
-            this.name = name;
-            return (T) this;
-        }
-
-        public T version(String version) {
-            this.version = version;
-            return (T) this;
-        }
-
-        public T charset(Charset charset) {
-            this.charset = charset;
-            return (T) this;
-        }
-
-        public T historyManager(HistoryManager historyManager) {
-            this.historyManager = historyManager;
-            return (T) this;
-        }
-
-        public T lineMagic(String name, LineMagic<?, ?> magic) {
-            lineMagics.put(name, magic);
-            return (T) this;
-        }
-
-        public T cellMagic(String name, CellMagic<?, ?> magic) {
-            cellMagics.put(name, magic);
-            return (T) this;
-        }
-
-        public T magicParser(MagicParser magicParser) {
-            this.magicParser = magicParser;
-            return (T) this;
-        }
-
-        public abstract K build();
-
-        protected JupyterIO buildJupyterIO() {
-            return new JupyterIO(charset != null ? charset : StandardCharsets.UTF_8);
-        }
-
-        protected CommManager buildCommManager() {
-            return new CommManager();
-        }
-
-        protected Renderer buildRenderer() {
-            return new Renderer();
-        }
-
-        protected List<HelpLink> buildHelpLinks() {
-            return List.of(
-                    new HelpLink("Java tutorial", "https://docs.oracle.com/javase/tutorial/java/nutsandbolts/index.html"),
-                    new HelpLink("JJava homepage", "https://github.com/dflib/jjava")
-            );
-        }
-
-        protected ExtensionLoader buildExtensionLoader() {
-            return new ExtensionLoader();
-        }
-
-        protected MagicsRegistry buildMagicsRegistry() {
-            return new MagicsRegistry(lineMagics, cellMagics);
-        }
-
-        protected StringStyler buildErrorStyler() {
-            return new StringStyler.Builder()
-                    .addPrimaryStyle(TextColor.BOLD_RESET_FG)
-                    .addSecondaryStyle(TextColor.BOLD_RED_FG)
-                    .addHighlightStyle(TextColor.BOLD_RESET_FG)
-                    .addHighlightStyle(TextColor.RED_BG)
-
-                    // TODO map snippet ids to code cells and put the proper line number in the margin here
-                    .withLinePrefix(TextColor.BOLD_RESET_FG + "|   ")
-                    .build();
-        }
-    }
 }

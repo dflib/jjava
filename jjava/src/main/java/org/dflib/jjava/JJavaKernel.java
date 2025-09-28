@@ -13,8 +13,6 @@ import org.dflib.jjava.execution.EvaluationInterruptedException;
 import org.dflib.jjava.execution.EvaluationTimeoutException;
 import org.dflib.jjava.execution.IncompleteSourceException;
 import org.dflib.jjava.execution.JJavaExecutionControlProvider;
-import org.dflib.jjava.execution.JJavaJShellBuilder;
-import org.dflib.jjava.execution.JJavaMagicTranspiler;
 import org.dflib.jjava.jupyter.ExtensionLoader;
 import org.dflib.jjava.jupyter.kernel.BaseKernel;
 import org.dflib.jjava.jupyter.kernel.HelpLink;
@@ -36,11 +34,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
-import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+/**
+ * A Jupyter kernel for Java programming language.
+ */
 public class JJavaKernel extends BaseKernel {
 
     private static final CharPredicate IDENTIFIER_CHAR = CharPredicate.builder()
@@ -54,8 +54,11 @@ public class JJavaKernel extends BaseKernel {
     // Match % or %% at start of line, followed by an identifier, and cursor is at end of that identifier
     private static final Pattern MAGIC_PATTERN = Pattern.compile("^(%{1,2})([\\w\\-]*)$");
 
-    public static JJavaKernelBuilder builder() {
-        return new JJavaKernelBuilder();
+    /**
+     * Starts a builder for a new JJavaKernel.
+     */
+    public static Builder builder() {
+        return new Builder();
     }
 
     private final JShell jShell;
@@ -365,75 +368,46 @@ public class JJavaKernel extends BaseKernel {
         return jShell;
     }
 
-    public static class JJavaKernelBuilder extends BaseKernelBuilder<JJavaKernelBuilder, JJavaKernel> {
-
-        protected JJavaKernelBuilder() {
+    public static class Builder extends JJavaKernelBuilder<Builder, JJavaKernel> {
+        private Builder() {
         }
 
         @Override
         public JJavaKernel build() {
 
-            JJavaExecutionControlProvider execControlProvider = new JJavaExecutionControlProvider();
-            String execControlID = UUID.randomUUID().toString();
-            JShell jShell = buildJShell(execControlProvider, execControlID);
+            String name = buildName();
+            JJavaExecutionControlProvider jShellExecutionControlProvider = buildJShellExecControlProvider(name);
+            JShell jShell = buildJShell(jShellExecutionControlProvider);
             LanguageInfo langInfo = buildLanguageInfo();
 
             return new JJavaKernel(
-                    name != null ? name : buildName(),
-                    version != null ? version : buildVersion(),
+                    name,
+                    buildVersion(),
                     langInfo,
                     buildHelpLinks(),
-                    historyManager,
+                    buildHistoryManager(),
                     buildJupyterIO(),
                     buildCommManager(),
                     buildRenderer(),
-                    magicParser != null ? magicParser : buildMagicParser(),
+                    buildMagicParser(),
                     buildMagicsRegistry(),
                     buildExtensionLoader(),
                     buildErrorStyler(),
                     jShell,
-                    buildCodeEvaluator(jShell, execControlProvider, execControlID),
+                    buildCodeEvaluator(jShell, jShellExecutionControlProvider),
                     extensionsEnabled()
             );
         }
 
-        protected JShell buildJShell(JJavaExecutionControlProvider execControlProvider, String execControlID) {
-            return JJavaJShellBuilder.builder()
-                    .addClasspathFromString(System.getenv(Env.JJAVA_CLASSPATH))
-                    .compilerOptsFromString(System.getenv(Env.JJAVA_COMPILER_OPTS))
-                    .timeoutFromString(System.getenv(Env.JJAVA_TIMEOUT))
-                    .stdout(System.out)
-                    .stderr(System.err)
-                    .stdin(System.in)
-                    .build(execControlProvider, execControlID);
-        }
-
-        protected CodeEvaluator buildCodeEvaluator(
-                JShell jShell,
-                JJavaExecutionControlProvider execControlProvider,
-                String execControlID) {
-            return CodeEvaluator.builder()
-                    .startupScriptFiles(System.getenv(Env.JJAVA_STARTUP_SCRIPTS_PATH))
-                    .startupScript(System.getenv(Env.JJAVA_STARTUP_SCRIPT))
-                    .build(jShell, execControlProvider, execControlID);
-        }
-
-        protected boolean extensionsEnabled() {
-            String envValue = System.getenv(Env.JJAVA_LOAD_EXTENSIONS);
-            if (envValue == null) {
-                return true;
-            }
-            String envValueTrimmed = envValue.trim();
-            return !envValueTrimmed.isEmpty()
-                    && !envValueTrimmed.equals("0")
-                    && !envValueTrimmed.equalsIgnoreCase("false");
-        }
-
         protected String buildName() {
-            return "JJava";
+            return name != null ? name : "JJava";
         }
 
         protected String buildVersion() {
+
+            if (version != null) {
+                return version;
+            }
 
             InputStream in = getClass()
                     .getClassLoader()
@@ -456,20 +430,6 @@ public class JJavaKernel extends BaseKernel {
                 // generally, this should be ignorable, but it should also never happen, so still rethrow
                 throw new RuntimeException("Error reading project properties");
             }
-        }
-
-        protected MagicParser buildMagicParser() {
-            return new MagicParser("(?<=(?:^|=))\\s*%", "%%", new JJavaMagicTranspiler());
-        }
-
-        protected LanguageInfo buildLanguageInfo() {
-            return new LanguageInfo.Builder("Java")
-                    .version(Runtime.version().toString())
-                    .mimetype("text/x-java-source")
-                    .fileExtension(".jshell")
-                    .pygments("java")
-                    .codemirror("java")
-                    .build();
         }
     }
 }

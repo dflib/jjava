@@ -11,6 +11,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class JJavaExecutionControlProvider implements ExecutionControlProvider {
+
     /**
      * The parameter key that when given causes the generated control to be registered
      * for later reference by the parameter value.
@@ -23,10 +24,15 @@ public class JJavaExecutionControlProvider implements ExecutionControlProvider {
      * the text following the number is "parsed" with {@link TimeUnit#valueOf(String)}
      */
     public static final String TIMEOUT_KEY = "timeout";
-
     private static final Pattern TIMEOUT_PATTERN = Pattern.compile("^(?<dur>-?\\d+)\\W*(?<unit>[A-Za-z]+)?$");
 
-    private final Map<String, JJavaExecutionControl> controllers = new WeakHashMap<>();
+    private final String name;
+    private final Map<String, JJavaExecutionControl> controllers;
+
+    public JJavaExecutionControlProvider(String name) {
+        this.name = name;
+        this.controllers = new WeakHashMap<>();
+    }
 
     public JJavaExecutionControl getRegisteredControlByID(String id) {
         return this.controllers.get(id);
@@ -34,7 +40,7 @@ public class JJavaExecutionControlProvider implements ExecutionControlProvider {
 
     @Override
     public String name() {
-        return "JJava";
+        return name;
     }
 
     @Override
