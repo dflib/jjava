@@ -3,6 +3,7 @@ before_install:
   - curl https://mise.run | sh
 # the following installs the right tools and creates a mise.toml
 # you can skip these if you commit a mise.toml to the project.
+  - ~/.local/bin/mise trust mise.toml
   - ~/.local/bin/mise use java@17 maven@3.6.3
 
 install:
