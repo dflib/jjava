@@ -402,12 +402,12 @@ public class JavaKernel extends BaseKernel {
         }
 
         private void loadExtensions(JavaKernel kernel) {
-            if (this.extraClasspath.isEmpty() || !kernel.extensionsEnabled) {
+            if (extraClasspath.isEmpty() || !kernel.extensionsEnabled) {
                 return;
             }
 
             List<String> resolvedPaths = new ArrayList<>();
-            for (String cp : this.extraClasspath) {
+            for (String cp : extraClasspath) {
                 if (cp == null || cp.isBlank()) {
                     continue;
                 }
