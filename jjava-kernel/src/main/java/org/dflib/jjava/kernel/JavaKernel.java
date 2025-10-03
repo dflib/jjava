@@ -28,8 +28,11 @@ import org.dflib.jjava.jupyter.kernel.magic.MagicParser;
 import org.dflib.jjava.jupyter.kernel.magic.MagicsRegistry;
 import org.dflib.jjava.jupyter.kernel.util.CharPredicate;
 import org.dflib.jjava.jupyter.kernel.util.StringStyler;
+import org.dflib.jjava.jupyter.kernel.util.GlobFinder;
 
+import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -370,7 +373,7 @@ public class JavaKernel extends BaseKernel {
             LanguageInfo langInfo = buildLanguageInfo();
             MagicTranspiler magicTranspiler = buildMagicTranspiler();
 
-            return new JavaKernel(
+            JavaKernel kernel = new JavaKernel(
                     name,
                     buildVersion(),
                     langInfo,
@@ -387,6 +390,8 @@ public class JavaKernel extends BaseKernel {
                     jShell,
                     buildCodeEvaluator(jShell, jShellExecutionControlProvider)
             );
+            loadExtensions(kernel);
+            return kernel;
         }
 
         protected List<HelpLink> buildHelpLinks() {
@@ -394,6 +399,27 @@ public class JavaKernel extends BaseKernel {
                     new HelpLink("Java tutorials", "https://docs.oracle.com/javase/tutorial/"),
                     new HelpLink("JJava homepage", "https://github.com/dflib/jjava")
             );
+        }
+
+        private void loadExtensions(JavaKernel kernel) {
+            if (this.extraClasspath.isEmpty() || !kernel.extensionsEnabled) {
+                return;
+            }
+
+            List<String> resolvedPaths = new ArrayList<>();
+            for (String cp : this.extraClasspath) {
+                if (cp == null || cp.isBlank()) {
+                    continue;
+                }
+                try {
+                    Iterable<Path> paths = new GlobFinder(cp).computeMatchingPaths();
+                    paths.forEach(p -> resolvedPaths.add(p.toAbsolutePath().toString()));
+                } catch (IOException e) {
+                    throw new RuntimeException(String.format("Error computing classpath entries for '%s': %s", cp, e.getMessage()), e);
+                }
+            }
+
+            kernel.extensionLoader.loadFromJars(resolvedPaths).forEach(e -> e.install(kernel));
         }
     }
 }
