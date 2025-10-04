@@ -13,7 +13,7 @@
 - #83 Simplify Kernel metadata loading approach
 - #84 Refactoring: reorg Maven modules for reusability
 - #86 ineffecient / incorrect classpath handling
-- #89 Deprecating redundant magics: %jars, %addMavenDependency
+- #89 Deprecate redundant magics: %jars, %addMavenDependency
 
 ## 1.0-a5
 
