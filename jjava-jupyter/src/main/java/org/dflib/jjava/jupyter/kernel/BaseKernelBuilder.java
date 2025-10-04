@@ -14,8 +14,6 @@ import org.dflib.jjava.jupyter.kernel.util.TextColor;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 /**
  * A common builder superclass for BaseKernel subclasses.
@@ -31,12 +29,10 @@ public abstract class BaseKernelBuilder<
     protected MagicTranspiler magicTranspiler;
     protected HistoryManager historyManager;
     protected Boolean extensionsEnabled;
-    protected final Map<String, LineMagic<?, ?>> lineMagics;
-    protected final Map<String, CellMagic<?, ?>> cellMagics;
+    protected final MagicsRegistry magicsRegistry;
 
     protected BaseKernelBuilder() {
-        this.cellMagics = new LinkedHashMap<>();
-        this.lineMagics = new LinkedHashMap<>();
+        this.magicsRegistry = new MagicsRegistry();
     }
 
     public B name(String name) {
@@ -60,12 +56,12 @@ public abstract class BaseKernelBuilder<
     }
 
     public B lineMagic(String name, LineMagic<?, ?> magic) {
-        lineMagics.put(name, magic);
+        magicsRegistry.registerLineMagic(name, magic);
         return (B) this;
     }
 
     public B cellMagic(String name, CellMagic<?, ?> magic) {
-        cellMagics.put(name, magic);
+        magicsRegistry.registerCellMagic(name, magic);
         return (B) this;
     }
 
@@ -119,7 +115,7 @@ public abstract class BaseKernelBuilder<
     }
 
     protected MagicsRegistry buildMagicsRegistry() {
-        return new MagicsRegistry(lineMagics, cellMagics);
+        return magicsRegistry;
     }
 
     protected MagicTranspiler buildMagicTranspiler() {
