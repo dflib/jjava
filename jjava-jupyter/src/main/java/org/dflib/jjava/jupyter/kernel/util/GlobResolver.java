@@ -25,8 +25,7 @@ import java.util.regex.Pattern;
 class GlobResolver {
 
     private static final Pattern GLOB_SEGMENT_COMPONENT = Pattern.compile(
-            "" +
-                    "(?<literal>[^*?]+)" +
+            "(?<literal>[^*?]+)" +
                     "|(?<wildcard>\\*)" +
                     "|(?<singleWildcard>\\?)" +
                     "|(?:\\\\(?<escaped>[*?]))"
@@ -83,7 +82,7 @@ class GlobResolver {
                 matchers.add(new GlobSegment(lit.toString()));
                 if (lastBaseSegmentIdx == i) lastBaseSegmentIdx++;
             } else {
-                matchers.add(new GlobSegment(Pattern.compile("^" + pattern.toString() + "$")));
+                matchers.add(new GlobSegment(Pattern.compile("^" + pattern + "$")));
             }
         }
 
