@@ -32,6 +32,7 @@ import org.dflib.jjava.jupyter.kernel.util.StringStyler;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -99,21 +100,21 @@ public class JavaKernel extends BaseKernel {
         this.evaluator = evaluator;
 
         if (extensionsEnabled) {
-            this.extensionLoader.loadFromClasspath().forEach(e -> e.install(this));
+            this.extensionLoader.loadFromDefaultClasspath().forEach(e -> e.install(this));
         }
     }
 
     /**
-     * Adds multiple classpath entries to the JShell classpath and triggers extension loading for them.
+     * Adds a collection of paths to the JShell classpath and triggers extension loading for the extra classpath.
+     *
+     * @param classpath one or more filesystem paths separated by {@link java.io.File#pathSeparator}.
      */
-    public void addToClasspath(Iterable<String> paths) {
-        paths.forEach(jShell::addToClasspath);
-
-        // Need to "addToClasspath" all entries in a collection before we can install any extensions, as an extension
-        // may depend on other entries in the collection
+    public void addToClasspath(String classpath) {
+        Objects.requireNonNull(classpath, "Null classpath");
+        jShell.addToClasspath(classpath);
 
         if (extensionsEnabled) {
-            extensionLoader.loadFromJars(paths).forEach(e -> e.install(this));
+            extensionLoader.loadFromClasspath(classpath).forEach(e -> e.install(this));
         }
     }
 

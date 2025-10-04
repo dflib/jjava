@@ -8,6 +8,7 @@ import org.apache.maven.model.Model;
 import org.apache.maven.model.building.DefaultModelBuilderFactory;
 import org.apache.maven.model.building.ModelBuilder;
 import org.apache.maven.model.building.ModelBuildingRequest;
+import org.dflib.jjava.jupyter.kernel.util.PathsHandler;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.artifact.DefaultArtifact;
@@ -23,7 +24,6 @@ import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -126,8 +126,8 @@ public class MavenDependencyResolver {
             PreorderNodeListGenerator nlg = new PreorderNodeListGenerator();
             rootNode.accept(nlg);
 
-            String classpath = nlg.getClassPath();
-            return Arrays.stream(classpath.split(File.pathSeparator))
+            return PathsHandler.split(nlg.getClassPath())
+                    .stream()
                     .map(File::new)
                     .map(File::getAbsolutePath)
                     .collect(Collectors.toList());

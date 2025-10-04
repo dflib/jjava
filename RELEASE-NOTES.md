@@ -12,7 +12,7 @@
 - #82 Refactoring: Move JavaKernel init logic from constructor to Builder
 - #83 Simplify Kernel metadata loading approach
 - #84 Refactoring: reorg Maven modules for reusability
-
+- $86 ineffecient / incorrect classpath handling
 
 ## 1.0-a5
 

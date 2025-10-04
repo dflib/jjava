@@ -2,8 +2,8 @@ package org.dflib.jjava.kernel.execution;
 
 import jdk.jshell.execution.LoaderDelegate;
 import jdk.jshell.spi.ExecutionControl;
+import org.dflib.jjava.jupyter.kernel.util.PathsHandler;
 
-import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -53,7 +53,7 @@ public class JJavaLoaderDelegate implements LoaderDelegate {
 
     @Override
     public void addToClasspath(String path) throws ExecutionControl.InternalException {
-        for (String next : path.split(File.pathSeparator)) {
+        for (String next : PathsHandler.split(path)) {
             try {
                 classLoader.addURL(Path.of(next).toUri().toURL());
 

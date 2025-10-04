@@ -1,7 +1,8 @@
 package org.dfllib.jjava.maven.magics;
 
-import org.dflib.jjava.kernel.JavaKernel;
 import org.dflib.jjava.jupyter.kernel.magic.CellMagic;
+import org.dflib.jjava.jupyter.kernel.util.PathsHandler;
+import org.dflib.jjava.kernel.JavaKernel;
 import org.dfllib.jjava.maven.MavenDependencyResolver;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -30,9 +31,9 @@ import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
+import java.util.stream.Collectors;
 
-public class LoadFromPomCellMagic implements CellMagic<Map<String, List<String>>, JavaKernel> {
+public class LoadFromPomCellMagic implements CellMagic<List<String>, JavaKernel> {
 
     private final MavenDependencyResolver mavenResolver;
 
@@ -41,13 +42,18 @@ public class LoadFromPomCellMagic implements CellMagic<Map<String, List<String>>
     }
 
     @Override
-    public Map<String, List<String>> eval(JavaKernel kernel, List<String> args, String body) throws Exception {
+    public List<String> eval(JavaKernel kernel, List<String> args, String body) throws Exception {
         String rawPom = solidifyPartialPOM(body);
         File tempPomPath = File.createTempFile("jjava-maven-", ".pom").getAbsoluteFile();
         try {
             Files.write(tempPomPath.toPath(), rawPom.getBytes(StandardCharsets.UTF_8));
-            Map<String, List<String>> deps = mavenResolver.loadPomDependencies(tempPomPath);
-            deps.values().forEach(kernel::addToClasspath);
+            List<String> deps = mavenResolver
+                    .loadPomDependencies(tempPomPath)
+                    .values().stream()
+                    .flatMap(List::stream)
+                    .collect(Collectors.toList());
+
+            kernel.addToClasspath(PathsHandler.joinStringPaths(deps));
             return deps;
         } finally {
             tempPomPath.delete();

@@ -14,6 +14,16 @@ import java.util.stream.Collectors;
  */
 public class PathsHandler {
 
+    public static String joinStringPaths(List<String> paths) {
+        return paths.stream().collect(Collectors.joining(File.pathSeparator));
+    }
+
+    public static String joinPaths(List<Path> paths) {
+        return paths.stream()
+                .map(p -> p.toAbsolutePath().toString())
+                .collect(Collectors.joining(File.pathSeparator));
+    }
+
     public static List<String> split(String paths) {
         Objects.requireNonNull(paths, "Null 'paths' String");
         return Arrays.stream(paths.split(File.pathSeparator))

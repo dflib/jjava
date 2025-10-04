@@ -4,6 +4,7 @@ import org.dflib.jjava.kernel.JavaKernel;
 import org.dflib.jjava.jupyter.kernel.magic.LineMagic;
 import org.dflib.jjava.jupyter.kernel.util.GlobFinder;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
@@ -12,17 +13,17 @@ import java.util.stream.StreamSupport;
 
 // TODO: this is a subset of ClasspathMagic. The only difference is calling "computeMatchingFiles()" instead of
 //  "computeMatchingPaths()". Deprecate in favor of "classpath"?
-public class JarsMagic implements LineMagic<List<String>, JavaKernel> {
+public class JarsMagic implements LineMagic<String, JavaKernel> {
 
     @Override
-    public List<String> eval(JavaKernel kernel, List<String> args) {
-        List<String> resolved = args.stream()
+    public String eval(JavaKernel kernel, List<String> args) {
+        String classpath = args.stream()
                 .flatMap(a -> StreamSupport.stream(resolveGlob(a).spliterator(), false))
                 .map(p -> p.toAbsolutePath().toString())
-                .collect(Collectors.toList());
+                .collect(Collectors.joining(File.pathSeparator));
 
-        kernel.addToClasspath(resolved);
-        return resolved;
+        kernel.addToClasspath(classpath);
+        return classpath;
     }
 
     private static Iterable<Path> resolveGlob(String jarArg) {
