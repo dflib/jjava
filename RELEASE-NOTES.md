@@ -14,6 +14,7 @@
 - #84 Refactoring: reorg Maven modules for reusability
 - #86 ineffecient / incorrect classpath handling
 - #89 Deprecate redundant magics: %jars, %addMavenDependency
+- #90 Deprecate Ivy artifact syntax for %maven magic
 
 ## 1.0-a5
 

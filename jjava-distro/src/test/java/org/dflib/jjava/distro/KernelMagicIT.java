@@ -57,8 +57,9 @@ public class KernelMagicIT extends ContainerizedKernelCase {
         assertThat(snippetResult.getStdout(), containsString("dflib-jupyter-1.0.0-RC1.jar"));
     }
 
+    @Deprecated
     @Test
-    public void addIvyDependency() throws Exception {
+    public void mavenIvySyntax() throws Exception {
         String snippet = String.join("\n",
                 "%maven jakarta.annotation#jakarta.annotation-api;3.0.0",
                 "System.getProperty(\"java.class.path\")"

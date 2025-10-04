@@ -39,6 +39,7 @@ public class MavenDependencyResolver {
     /**
      * Ivy artifact coordinates in the form organization#name[#branch];revision.
      */
+    @Deprecated(since = "1.0", forRemoval = true)
     private static final Pattern IVY_MRID_PATTERN = Pattern.compile(
             "^(?<organization>[-\\w/._+=]*)#(?<name>[-\\w/._+=]+)(?:#(?<branch>[-\\w/._+=]+))?;(?<revision>[-\\w/._+=,\\[\\]{}():@]+)$"
     );
@@ -49,13 +50,20 @@ public class MavenDependencyResolver {
 
     private static Artifact parseArtifact(String coordinates) {
         Matcher ivyMatcher = IVY_MRID_PATTERN.matcher(coordinates);
-        if (ivyMatcher.matches()) {
-            String organization = ivyMatcher.group("organization");
-            String name = ivyMatcher.group("name");
-            String revision = ivyMatcher.group("revision");
-            return new DefaultArtifact(organization, name, "jar", revision);
-        }
-        return new DefaultArtifact(coordinates);
+        return ivyMatcher.matches() ? parseIvyArtifact(ivyMatcher, coordinates) : new DefaultArtifact(coordinates);
+    }
+
+    @Deprecated(since = "1.0", forRemoval = true)
+    private static Artifact parseIvyArtifact(Matcher matcher, String coordinates) {
+        System.err.println("Detected Ivy artifact syntax in the '%maven' magic arguments: '"
+                + coordinates
+                + "'. Support for it is deprecated and will be removed in the future versions of JJava. "
+                + "Use Maven colon-separated syntax instead");
+
+        String organization = matcher.group("organization");
+        String name = matcher.group("name");
+        String revision = matcher.group("revision");
+        return new DefaultArtifact(organization, name, "jar", revision);
     }
 
     private final List<RemoteRepository> repositories;
