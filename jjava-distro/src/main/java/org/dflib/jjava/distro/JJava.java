@@ -8,6 +8,7 @@ import org.dflib.jjava.kernel.magics.ClasspathMagic;
 import org.dflib.jjava.kernel.magics.JarsMagic;
 import org.dflib.jjava.kernel.magics.LoadCodeMagic;
 import org.dfllib.jjava.maven.MavenDependencyResolver;
+import org.dfllib.jjava.maven.magics.AddMavenDependencyMagic;
 import org.dfllib.jjava.maven.magics.LoadFromPomCellMagic;
 import org.dfllib.jjava.maven.magics.LoadFromPomLineMagic;
 import org.dfllib.jjava.maven.magics.MavenMagic;
@@ -62,8 +63,11 @@ public class JJava {
                 .lineMagic("maven", new MavenMagic(mavenResolver))
                 .lineMagic("mavenRepo", new MavenRepoMagic(mavenResolver))
                 .lineMagic("loadFromPOM", new LoadFromPomLineMagic(mavenResolver))
-                .lineMagic("jars", new JarsMagic()) // TODO: deprecate redundant "jars" alias; "classpath" is a superset of this
-                .lineMagic("addMavenDependency", new MavenMagic(mavenResolver)) // TODO: deprecate redundant "addMavenDependency" alias
+
+                // temporarily support a few deprecated magics
+                .lineMagic("jars", new JarsMagic())
+                .lineMagic("addMavenDependency", new AddMavenDependencyMagic(mavenResolver))
+
                 .cellMagic("loadFromPOM", new LoadFromPomCellMagic(mavenResolver))
 
                 .build();

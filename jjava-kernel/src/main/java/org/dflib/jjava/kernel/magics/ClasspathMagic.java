@@ -1,34 +1,23 @@
 package org.dflib.jjava.kernel.magics;
 
-import org.dflib.jjava.kernel.JavaKernel;
 import org.dflib.jjava.jupyter.kernel.magic.LineMagic;
-import org.dflib.jjava.jupyter.kernel.util.GlobFinder;
+import org.dflib.jjava.jupyter.kernel.util.PathsHandler;
+import org.dflib.jjava.kernel.JavaKernel;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 public class ClasspathMagic implements LineMagic<String, JavaKernel> {
 
     @Override
     public String eval(JavaKernel kernel, List<String> args) {
         String classpath = args.stream()
-                .flatMap(a -> StreamSupport.stream(resolveGlob(a).spliterator(), false))
+                .flatMap(a -> PathsHandler.resolveGlobs(a).stream())
                 .map(p -> p.toAbsolutePath().toString())
                 .collect(Collectors.joining(File.pathSeparator));
 
         kernel.addToClasspath(classpath);
         return classpath;
-    }
-
-    private static Iterable<Path> resolveGlob(String jarArg) {
-        try {
-            return new GlobFinder(jarArg).computeMatchingPaths();
-        } catch (IOException e) {
-            throw new RuntimeException("Exception resolving jar glob", e);
-        }
     }
 }

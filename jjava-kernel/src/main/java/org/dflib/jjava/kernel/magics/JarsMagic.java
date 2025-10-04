@@ -1,36 +1,19 @@
 package org.dflib.jjava.kernel.magics;
 
 import org.dflib.jjava.kernel.JavaKernel;
-import org.dflib.jjava.jupyter.kernel.magic.LineMagic;
-import org.dflib.jjava.jupyter.kernel.util.GlobFinder;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Path;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
-// TODO: this is a subset of ClasspathMagic. The only difference is calling "computeMatchingFiles()" instead of
-//  "computeMatchingPaths()". Deprecate in favor of "classpath"?
-public class JarsMagic implements LineMagic<String, JavaKernel> {
+/**
+ * @deprecated in favor of {@link ClasspathMagic}
+ */
+@Deprecated(since = "1.0", forRemoval = true)
+public class JarsMagic extends ClasspathMagic {
 
     @Override
     public String eval(JavaKernel kernel, List<String> args) {
-        String classpath = args.stream()
-                .flatMap(a -> StreamSupport.stream(resolveGlob(a).spliterator(), false))
-                .map(p -> p.toAbsolutePath().toString())
-                .collect(Collectors.joining(File.pathSeparator));
-
-        kernel.addToClasspath(classpath);
-        return classpath;
-    }
-
-    private static Iterable<Path> resolveGlob(String jarArg) {
-        try {
-            return new GlobFinder(jarArg).computeMatchingFiles();
-        } catch (IOException e) {
-            throw new RuntimeException("Exception resolving jar glob", e);
-        }
+        System.err.println("'%jars' magic is deprecated and will be removed in the future versions of JJava. " +
+                "A more generic '%classpath' magic should be used in its place.");
+        return super.eval(kernel, args);
     }
 }

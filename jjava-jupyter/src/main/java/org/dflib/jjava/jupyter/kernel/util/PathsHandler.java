@@ -2,6 +2,7 @@ package org.dflib.jjava.jupyter.kernel.util;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -10,7 +11,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
- * Helper methods to split paths and resolve globs.
+ * Helper methods to split and join paths and resolve glob patterns.
  */
 public class PathsHandler {
 
@@ -41,12 +42,7 @@ public class PathsHandler {
                 continue;
             }
 
-            Iterable<Path> subPaths;
-            try {
-                subPaths = new GlobFinder(p).computeMatchingPaths();
-            } catch (IOException e) {
-                throw new RuntimeException(String.format("Error computing classpath entries for '%s': %s", p, e.getMessage()), e);
-            }
+            List<Path> subPaths = resolveGlobs(p);
 
             for (Path entry : subPaths) {
                 result.add(entry);
@@ -54,5 +50,13 @@ public class PathsHandler {
         }
 
         return result;
+    }
+
+    public static List<Path> resolveGlobs(String path) {
+        try {
+            return new GlobResolver(FileSystems.getDefault(), path).resolve();
+        } catch (IOException e) {
+            throw new RuntimeException(String.format("Error resolving glob '%s': %s", path, e.getMessage()), e);
+        }
     }
 }
