@@ -18,7 +18,7 @@ public class AddMavenDependencyMagic extends MavenMagic {
     @Override
     public List<String> eval(JavaKernel kernel, List<String> args) {
         System.err.println("'%addMavenDependency' magic is deprecated and will be removed in the future versions of JJava. " +
-                "'%maven' magic should be used in its place.");
+                "'%maven' should be used in its place.");
         return super.eval(kernel, args);
     }
 }

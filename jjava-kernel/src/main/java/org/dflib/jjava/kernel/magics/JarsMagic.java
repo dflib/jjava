@@ -13,7 +13,7 @@ public class JarsMagic extends ClasspathMagic {
     @Override
     public String eval(JavaKernel kernel, List<String> args) {
         System.err.println("'%jars' magic is deprecated and will be removed in the future versions of JJava. " +
-                "A more generic '%classpath' magic should be used in its place.");
+                "A more generic '%classpath' should be used in its place.");
         return super.eval(kernel, args);
     }
 }
