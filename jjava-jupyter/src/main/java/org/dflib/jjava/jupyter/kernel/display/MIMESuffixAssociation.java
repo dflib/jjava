@@ -4,7 +4,6 @@ import org.dflib.jjava.jupyter.kernel.display.mime.MIMEType;
 
 @FunctionalInterface
 public interface MIMESuffixAssociation {
-    static final MIMESuffixAssociation NONE = s -> null;
 
     /**
      * Returns the delegate MIME type associated with a suffix. For example the

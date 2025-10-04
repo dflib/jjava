@@ -66,9 +66,7 @@ public class MIMEType {
      * </ol>
      *
      * @param raw the MIME type represented by a string
-     *
      * @return the {@link MIMEType} represented by the string
-     *
      * @throws MIMETypeParseException if the string representation doesn't match
      *                                the specification
      */
@@ -191,44 +189,6 @@ public class MIMEType {
 
     public boolean isWildcard() {
         return WILDCARD.equals(this.group);
-    }
-
-    public boolean groupEquals(String group) {
-        return this.getGroup().equalsIgnoreCase(group);
-    }
-
-    public boolean treeEquals(String tree) {
-        return this.hasTree()
-                ? this.getTree().equalsIgnoreCase(tree)
-                : tree == null;
-    }
-
-    public boolean subtypeEquals(String subtype) {
-        return this.hasSubtype()
-                ? this.getSubtype().equalsIgnoreCase(subtype)
-                : subtype == null;
-    }
-
-    public boolean suffixEquals(String suffix) {
-        return this.hasSuffix()
-                ? this.getSuffix().equalsIgnoreCase(suffix)
-                : suffix == null;
-    }
-
-    public boolean hasSameGroupAs(MIMEType other) {
-        return this.getGroup().equals(other.getGroup());
-    }
-
-    public boolean hasSameTreeAs(MIMEType other) {
-        return Objects.equals(this.getTree(), other.getTree());
-    }
-
-    public boolean hasSameSubtypeAs(MIMEType other) {
-        return Objects.equals(this.getSubtype(), other.getSubtype());
-    }
-
-    public boolean hasSameSuffixAs(MIMEType other) {
-        return Objects.equals(this.getSuffix(), other.getSubtype());
     }
 
     @Override

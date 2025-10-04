@@ -1,6 +1,7 @@
 package org.dflib.jjava.jupyter.kernel.display.mime;
 
 public class MIMETypeParseException extends RuntimeException {
+
     private final String raw;
     private final int position;
     private final String problem;
