@@ -5,7 +5,7 @@ import org.dflib.jjava.jupyter.messages.comm.CommOpenCommand;
 
 @FunctionalInterface
 public interface CommTarget {
-    
+
     /**
      * Create a new comm as a result of the frontend making a {@code comm_open} request. This
      * is designed to be a constructor reference to a class that extends {@link Comm} overriding
