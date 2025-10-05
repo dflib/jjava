@@ -7,6 +7,7 @@ import org.dflib.jjava.kernel.JavaKernel;
 import org.dflib.jjava.kernel.magics.ClasspathMagic;
 import org.dflib.jjava.kernel.magics.JarsMagic;
 import org.dflib.jjava.kernel.magics.LoadCodeMagic;
+import org.dflib.jjava.kernel.magics.LoggingMagic;
 import org.dfllib.jjava.maven.MavenDependencyResolver;
 import org.dfllib.jjava.maven.magics.AddMavenDependencyMagic;
 import org.dfllib.jjava.maven.magics.LoadFromPomCellMagic;
@@ -58,8 +59,10 @@ public class JJava {
                 .extraClasspath(Env.extraClasspath())
                 .timeout(Env.timeout())
 
+                .lineMagic("log", new LoggingMagic())
                 .lineMagic("load", new LoadCodeMagic("", ".jsh", ".jshell", ".java", ".jjava"))
                 .lineMagic("classpath", new ClasspathMagic())
+                // IPython-compatible logging commands
                 .lineMagic("maven", new MavenMagic(mavenResolver))
                 .lineMagic("mavenRepo", new MavenRepoMagic(mavenResolver))
                 .lineMagic("loadFromPOM", new LoadFromPomLineMagic(mavenResolver))
@@ -69,7 +72,6 @@ public class JJava {
                 .lineMagic("addMavenDependency", new AddMavenDependencyMagic(mavenResolver))
 
                 .cellMagic("loadFromPOM", new LoadFromPomCellMagic(mavenResolver))
-
                 .build();
 
         kernel.becomeHandlerForConnection(connection);
