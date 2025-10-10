@@ -78,6 +78,7 @@ public class JavaKernel extends BaseKernel {
             MagicParser magicParser,
             MagicsRegistry magicsRegistry,
             ExtensionLoader extensionLoader,
+            List<String> extraClasspath,
             boolean extensionsEnabled,
             StringStyler errorStyler,
             JShell jShell,
@@ -103,6 +104,7 @@ public class JavaKernel extends BaseKernel {
 
         if (extensionsEnabled) {
             this.extensionLoader.loadFromClasspath().forEach(e -> e.install(this));
+            this.extensionLoader.loadFromJars(extraClasspath).forEach(e -> e.install(this));
         }
     }
 
@@ -373,7 +375,7 @@ public class JavaKernel extends BaseKernel {
             LanguageInfo langInfo = buildLanguageInfo();
             MagicTranspiler magicTranspiler = buildMagicTranspiler();
 
-            JavaKernel kernel = new JavaKernel(
+            return new JavaKernel(
                     name,
                     buildVersion(),
                     langInfo,
@@ -385,13 +387,12 @@ public class JavaKernel extends BaseKernel {
                     buildMagicParser(magicTranspiler),
                     buildMagicsRegistry(),
                     buildExtensionLoader(),
+                    buildExtraClasspath(),
                     buildExtensionsEnabled(),
                     buildErrorStyler(),
                     jShell,
                     buildCodeEvaluator(jShell, jShellExecutionControlProvider)
             );
-            loadExtensions(kernel);
-            return kernel;
         }
 
         protected List<HelpLink> buildHelpLinks() {
@@ -401,9 +402,9 @@ public class JavaKernel extends BaseKernel {
             );
         }
 
-        private void loadExtensions(JavaKernel kernel) {
-            if (extraClasspath.isEmpty() || !kernel.extensionsEnabled) {
-                return;
+        private List<String> buildExtraClasspath() {
+            if (extraClasspath.isEmpty()) {
+                return List.of();
             }
 
             List<String> resolvedPaths = new ArrayList<>();
@@ -418,8 +419,7 @@ public class JavaKernel extends BaseKernel {
                     throw new RuntimeException(String.format("Error computing classpath entries for '%s': %s", cp, e.getMessage()), e);
                 }
             }
-
-            kernel.extensionLoader.loadFromJars(resolvedPaths).forEach(e -> e.install(kernel));
+            return resolvedPaths;
         }
     }
 }
