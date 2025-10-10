@@ -8,7 +8,7 @@ import java.util.function.BiConsumer;
 
 @FunctionalInterface
 public interface DisplayDataRenderable {
-    static Set<MIMEType> ANY = Collections.singleton(MIMEType.ANY);
+    Set<MIMEType> ANY = Collections.singleton(MIMEType.ANY);
 
     /**
      * Specifies a set of {@link MIMEType}s that this class may be rendered as.
@@ -25,7 +25,7 @@ public interface DisplayDataRenderable {
      *
      * @return The set of {@link MIMEType}s that this object can be rendered as.
      */
-    public default Set<MIMEType> getSupportedRenderTypes() {
+    default Set<MIMEType> getSupportedRenderTypes() {
         return DisplayDataRenderable.ANY;
     }
 
@@ -39,9 +39,9 @@ public interface DisplayDataRenderable {
      * be {@code "application/json"}.
      *
      * @return a set of {@link MIMEType}s that this class
-     *         prefers to be rendered as.
+     * prefers to be rendered as.
      */
-    public default Set<MIMEType> getPreferredRenderTypes() {
+    default Set<MIMEType> getPreferredRenderTypes() {
         return this.getSupportedRenderTypes();
     }
 
@@ -76,5 +76,5 @@ public interface DisplayDataRenderable {
      *
      * @param context the context that the render is taking place in.
      */
-    public void render(RenderContext context);
+    void render(RenderContext context);
 }

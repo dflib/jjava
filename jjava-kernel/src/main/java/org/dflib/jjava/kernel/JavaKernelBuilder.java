@@ -5,12 +5,11 @@ import org.dflib.jjava.jupyter.kernel.BaseKernelBuilder;
 import org.dflib.jjava.jupyter.kernel.LanguageInfo;
 import org.dflib.jjava.jupyter.kernel.magic.MagicParser;
 import org.dflib.jjava.jupyter.kernel.magic.MagicTranspiler;
-import org.dflib.jjava.jupyter.kernel.util.GlobFinder;
+import org.dflib.jjava.jupyter.kernel.util.PathsHandler;
 import org.dflib.jjava.kernel.execution.CodeEvaluator;
 import org.dflib.jjava.kernel.execution.JJavaExecutionControlProvider;
 
-import java.io.IOException;
-import java.nio.file.Path;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -29,13 +28,12 @@ public abstract class JavaKernelBuilder<
     protected String timeout;
     protected final List<String> startupSnippets;
     protected final List<String> compilerOpts;
-    protected final List<String> extraClasspath;
+    protected String extraClasspath;
 
     protected JavaKernelBuilder() {
         this.jShellExecControlID = UUID.randomUUID().toString();
         this.startupSnippets = new ArrayList<>();
         this.compilerOpts = new ArrayList<>();
-        this.extraClasspath = new ArrayList<>();
     }
 
     public B jShellExecControlProvider(JJavaExecutionControlProvider jShellExecControlProvider) {
@@ -56,8 +54,13 @@ public abstract class JavaKernelBuilder<
         return (B) this;
     }
 
-    public B extraClasspath(Iterable<String> cp) {
-        cp.forEach(this.extraClasspath::add);
+    public B extraClasspath(String classpath) {
+        if (classpath != null && !classpath.isEmpty()) {
+            this.extraClasspath = this.extraClasspath != null
+                    ? this.extraClasspath + File.pathSeparator + classpath
+                    : classpath;
+        }
+
         return (B) this;
     }
 
@@ -90,24 +93,13 @@ public abstract class JavaKernelBuilder<
                 .compilerOptions(compilerOpts.toArray(new String[0]))
                 .build();
 
-        for (String cp : extraClasspath) {
+        if (extraClasspath != null) {
 
-            if (cp.isBlank()) {
-                continue;
-            }
+            String extraClasspathResolved = PathsHandler.joinPaths(PathsHandler.splitAndResolveGlobs(extraClasspath));
 
-            Iterable<Path> paths;
-            try {
-                paths = new GlobFinder(cp).computeMatchingPaths();
-            } catch (IOException e) {
-                throw new RuntimeException(String.format("Error computing classpath entries for '%s': %s", cp, e.getMessage()), e);
-            }
-
-            for (Path entry : paths) {
-                // TODO: not loading JJava extensions from classpath here.
-                //  Is this the cause of https://github.com/dflib/jjava/issues/71 ?
-                shell.addToClasspath(entry.toAbsolutePath().toString());
-            }
+            // TODO: not loading JJava extensions from classpath here.
+            //  Is this the cause of https://github.com/dflib/jjava/issues/71 ?
+            shell.addToClasspath(extraClasspathResolved);
         }
 
         return shell;

@@ -1,6 +1,7 @@
 package org.dflib.jjava.jupyter;
 
 import org.dflib.jjava.jupyter.kernel.BaseKernel;
+import org.dflib.jjava.jupyter.kernel.util.PathsHandler;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -12,7 +13,6 @@ import java.util.List;
 import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 /**
  * This class is responsible for discovering and initializing a set of {@link Extension} instances.
@@ -35,24 +35,28 @@ public final class ExtensionLoader {
     }
 
     /**
-     * Loads available {@code Extension} implementations and initializes them. Calls should manually invoke
-     * {@link Extension#install(BaseKernel)} to initialize extension. This method performs discovery of extension
-     * classes based on a {@link ServiceLoader} API, using the kernel default ClassLoader
+     * Locates and loads {@code Extension} implementations. Extension classes discovery is performed with
+     * {@link ServiceLoader}, using the kernel's default ClassLoader. Callers should manually invoke
+     * {@link Extension#install(BaseKernel)} to initialize each extension.
+     *
+     * @return a list of the discovered extensions
      */
-    public List<Extension> loadFromClasspath() {
+    public List<Extension> loadFromDefaultClasspath() {
         return load(getClass().getClassLoader());
     }
 
     /**
-     * Loads available {@code Extension} implementations and initializes them. Calls should manually invoke
-     * {@link Extension#install(BaseKernel)} to initialize extension. This method performs discovery of extension
-     * classes based on a {@link ServiceLoader} API, but only scanning the specified jars, not the entire classpath.
+     * Locates and loads {@code Extension} implementations. Extension classes discovery is performed with
+     * {@link ServiceLoader}, only scanning the locations present in the classpath argument, not the entire classpath.
+     * Callers should invoke {@link Extension#install(BaseKernel)} to initialize each extension.
      *
-     * @param jarPaths paths to jar files to scan for extensions
-     * @return list of the available extensions
+     * @param classpath one or more filesystem paths separated by {@link java.io.File#pathSeparator}.
+     * @return a list of the discovered extensions
      */
-    public List<Extension> loadFromJars(Iterable<String> jarPaths) {
-        URL[] urls = StreamSupport.stream(jarPaths.spliterator(), false)
+    public List<Extension> loadFromClasspath(String classpath) {
+
+        URL[] urls = PathsHandler.split(classpath)
+                .stream()
                 .map(ExtensionLoader::toURL)
                 .toArray(URL[]::new);
 

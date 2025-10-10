@@ -28,13 +28,11 @@ import org.dflib.jjava.jupyter.kernel.magic.MagicParser;
 import org.dflib.jjava.jupyter.kernel.magic.MagicsRegistry;
 import org.dflib.jjava.jupyter.kernel.util.CharPredicate;
 import org.dflib.jjava.jupyter.kernel.util.StringStyler;
-import org.dflib.jjava.jupyter.kernel.util.GlobFinder;
 
-import java.io.IOException;
 import java.nio.charset.Charset;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -78,7 +76,7 @@ public class JavaKernel extends BaseKernel {
             MagicParser magicParser,
             MagicsRegistry magicsRegistry,
             ExtensionLoader extensionLoader,
-            List<String> extraClasspath,
+            String extraClasspath,
             boolean extensionsEnabled,
             StringStyler errorStyler,
             JShell jShell,
@@ -103,22 +101,24 @@ public class JavaKernel extends BaseKernel {
         this.evaluator = evaluator;
 
         if (extensionsEnabled) {
-            this.extensionLoader.loadFromClasspath().forEach(e -> e.install(this));
-            this.extensionLoader.loadFromJars(extraClasspath).forEach(e -> e.install(this));
+            this.extensionLoader.loadFromDefaultClasspath().forEach(e -> e.install(this));
+            if (extraClasspath != null) {
+                this.extensionLoader.loadFromClasspath(extraClasspath).forEach(e -> e.install(this));
+            }
         }
     }
 
     /**
-     * Adds multiple classpath entries to the JShell classpath and triggers extension loading for them.
+     * Adds a collection of paths to the JShell classpath and triggers extension loading for the extra classpath.
+     *
+     * @param classpath one or more filesystem paths separated by {@link java.io.File#pathSeparator}.
      */
-    public void addToClasspath(Iterable<String> paths) {
-        paths.forEach(jShell::addToClasspath);
-
-        // Need to "addToClasspath" all entries in a collection before we can install any extensions, as an extension
-        // may depend on other entries in the collection
+    public void addToClasspath(String classpath) {
+        Objects.requireNonNull(classpath, "Null classpath");
+        jShell.addToClasspath(classpath);
 
         if (extensionsEnabled) {
-            extensionLoader.loadFromJars(paths).forEach(e -> e.install(this));
+            extensionLoader.loadFromClasspath(classpath).forEach(e -> e.install(this));
         }
     }
 
@@ -402,24 +402,8 @@ public class JavaKernel extends BaseKernel {
             );
         }
 
-        private List<String> buildExtraClasspath() {
-            if (extraClasspath.isEmpty()) {
-                return List.of();
-            }
-
-            List<String> resolvedPaths = new ArrayList<>();
-            for (String cp : extraClasspath) {
-                if (cp == null || cp.isBlank()) {
-                    continue;
-                }
-                try {
-                    Iterable<Path> paths = new GlobFinder(cp).computeMatchingPaths();
-                    paths.forEach(p -> resolvedPaths.add(p.toAbsolutePath().toString()));
-                } catch (IOException e) {
-                    throw new RuntimeException(String.format("Error computing classpath entries for '%s': %s", cp, e.getMessage()), e);
-                }
-            }
-            return resolvedPaths;
+        private String buildExtraClasspath() {
+            return extraClasspath;
         }
     }
 }

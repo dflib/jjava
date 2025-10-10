@@ -12,13 +12,6 @@ public class HistoryEntry {
      */
     protected final String output;
 
-    public HistoryEntry(int session, int cellNumber, String input) {
-        this.session = session;
-        this.cellNumber = cellNumber;
-        this.input = input;
-        this.output = null;
-    }
-
     public HistoryEntry(int session, int cellNumber, String input, String output) {
         this.session = session;
         this.cellNumber = cellNumber;

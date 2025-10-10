@@ -8,6 +8,7 @@ import org.apache.maven.model.Model;
 import org.apache.maven.model.building.DefaultModelBuilderFactory;
 import org.apache.maven.model.building.ModelBuilder;
 import org.apache.maven.model.building.ModelBuildingRequest;
+import org.dflib.jjava.jupyter.kernel.util.PathsHandler;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.artifact.DefaultArtifact;
@@ -23,7 +24,6 @@ import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,6 +39,7 @@ public class MavenDependencyResolver {
     /**
      * Ivy artifact coordinates in the form organization#name[#branch];revision.
      */
+    @Deprecated(since = "1.0", forRemoval = true)
     private static final Pattern IVY_MRID_PATTERN = Pattern.compile(
             "^(?<organization>[-\\w/._+=]*)#(?<name>[-\\w/._+=]+)(?:#(?<branch>[-\\w/._+=]+))?;(?<revision>[-\\w/._+=,\\[\\]{}():@]+)$"
     );
@@ -49,13 +50,20 @@ public class MavenDependencyResolver {
 
     private static Artifact parseArtifact(String coordinates) {
         Matcher ivyMatcher = IVY_MRID_PATTERN.matcher(coordinates);
-        if (ivyMatcher.matches()) {
-            String organization = ivyMatcher.group("organization");
-            String name = ivyMatcher.group("name");
-            String revision = ivyMatcher.group("revision");
-            return new DefaultArtifact(organization, name, "jar", revision);
-        }
-        return new DefaultArtifact(coordinates);
+        return ivyMatcher.matches() ? parseIvyArtifact(ivyMatcher, coordinates) : new DefaultArtifact(coordinates);
+    }
+
+    @Deprecated(since = "1.0", forRemoval = true)
+    private static Artifact parseIvyArtifact(Matcher matcher, String coordinates) {
+        System.err.println("Detected Ivy artifact syntax in the '%maven' magic arguments: '"
+                + coordinates
+                + "'. Support for it is deprecated and will be removed in the future versions of JJava. "
+                + "Use Maven colon-separated syntax instead");
+
+        String organization = matcher.group("organization");
+        String name = matcher.group("name");
+        String revision = matcher.group("revision");
+        return new DefaultArtifact(organization, name, "jar", revision);
     }
 
     private final List<RemoteRepository> repositories;
@@ -126,8 +134,8 @@ public class MavenDependencyResolver {
             PreorderNodeListGenerator nlg = new PreorderNodeListGenerator();
             rootNode.accept(nlg);
 
-            String classpath = nlg.getClassPath();
-            return Arrays.stream(classpath.split(File.pathSeparator))
+            return PathsHandler.split(nlg.getClassPath())
+                    .stream()
                     .map(File::new)
                     .map(File::getAbsolutePath)
                     .collect(Collectors.toList());

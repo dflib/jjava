@@ -10,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class KernelMagicIT extends ContainerizedKernelCase {
 
+    @Deprecated
     @Test
     public void jars() throws Exception {
         String jar = CONTAINER_RESOURCES + "/jakarta.annotation-api-3.0.0.jar";
@@ -45,7 +46,7 @@ public class KernelMagicIT extends ContainerizedKernelCase {
     }
 
     @Test
-    public void addMavenDependency() throws Exception {
+    public void maven() throws Exception {
         String snippet = String.join("\n",
                 "%maven org.dflib:dflib-jupyter:1.0.0-RC1",
                 "System.getProperty(\"java.class.path\")"
@@ -56,8 +57,9 @@ public class KernelMagicIT extends ContainerizedKernelCase {
         assertThat(snippetResult.getStdout(), containsString("dflib-jupyter-1.0.0-RC1.jar"));
     }
 
+    @Deprecated
     @Test
-    public void addIvyDependency() throws Exception {
+    public void mavenIvySyntax() throws Exception {
         String snippet = String.join("\n",
                 "%maven jakarta.annotation#jakarta.annotation-api;3.0.0",
                 "System.getProperty(\"java.class.path\")"

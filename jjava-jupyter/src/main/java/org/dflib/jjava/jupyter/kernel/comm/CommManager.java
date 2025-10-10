@@ -59,7 +59,7 @@ public class CommManager implements Iterable<Comm> {
 
     /**
      * Register a new comm that this manager should forward messages to in the event that
-     * it receives one addressed to a comm with the the {@code comm}'s id.
+     * it receives one addressed to a comm with the {@code comm}'s id.
      *
      * @param comm the comm to register with this handler
      */
@@ -195,7 +195,7 @@ public class CommManager implements Iterable<Comm> {
     }
 
     // Default comm message handlers. These shouldn't need to be overridden but are more like
-    // lambda targets that capture this comm manager in it's scope.
+    // lambda targets that capture this comm manager in its scope.
 
     public void handleCommOpenCommand(ReplyEnvironment env, Message<CommOpenCommand> commOpenCommandMessage) {
         CommOpenCommand openCommand = commOpenCommandMessage.getContent();

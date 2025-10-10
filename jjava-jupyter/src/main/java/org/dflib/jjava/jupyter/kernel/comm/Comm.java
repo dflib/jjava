@@ -16,11 +16,7 @@ public abstract class Comm {
 
     private boolean closed = false;
 
-    public Comm(CommManager manager, String id, String targetName) {
-        this(manager, id, targetName, null);
-    }
-
-    public Comm(CommManager manager, String id, String targetName, JsonElement initializationData) {
+    protected Comm(CommManager manager, String id, String targetName) {
         this.manager = manager;
         this.id = id;
         this.targetName = targetName;
@@ -47,7 +43,7 @@ public abstract class Comm {
     }
 
     /**
-     * A callback for when the kernel receives a message who's destination is
+     * A callback for when the kernel receives a message whose destination is
      * this comm. This handler gets access to the entire message so that if desired
      * the comms may make use of the low level blob segments or want to make use of
      * the parent, identities, etc.
