@@ -71,10 +71,10 @@ public class JJava {
 
                 .build();
 
-        // this inits built-in Extensions
+        // install built-in Extensions
         kernel.onStartup();
 
-        // adds custom jars to classpath, loads Extensions from them
+        // add custom locations to JShell classpath, look for Extensions there, load and install them
         kernel.addToClasspath(Env.extraClasspath());
 
         // connect to Jupyter
