@@ -1,64 +1,64 @@
 ## 1.0-a6
 
-- #68 CompilationException doesn't provide any information about the underlying problem
-- #69 Expose EvalException details
-- #71 Extension loading from classpath
-- #72 Magic parser - handling escapes and empty strings
-- #75 Completion of % and %% magics
-- #77 Relicense under Apache License
-- #78 Remove deprecated API and IJava startup vars
-- #79 Remove unused magics
-- #80 Magics as interfaces
-- #81 Refactoring: JavaKernel must manage JShell
-- #82 Refactoring: Move JavaKernel init logic from constructor to Builder
-- #83 Simplify Kernel metadata loading approach
-- #84 Refactoring: reorg Maven modules for reusability
-- #86 ineffecient / incorrect classpath handling
-- #89 Deprecate redundant magics: %jars, %addMavenDependency
-- #90 Deprecate Ivy artifact syntax for %maven magic
-- #93 Extensions / kernel lifecycle
+* #68 CompilationException doesn't provide any information about the underlying problem
+* #69 Expose EvalException details
+* #71 Extension loading from classpath
+* #72 Magic parser - handling escapes and empty strings
+* #75 Completion of % and %% magics
+* #77 Relicense under Apache License
+* #78 Remove deprecated API and IJava startup vars
+* #79 Remove unused magics
+* #80 Magics as interfaces
+* #81 Refactoring: JavaKernel must manage JShell
+* #82 Refactoring: Move JavaKernel init logic from constructor to Builder
+* #83 Simplify Kernel metadata loading approach
+* #84 Refactoring: reorg Maven modules for reusability
+* #86 ineffecient / incorrect classpath handling
+* #89 Deprecate redundant magics: %jars, %addMavenDependency
+* #90 Deprecate Ivy artifact syntax for %maven magic
+* #93 Extensions / kernel lifecycle
 
 ## 1.0-a5
 
-- #23 Port dependency management from Ivy to Maven 
-- #52 Homebrew: unable to install package 
-- #55 Working on POM in SNAPSHOT mode fails to work properly due to .ivy2 cache 
-- #57 Black error message in dark mode (e.g. VSCode) not easily readable
-- #59 BaseKernel.eval(..) should not declare a checked exception
-- #64 Notebook hangs when a static method signature is redefined
+* #23 Port dependency management from Ivy to Maven 
+* #52 Homebrew: unable to install package 
+* #55 Working on POM in SNAPSHOT mode fails to work properly due to .ivy2 cache 
+* #57 Black error message in dark mode (e.g. VSCode) not easily readable
+* #59 BaseKernel.eval(..) should not declare a checked exception
+* #64 Notebook hangs when a static method signature is redefined
 
 ## 1.0-a4
 
-- #35 Replace custom installer with "jupyter kernelspec install" 
-- #39 Convert the default init script to an extension 
-- #40 Add "java.time" to the list of default imports
-- #45 Publish jjava as a pip package
-- #46 Publish jjava as a Homebrew package
+* #35 Replace custom installer with "jupyter kernelspec install" 
+* #39 Convert the default init script to an extension 
+* #40 Add "java.time" to the list of default imports
+* #45 Publish jjava as a pip package
+* #46 Publish jjava as a Homebrew package
 
 ## 1.0-M3
 
-- #27 Add direct access to JShell
-- #28 Auto-bootstrap of kernel-aware libraries 
-- #29 Incorrect classpath displayed in the environment 
-- #30 DFLib / Parquet and Avro classpath issues 
-- #31 An older jar is used instead of the one indicated in %%loadFromPOM 
-- #33 Internalize dependency on `jupyter-jvm-basekernel` 
-- #36 Extract and publish JJava API library
+* #27 Add direct access to JShell
+* #28 Auto-bootstrap of kernel-aware libraries 
+* #29 Incorrect classpath displayed in the environment 
+* #30 DFLib / Parquet and Avro classpath issues 
+* #31 An older jar is used instead of the one indicated in %%loadFromPOM 
+* #33 Internalize dependency on `jupyter-jvm-basekernel` 
+* #36 Extract and publish JJava API library
 
 ## 1.0-M2
 
-- #5 Switch project to Maven 
-- #7 Project renaming
-- #8 Java package change 
-- #11 Enable GitHub Actions 
-- #12 Dynamically change the kernel startup parameters
-- #16 Upgrade gson transitive dependency 
-- #21 Rendering stale var
-- #22 Clean implementation of the LoaderDelegate
+* #5 Switch project to Maven 
+* #7 Project renaming
+* #8 Java package change 
+* #11 Enable GitHub Actions 
+* #12 Dynamically change the kernel startup parameters
+* #16 Upgrade gson transitive dependency 
+* #21 Rendering stale var
+* #22 Clean implementation of the LoaderDelegate
 
 ## 1.0-M1
 
-- #1 Upgrade to Gradle 8.5
-- #2 Update Ivy to 2.5.2
-- #3 Remove usage of the `io.github.spencerpark.jupyter-kernel-installer` plugin
-- #4 Fix memory leak
+* #1 Upgrade to Gradle 8.5
+* #2 Update Ivy to 2.5.2
+* #3 Remove usage of the `io.github.spencerpark.jupyter-kernel-installer` plugin
+* #4 Fix memory leak
