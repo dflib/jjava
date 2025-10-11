@@ -122,7 +122,7 @@ public class Renderer {
         }));
     }
 
-    private static DisplayData finalizeDisplayData(DisplayData data, Object value) {
+    protected DisplayData finalizeDisplayData(DisplayData data, Object value) {
         if (!data.hasDataForType(MIMEType.TEXT_PLAIN))
             data.putText(String.valueOf(value));
 

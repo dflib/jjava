@@ -364,7 +364,7 @@ public abstract class BaseKernel {
         });
     }
 
-    private synchronized void handleExecuteRequest(ShellReplyEnvironment env, Message<ExecuteRequest> executeRequestMessage) {
+    protected synchronized void handleExecuteRequest(ShellReplyEnvironment env, Message<ExecuteRequest> executeRequestMessage) {
         commManager.setMessageContext(executeRequestMessage);
 
         ExecuteRequest request = executeRequestMessage.getContent();
@@ -398,7 +398,7 @@ public abstract class BaseKernel {
         }
     }
 
-    private void handleInspectRequest(ShellReplyEnvironment env, Message<InspectRequest> inspectRequestMessage) {
+    protected void handleInspectRequest(ShellReplyEnvironment env, Message<InspectRequest> inspectRequestMessage) {
         InspectRequest request = inspectRequestMessage.getContent();
         env.setBusyDeferIdle();
         try {
@@ -409,7 +409,7 @@ public abstract class BaseKernel {
         }
     }
 
-    private void handleCompleteRequest(ShellReplyEnvironment env, Message<CompleteRequest> completeRequestMessage) {
+    protected void handleCompleteRequest(ShellReplyEnvironment env, Message<CompleteRequest> completeRequestMessage) {
         CompleteRequest request = completeRequestMessage.getContent();
         env.setBusyDeferIdle();
         try {
@@ -423,7 +423,7 @@ public abstract class BaseKernel {
         }
     }
 
-    private void handleHistoryRequest(ShellReplyEnvironment env, Message<HistoryRequest> historyRequestMessage) {
+    protected void handleHistoryRequest(ShellReplyEnvironment env, Message<HistoryRequest> historyRequestMessage) {
         // If the manager is unset, short circuit and skip this message
         HistoryManager manager = this.getHistoryManager();
         if (manager == null) {
@@ -459,7 +459,7 @@ public abstract class BaseKernel {
         }
     }
 
-    private void handleIsCodeCompeteRequest(ShellReplyEnvironment env, Message<IsCompleteRequest> isCompleteRequestMessage) {
+    protected void handleIsCodeCompeteRequest(ShellReplyEnvironment env, Message<IsCompleteRequest> isCompleteRequestMessage) {
         IsCompleteRequest request = isCompleteRequestMessage.getContent();
         env.setBusyDeferIdle();
 
@@ -483,7 +483,7 @@ public abstract class BaseKernel {
         env.reply(reply);
     }
 
-    private void handleKernelInfoRequest(ShellReplyEnvironment env, Message<KernelInfoRequest> kernelInfoRequestMessage) {
+    protected void handleKernelInfoRequest(ShellReplyEnvironment env, Message<KernelInfoRequest> kernelInfoRequestMessage) {
         env.setBusyDeferIdle();
         env.reply(new KernelInfoReply(
                         Header.PROTOCOL_VERISON,
@@ -496,7 +496,7 @@ public abstract class BaseKernel {
         );
     }
 
-    private void handleShutdownRequest(ShellReplyEnvironment env, Message<ShutdownRequest> shutdownRequestMessage) {
+    protected void handleShutdownRequest(ShellReplyEnvironment env, Message<ShutdownRequest> shutdownRequestMessage) {
         ShutdownRequest request = shutdownRequestMessage.getContent();
         env.setBusyDeferIdle();
 
@@ -509,7 +509,7 @@ public abstract class BaseKernel {
         env.markForShutdown();
     }
 
-    private void handleInterruptRequest(ShellReplyEnvironment env, Message<InterruptRequest> interruptRequestMessage) {
+    protected void handleInterruptRequest(ShellReplyEnvironment env, Message<InterruptRequest> interruptRequestMessage) {
         env.setBusyDeferIdle();
         env.defer().reply(new InterruptReply());
 
