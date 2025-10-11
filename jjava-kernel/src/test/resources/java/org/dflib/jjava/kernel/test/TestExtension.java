@@ -2,6 +2,7 @@ package org.dflib.jjava.kernel.test;
 
 import org.dflib.jjava.jupyter.Extension;
 import org.dflib.jjava.jupyter.kernel.BaseKernel;
+import org.dflib.jjava.kernel.JavaNotebookStatics;
 
 public class TestExtension implements Extension {
 
@@ -15,5 +16,11 @@ public class TestExtension implements Extension {
         } catch (NumberFormatException e) {
             System.setProperty(key, "1");
         }
+    }
+
+    @Override
+    public void uninstall(BaseKernel kernel) {
+        String key = "ext.installs:" + getClass().getName();
+        System.clearProperty(key);
     }
 }

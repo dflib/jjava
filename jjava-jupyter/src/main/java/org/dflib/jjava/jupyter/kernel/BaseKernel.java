@@ -1,6 +1,6 @@
 package org.dflib.jjava.jupyter.kernel;
 
-import org.dflib.jjava.jupyter.ExtensionLoader;
+import org.dflib.jjava.jupyter.Extension;
 import org.dflib.jjava.jupyter.channels.JupyterConnection;
 import org.dflib.jjava.jupyter.channels.ShellReplyEnvironment;
 import org.dflib.jjava.jupyter.kernel.comm.CommManager;
@@ -13,6 +13,7 @@ import org.dflib.jjava.jupyter.kernel.history.HistoryEntry;
 import org.dflib.jjava.jupyter.kernel.history.HistoryManager;
 import org.dflib.jjava.jupyter.kernel.magic.MagicParser;
 import org.dflib.jjava.jupyter.kernel.magic.MagicsRegistry;
+import org.dflib.jjava.jupyter.kernel.util.PathsHandler;
 import org.dflib.jjava.jupyter.kernel.util.StringStyler;
 import org.dflib.jjava.jupyter.messages.Header;
 import org.dflib.jjava.jupyter.messages.Message;
@@ -38,16 +39,25 @@ import org.dflib.jjava.jupyter.messages.request.IsCompleteRequest;
 import org.dflib.jjava.jupyter.messages.request.KernelInfoRequest;
 import org.dflib.jjava.jupyter.messages.request.ShutdownRequest;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.ServiceLoader;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public abstract class BaseKernel {
@@ -68,8 +78,9 @@ public abstract class BaseKernel {
     protected final Renderer renderer;
     protected final MagicParser magicParser;
     protected final MagicsRegistry magicsRegistry;
-    protected final ExtensionLoader extensionLoader;
+    protected final Map<String, Extension> extensions;
     protected final boolean extensionsEnabled;
+    protected final String extraClasspath;
     protected final StringStyler errorStyler;
     protected final AtomicInteger executionCount;
 
@@ -84,8 +95,8 @@ public abstract class BaseKernel {
             Renderer renderer,
             MagicParser magicParser,
             MagicsRegistry magicsRegistry,
-            ExtensionLoader extensionLoader,
             boolean extensionsEnabled,
+            String extraClasspath,
             StringStyler errorStyler) {
 
         this.name = name;
@@ -101,8 +112,9 @@ public abstract class BaseKernel {
         this.renderer = Objects.requireNonNull(renderer);
         this.magicParser = magicParser;
         this.magicsRegistry = magicsRegistry;
-        this.extensionLoader = extensionLoader;
         this.extensionsEnabled = extensionsEnabled;
+        this.extraClasspath = extraClasspath;
+        this.extensions = new ConcurrentHashMap<>();
         this.errorStyler = Objects.requireNonNull(errorStyler);
 
         this.executionCount = new AtomicInteger(1);
@@ -148,10 +160,6 @@ public abstract class BaseKernel {
                 version != null ? version : "unknown",
                 Header.PROTOCOL_VERISON
         );
-    }
-
-    public ExtensionLoader getExtensionLoader() {
-        return extensionLoader;
     }
 
     public LanguageInfo getLanguageInfo() {
@@ -274,18 +282,43 @@ public abstract class BaseKernel {
     public abstract String isComplete(String code);
 
     /**
-     * Invoked when the kernel is being shutdown. This is invoked before the
-     * connection is shutdown so any last minute messages by the concrete
-     * kernel get a chance to send.
+     * Invoked after the kernel is created, but before it is returned to the environment. The default implementation
+     * initializes kernel extensions.
+     */
+    public void onStartup() {
+        if (extensionsEnabled) {
+            installDefaultExtensions();
+
+            if (extraClasspath != null) {
+                // TODO: ClassLoader with "extraClasspath" will inherit system classpath, so maybe if there is an
+                //  "extraClasspath", we don't need to call installDefaultExtensions() ?
+
+                installExtensionsFromClasspath(extraClasspath);
+            }
+        }
+    }
+
+    /**
+     * Invoked when the kernel is being shutdown. This is invoked before the connection is shutdown so any last minute
+     * messages by the concrete kernel get a chance to send.
      *
-     * @param isRestarting true if this is a shutdown will soon be followed
-     *                     by a restart. If running in a container or some other
-     *                     spawned vm it may be beneficial to keep it alive for a
-     *                     bit longer as the kernel is likely to be started up
-     *                     again.
+     * @param isRestarting true if this is a shutdown will soon be followed by a restart. If running in a container or
+     *                     some other spawned vm it may be beneficial to keep it alive for a bit longer as the kernel
+     *                     is likely to be started up again.
      */
     public void onShutdown(boolean isRestarting) {
-        // no-op
+
+        Set<Extension> localExts = new HashSet<>(extensions.values());
+        extensions.clear();
+
+        for (Extension ext : localExts) {
+            try {
+                ext.uninstall(this);
+            } catch (Exception e) {
+                System.err.println("Error uninstalling extension '" + ext.getClass().getName() + "', ignoring");
+                e.printStackTrace(System.err);
+            }
+        }
     }
 
     /**
@@ -514,6 +547,50 @@ public abstract class BaseKernel {
         env.defer().reply(new InterruptReply());
 
         this.interrupt();
+    }
+
+    /**
+     * Locates, loads and initializes {@code Extension}s. Extension classes are discovered via {@link ServiceLoader},
+     * using the kernel's default ClassLoader.
+     */
+    protected void installDefaultExtensions() {
+        installExtensionsFromClassLoader(getClass().getClassLoader());
+    }
+
+    /**
+     * Locates, loads and initializes {@code Extension}s. Extension classes are discovered via {@link ServiceLoader}.
+     * It is passed a custom ClassLoader created internally based on a combination of system ClassLoader and the extra
+     * classpath specified as an argument.
+     *
+     * @param classpath one or more filesystem paths separated by {@link java.io.File#pathSeparator}.
+     */
+    protected void installExtensionsFromClasspath(String classpath) {
+
+        URL[] urls = PathsHandler.split(classpath)
+                .stream()
+                .map(BaseKernel::pathToURL)
+                .toArray(URL[]::new);
+
+        try (URLClassLoader classLoader = URLClassLoader.newInstance(urls)) {
+            installExtensionsFromClassLoader(classLoader);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    protected void installExtensionsFromClassLoader(ClassLoader classLoader) {
+        ServiceLoader.load(Extension.class, classLoader).stream()
+                .map(ServiceLoader.Provider::get)
+                .filter(e -> extensions.putIfAbsent(e.getClass().getName(), e) == null)
+                .forEach(e -> e.install(this));
+    }
+
+    private static URL pathToURL(String path) {
+        try {
+            return Path.of(path).toUri().toURL();
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }

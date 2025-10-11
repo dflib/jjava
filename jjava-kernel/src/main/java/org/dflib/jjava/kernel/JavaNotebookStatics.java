@@ -11,13 +11,13 @@ import java.util.Objects;
  */
 public class JavaNotebookStatics implements Extension {
 
-    private static JavaKernel kernel;
+    static JavaKernel kernel;
 
     @Override
     public void install(BaseKernel kernel) {
 
         if (JavaNotebookStatics.kernel != null) {
-            throw new IllegalStateException("Already initialized with another kernel: " + JavaNotebookStatics.kernel.getBanner());
+            throw new IllegalStateException("Already initialized with a different kernel: " + JavaNotebookStatics.kernel.getBanner());
         }
 
         if (kernel instanceof JavaKernel) {
@@ -26,6 +26,16 @@ public class JavaNotebookStatics implements Extension {
             // TODO: should we have some kind of abstract logger?
             System.err.println("Ignoring unexpected kernel '" + kernel.getClass().getName() + "'. Only '" + JavaKernel.class.getName() + "' is supported.");
         }
+    }
+
+    @Override
+    public void uninstall(BaseKernel kernel) {
+
+        if (JavaNotebookStatics.kernel != null && JavaNotebookStatics.kernel != kernel) {
+            throw new IllegalStateException("Was initialized with a different kernel: " + JavaNotebookStatics.kernel.getBanner());
+        }
+
+        JavaNotebookStatics.kernel = null;
     }
 
     /**

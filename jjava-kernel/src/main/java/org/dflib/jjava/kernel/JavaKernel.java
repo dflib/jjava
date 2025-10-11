@@ -7,14 +7,6 @@ import jdk.jshell.Snippet;
 import jdk.jshell.SnippetEvent;
 import jdk.jshell.SourceCodeAnalysis;
 import jdk.jshell.UnresolvedReferenceException;
-import org.dflib.jjava.jupyter.kernel.magic.MagicTranspiler;
-import org.dflib.jjava.kernel.execution.CodeEvaluator;
-import org.dflib.jjava.kernel.execution.CompilationException;
-import org.dflib.jjava.kernel.execution.EvaluationInterruptedException;
-import org.dflib.jjava.kernel.execution.EvaluationTimeoutException;
-import org.dflib.jjava.kernel.execution.IncompleteSourceException;
-import org.dflib.jjava.kernel.execution.JJavaExecutionControlProvider;
-import org.dflib.jjava.jupyter.ExtensionLoader;
 import org.dflib.jjava.jupyter.kernel.BaseKernel;
 import org.dflib.jjava.jupyter.kernel.HelpLink;
 import org.dflib.jjava.jupyter.kernel.JupyterIO;
@@ -25,9 +17,16 @@ import org.dflib.jjava.jupyter.kernel.display.DisplayData;
 import org.dflib.jjava.jupyter.kernel.display.Renderer;
 import org.dflib.jjava.jupyter.kernel.history.HistoryManager;
 import org.dflib.jjava.jupyter.kernel.magic.MagicParser;
+import org.dflib.jjava.jupyter.kernel.magic.MagicTranspiler;
 import org.dflib.jjava.jupyter.kernel.magic.MagicsRegistry;
 import org.dflib.jjava.jupyter.kernel.util.CharPredicate;
 import org.dflib.jjava.jupyter.kernel.util.StringStyler;
+import org.dflib.jjava.kernel.execution.CodeEvaluator;
+import org.dflib.jjava.kernel.execution.CompilationException;
+import org.dflib.jjava.kernel.execution.EvaluationInterruptedException;
+import org.dflib.jjava.kernel.execution.EvaluationTimeoutException;
+import org.dflib.jjava.kernel.execution.IncompleteSourceException;
+import org.dflib.jjava.kernel.execution.JJavaExecutionControlProvider;
 
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -75,9 +74,8 @@ public class JavaKernel extends BaseKernel {
             Renderer renderer,
             MagicParser magicParser,
             MagicsRegistry magicsRegistry,
-            ExtensionLoader extensionLoader,
-            String extraClasspath,
             boolean extensionsEnabled,
+            String extraClasspath,
             StringStyler errorStyler,
             JShell jShell,
             CodeEvaluator evaluator) {
@@ -93,19 +91,12 @@ public class JavaKernel extends BaseKernel {
                 renderer,
                 magicParser,
                 magicsRegistry,
-                extensionLoader,
                 extensionsEnabled,
+                extraClasspath,
                 errorStyler);
 
         this.jShell = jShell;
         this.evaluator = evaluator;
-
-        if (extensionsEnabled) {
-            this.extensionLoader.loadFromDefaultClasspath().forEach(e -> e.install(this));
-            if (extraClasspath != null) {
-                this.extensionLoader.loadFromClasspath(extraClasspath).forEach(e -> e.install(this));
-            }
-        }
     }
 
     /**
@@ -118,7 +109,7 @@ public class JavaKernel extends BaseKernel {
         jShell.addToClasspath(classpath);
 
         if (extensionsEnabled) {
-            extensionLoader.loadFromClasspath(classpath).forEach(e -> e.install(this));
+            installExtensionsFromClasspath(classpath);
         }
     }
 
@@ -346,6 +337,7 @@ public class JavaKernel extends BaseKernel {
 
     @Override
     public void onShutdown(boolean isRestarting) {
+        super.onShutdown(isRestarting);
         jShell.close();
     }
 
@@ -386,9 +378,8 @@ public class JavaKernel extends BaseKernel {
                     buildRenderer(),
                     buildMagicParser(magicTranspiler),
                     buildMagicsRegistry(),
-                    buildExtensionLoader(),
-                    buildExtraClasspath(),
                     buildExtensionsEnabled(),
+                    buildExtraClasspath(),
                     buildErrorStyler(),
                     jShell,
                     buildCodeEvaluator(jShell, jShellExecutionControlProvider)

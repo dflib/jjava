@@ -1,6 +1,5 @@
 package org.dflib.jjava.jupyter.kernel;
 
-import org.dflib.jjava.jupyter.ExtensionLoader;
 import org.dflib.jjava.jupyter.kernel.comm.CommManager;
 import org.dflib.jjava.jupyter.kernel.display.Renderer;
 import org.dflib.jjava.jupyter.kernel.history.HistoryManager;
@@ -104,10 +103,6 @@ public abstract class BaseKernelBuilder<
 
     protected Renderer buildRenderer() {
         return new Renderer();
-    }
-
-    protected ExtensionLoader buildExtensionLoader() {
-        return new ExtensionLoader();
     }
 
     protected boolean buildExtensionsEnabled() {

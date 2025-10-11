@@ -72,6 +72,7 @@ public class JJava {
 
                 .build();
 
+        kernel.onStartup();
         kernel.becomeHandlerForConnection(connection);
 
         connection.connect();

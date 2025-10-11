@@ -20,10 +20,20 @@ public class BaseNotebookStatics implements Extension {
     public void install(BaseKernel kernel) {
 
         if (BaseNotebookStatics.kernel != null) {
-            throw new IllegalStateException("Already initialized with another kernel: " + BaseNotebookStatics.kernel.getBanner());
+            throw new IllegalStateException("Already initialized with a different kernel: " + BaseNotebookStatics.kernel.getBanner());
         }
 
         BaseNotebookStatics.kernel = kernel;
+    }
+
+    @Override
+    public void uninstall(BaseKernel kernel) {
+
+        if (BaseNotebookStatics.kernel != null && BaseNotebookStatics.kernel != kernel) {
+            throw new IllegalStateException("Was initialized with a different kernel: " + BaseNotebookStatics.kernel.getBanner());
+        }
+
+        BaseNotebookStatics.kernel = null;
     }
 
     private static BaseKernel nonNullKernel() {

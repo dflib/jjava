@@ -16,11 +16,18 @@ import org.dflib.jjava.jupyter.kernel.BaseKernel;
 public interface Extension {
 
     /**
-     * Installs the extension into the given {@link BaseKernel}. This method is called by the
-     * kernel during dependency loading. Implementations of this method should perform
-     * any necessary setup or registration required by the extension to integrate with the kernel.
+     * A callback invoked by the kernel when the extension is loaded, allowing it to initialize its state.
      *
      * @param kernel the {@link BaseKernel} instance into which the extension should be installed
      */
     void install(BaseKernel kernel);
+
+    /**
+     * A callback invoked by the kernel on shutdown that allows the extension to clean up after itself.
+     *
+     * @param kernel the {@link BaseKernel} instance into which the extension was previously installed
+     */
+    default void uninstall(BaseKernel kernel) {
+        // do nothing by default
+    }
 }
