@@ -8,8 +8,7 @@ import java.nio.file.Path;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-// TODO: move this to BaseKernel? There's nothing JavaKernel specific here
-public class ExtensionsLifecycleTest {
+public class JavaKernelExtensionsLifecycleTest {
 
     @Test
     public void defaultExtensions() {
@@ -38,8 +37,7 @@ public class ExtensionsLifecycleTest {
 
         String extraClasspath = PathsHandler.joinPaths(PathsHandler.resolveGlobs(jar.toAbsolutePath().toString()));
 
-        String extensionClassName = "org.dflib.jjava.kernel.test.TestExtension";
-        String extInstalledProp = extensionInstallationsProperty(extensionClassName);
+        String extInstalledProp = "ext.installs:org.dflib.jjava.kernel.test.TestExtension";
         System.clearProperty(extInstalledProp);
 
         JavaKernel kernel = JavaKernel
@@ -64,7 +62,4 @@ public class ExtensionsLifecycleTest {
         assertNull(System.getProperty(extInstalledProp));
     }
 
-    private static String extensionInstallationsProperty(String className) {
-        return "ext.installs:" + className;
-    }
 }
