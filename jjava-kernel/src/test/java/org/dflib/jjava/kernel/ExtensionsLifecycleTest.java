@@ -39,27 +39,29 @@ public class ExtensionsLifecycleTest {
         String extraClasspath = PathsHandler.joinPaths(PathsHandler.resolveGlobs(jar.toAbsolutePath().toString()));
 
         String extensionClassName = "org.dflib.jjava.kernel.test.TestExtension";
-        String installationsProperty = extensionInstallationsProperty(extensionClassName);
-        System.clearProperty(installationsProperty);
+        String extInstalledProp = extensionInstallationsProperty(extensionClassName);
+        System.clearProperty(extInstalledProp);
 
         JavaKernel kernel = JavaKernel
                 .builder()
                 .name("TestKernel")
-                .extraClasspath(extraClasspath)
                 .build();
         try {
             kernel.onStartup();
-            assertEquals("1", System.getProperty(installationsProperty), "Custom extension was not installed");
             assertNotNull(JavaNotebookStatics.kernel, "Built-in extension was not installed");
+            assertNull(System.getProperty(extInstalledProp), "Custom extension should not be installed yet");
 
             kernel.addToClasspath(extraClasspath);
-            assertEquals("1", System.getProperty(installationsProperty));
+            assertEquals("1", System.getProperty(extInstalledProp), "Custom extension was not installed");
+
+            kernel.addToClasspath(extraClasspath);
+            assertEquals("1", System.getProperty(extInstalledProp), "Custom extension was installed more than once?");
         } finally {
             kernel.onShutdown(false);
         }
 
         assertNull(JavaNotebookStatics.kernel);
-        assertNull(System.getProperty(installationsProperty));
+        assertNull(System.getProperty(extInstalledProp));
     }
 
     private static String extensionInstallationsProperty(String className) {

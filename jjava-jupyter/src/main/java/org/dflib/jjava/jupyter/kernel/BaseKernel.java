@@ -80,7 +80,6 @@ public abstract class BaseKernel {
     protected final MagicsRegistry magicsRegistry;
     protected final Map<String, Extension> extensions;
     protected final boolean extensionsEnabled;
-    protected final String extraClasspath;
     protected final StringStyler errorStyler;
     protected final AtomicInteger executionCount;
 
@@ -96,7 +95,6 @@ public abstract class BaseKernel {
             MagicParser magicParser,
             MagicsRegistry magicsRegistry,
             boolean extensionsEnabled,
-            String extraClasspath,
             StringStyler errorStyler) {
 
         this.name = name;
@@ -113,7 +111,6 @@ public abstract class BaseKernel {
         this.magicParser = magicParser;
         this.magicsRegistry = magicsRegistry;
         this.extensionsEnabled = extensionsEnabled;
-        this.extraClasspath = extraClasspath;
         this.extensions = new ConcurrentHashMap<>();
         this.errorStyler = Objects.requireNonNull(errorStyler);
 
@@ -288,13 +285,6 @@ public abstract class BaseKernel {
     public void onStartup() {
         if (extensionsEnabled) {
             installDefaultExtensions();
-
-            if (extraClasspath != null) {
-                // TODO: ClassLoader with "extraClasspath" will inherit system classpath, so maybe if there is an
-                //  "extraClasspath", we don't need to call installDefaultExtensions() ?
-
-                installExtensionsFromClasspath(extraClasspath);
-            }
         }
     }
 

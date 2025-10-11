@@ -55,7 +55,6 @@ public class JJava {
                 .extensionsEnabled(Env.extensionsEnabled())
                 .startupSnippets(Env.startupSnippets())
                 .compilerOpts(Env.compilerOpts())
-                .extraClasspath(Env.extraClasspath())
                 .timeout(Env.timeout())
 
                 .lineMagic("load", new LoadCodeMagic("", ".jsh", ".jshell", ".java", ".jjava"))
@@ -72,9 +71,14 @@ public class JJava {
 
                 .build();
 
+        // this inits built-in Extensions
         kernel.onStartup();
-        kernel.becomeHandlerForConnection(connection);
 
+        // adds custom jars to classpath, loads Extensions from them
+        kernel.addToClasspath(Env.extraClasspath());
+
+        // connect to Jupyter
+        kernel.becomeHandlerForConnection(connection);
         connection.connect();
         connection.waitUntilClose();
     }

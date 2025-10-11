@@ -20,6 +20,7 @@ import org.dflib.jjava.jupyter.kernel.magic.MagicParser;
 import org.dflib.jjava.jupyter.kernel.magic.MagicTranspiler;
 import org.dflib.jjava.jupyter.kernel.magic.MagicsRegistry;
 import org.dflib.jjava.jupyter.kernel.util.CharPredicate;
+import org.dflib.jjava.jupyter.kernel.util.PathsHandler;
 import org.dflib.jjava.jupyter.kernel.util.StringStyler;
 import org.dflib.jjava.kernel.execution.CodeEvaluator;
 import org.dflib.jjava.kernel.execution.CompilationException;
@@ -31,7 +32,6 @@ import org.dflib.jjava.kernel.execution.JJavaExecutionControlProvider;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -75,7 +75,6 @@ public class JavaKernel extends BaseKernel {
             MagicParser magicParser,
             MagicsRegistry magicsRegistry,
             boolean extensionsEnabled,
-            String extraClasspath,
             StringStyler errorStyler,
             JShell jShell,
             CodeEvaluator evaluator) {
@@ -92,7 +91,6 @@ public class JavaKernel extends BaseKernel {
                 magicParser,
                 magicsRegistry,
                 extensionsEnabled,
-                extraClasspath,
                 errorStyler);
 
         this.jShell = jShell;
@@ -105,11 +103,14 @@ public class JavaKernel extends BaseKernel {
      * @param classpath one or more filesystem paths separated by {@link java.io.File#pathSeparator}.
      */
     public void addToClasspath(String classpath) {
-        Objects.requireNonNull(classpath, "Null classpath");
-        jShell.addToClasspath(classpath);
+        if (classpath == null || classpath.isBlank()) {
+            return;
+        }
 
+        String classpathResolved = PathsHandler.joinPaths(PathsHandler.splitAndResolveGlobs(classpath));
+        jShell.addToClasspath(classpathResolved);
         if (extensionsEnabled) {
-            installExtensionsFromClasspath(classpath);
+            installExtensionsFromClasspath(classpathResolved);
         }
     }
 
@@ -379,7 +380,6 @@ public class JavaKernel extends BaseKernel {
                     buildMagicParser(magicTranspiler),
                     buildMagicsRegistry(),
                     buildExtensionsEnabled(),
-                    buildExtraClasspath(),
                     buildErrorStyler(),
                     jShell,
                     buildCodeEvaluator(jShell, jShellExecutionControlProvider)
@@ -391,10 +391,6 @@ public class JavaKernel extends BaseKernel {
                     new HelpLink("Java tutorials", "https://docs.oracle.com/javase/tutorial/"),
                     new HelpLink("JJava homepage", "https://github.com/dflib/jjava")
             );
-        }
-
-        private String buildExtraClasspath() {
-            return extraClasspath;
         }
     }
 }
