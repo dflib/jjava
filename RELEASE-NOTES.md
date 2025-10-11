@@ -2,6 +2,7 @@
 
 - #68 CompilationException doesn't provide any information about the underlying problem
 - #69 Expose EvalException details
+- #71 Extension loading from classpath
 - #72 Magic parser - handling escapes and empty strings
 - #75 Completion of % and %% magics
 - #77 Relicense under Apache License
