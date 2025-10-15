@@ -2,9 +2,8 @@ package org.dflib.jjava.kernel.test;
 
 import org.dflib.jjava.jupyter.Extension;
 import org.dflib.jjava.jupyter.kernel.BaseKernel;
-import org.dflib.jjava.kernel.JavaNotebookStatics;
 
-public class TestExtension implements Extension {
+public class ExtraClasspathExtension implements Extension {
 
     @Override
     public void install(BaseKernel kernel) {
