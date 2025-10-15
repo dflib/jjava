@@ -179,6 +179,10 @@ public class JJavaExecutionControl extends DirectExecutionControl {
         this.loaderDelegate.unloadClass(className);
     }
 
+    public ClassLoader getJShellClassLoader() {
+        return loaderDelegate.getClassLoader();
+    }
+
     @Override
     public String toString() {
         return "JJavaExecutionControl{" +

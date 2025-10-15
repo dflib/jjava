@@ -89,6 +89,10 @@ public class JJavaLoaderDelegate implements LoaderDelegate {
         declaredClasses.remove(name);
     }
 
+    public ClassLoader getClassLoader() {
+        return classLoader;
+    }
+
     class BytecodeClassLoader extends URLClassLoader {
 
         public BytecodeClassLoader() {

@@ -347,6 +347,11 @@ public class JavaKernel extends BaseKernel {
         this.evaluator.interrupt();
     }
 
+    @Override
+    protected ClassLoader getParentClassLoader() {
+        return evaluator.getJShellClassLoader();
+    }
+
     /**
      * @return a JShell instance used to evaluate Java code.
      */

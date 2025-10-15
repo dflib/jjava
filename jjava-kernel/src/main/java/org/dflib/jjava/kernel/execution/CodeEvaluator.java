@@ -177,7 +177,7 @@ public class CodeEvaluator {
      * Try to clean up information linked to a code snippet and the snippet itself
      */
     private void dropSnippet(Snippet snippet) {
-        JJavaExecutionControl execControl = execControlProvider.getRegisteredControlByID(this.execControlID);
+        JJavaExecutionControl execControl = execControlProvider.getRegisteredControlByID(execControlID);
         shell.drop(snippet);
         // snippet.classFullName() returns name of a wrapper class created for a snippet
         String className = snippetClassName(snippet);
@@ -271,5 +271,10 @@ public class CodeEvaluator {
         if (execControl != null) {
             execControl.interrupt();
         }
+    }
+
+    public ClassLoader getJShellClassLoader() {
+        JJavaExecutionControl execControl = execControlProvider.getRegisteredControlByID(execControlID);
+        return execControl != null ? execControl.getJShellClassLoader() : null;
     }
 }
