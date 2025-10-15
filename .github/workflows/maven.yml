@@ -8,11 +8,15 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
 
     strategy:
       matrix:
+        os: [ ubuntu-latest ]
         java: [ 11, 17, 21 ]
+        include:
+          - os: windows-latest
+            java: 25
 
     steps:
       - name: Checkout
@@ -26,4 +30,11 @@ jobs:
           cache: 'maven'
 
       - name: Build and test
-        run: mvn clean verify -U
+        shell: bash
+        run: |
+          if [ "${{ runner.os }}" == "Windows" ]; then
+            # Testcontainers doesn't support Windows containers
+            mvn clean test -U
+          else
+            mvn clean verify -U
+          fi
