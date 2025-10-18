@@ -347,6 +347,9 @@ public class JavaKernel extends BaseKernel {
         this.evaluator.interrupt();
     }
 
+    /**
+     * Returns notebook ClassLoader, which in the case of JavaKernel is a JShell ClassLoader.
+     */
     @Override
     protected ClassLoader getClassLoader() {
         return evaluator.getClassLoader();

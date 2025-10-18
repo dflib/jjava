@@ -540,18 +540,18 @@ public abstract class BaseKernel {
     }
 
     /**
-     * Locates, loads and initializes {@code Extension}s. Extension classes are discovered via {@link ServiceLoader},
-     * using the kernel's default ClassLoader.
-     */
-    protected void installDefaultExtensions() {
-        installExtensionsFromClassLoader(getClass().getClassLoader());
-    }
-
-    /**
      * Returns notebook ClassLoader.
      */
     protected ClassLoader getClassLoader() {
         return ClassLoader.getSystemClassLoader();
+    }
+
+    /**
+     * Locates, loads and initializes {@code Extension}s. Extension classes are discovered via {@link ServiceLoader},
+     * using the kernel's default ClassLoader.
+     */
+    protected void installDefaultExtensions() {
+        installExtensionsFromClassLoader(getClassLoader());
     }
 
     /**
