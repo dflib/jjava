@@ -84,7 +84,6 @@ public abstract class BaseKernel {
     protected final MagicParser magicParser;
     protected final MagicsRegistry magicsRegistry;
     protected final Map<String, Extension> extensions;
-    // this flag is for custom extensions only. It does not affect the default extensions that are loaded unconditionally
     protected final boolean extensionsEnabled;
     protected final StringStyler errorStyler;
     protected final AtomicInteger executionCount;
