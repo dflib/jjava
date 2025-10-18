@@ -9,8 +9,8 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Path;
 import java.security.CodeSource;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class JJavaLoaderDelegate implements LoaderDelegate {
 
@@ -18,12 +18,12 @@ public class JJavaLoaderDelegate implements LoaderDelegate {
 
     private final Map<String, byte[]> declaredClasses;
     private final Map<String, Class<?>> loadedClasses;
-    private final BytecodeClassLoader classLoader;
+    private final JJavaClassLoader classLoader;
 
     public JJavaLoaderDelegate() {
-        this.declaredClasses = new HashMap<>();
-        this.loadedClasses = new HashMap<>();
-        this.classLoader = new BytecodeClassLoader();
+        this.declaredClasses = new ConcurrentHashMap<>();
+        this.loadedClasses = new ConcurrentHashMap<>();
+        this.classLoader = new JJavaClassLoader();
         Thread.currentThread().setContextClassLoader(classLoader);
     }
 
@@ -31,7 +31,7 @@ public class JJavaLoaderDelegate implements LoaderDelegate {
     public void load(ExecutionControl.ClassBytecodes[] cbcs) throws ExecutionControl.ClassInstallException {
         boolean[] installed = new boolean[cbcs.length];
         int i = 0;
-        for(var cbc: cbcs) {
+        for (ExecutionControl.ClassBytecodes cbc : cbcs) {
             declaredClasses.put(cbc.name(), cbc.bytecodes());
             try {
                 Class<?> loaderClass = classLoader.findClass(cbc.name());
@@ -46,7 +46,7 @@ public class JJavaLoaderDelegate implements LoaderDelegate {
 
     @Override
     public void classesRedefined(ExecutionControl.ClassBytecodes[] cbcs) {
-        for(var cbc: cbcs) {
+        for (ExecutionControl.ClassBytecodes cbc : cbcs) {
             declaredClasses.put(cbc.name(), cbc.bytecodes());
         }
     }
@@ -74,7 +74,7 @@ public class JJavaLoaderDelegate implements LoaderDelegate {
             // check if it was removed
             klass = loadClass(name);
         }
-        if(klass == null) {
+        if (klass == null) {
             throw new ClassNotFoundException(name + " not found");
         }
         return klass;
@@ -93,12 +93,13 @@ public class JJavaLoaderDelegate implements LoaderDelegate {
         return classLoader;
     }
 
-    class BytecodeClassLoader extends URLClassLoader {
+    class JJavaClassLoader extends URLClassLoader {
 
-        public BytecodeClassLoader() {
+        public JJavaClassLoader() {
             super(new URL[0]);
         }
 
+        @Override
         public void addURL(URL url) {
             super.addURL(url);
         }

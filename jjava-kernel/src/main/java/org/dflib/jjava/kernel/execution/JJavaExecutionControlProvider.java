@@ -65,9 +65,10 @@ public class JJavaExecutionControlProvider implements ExecutionControlProvider {
             }
         }
 
+        JJavaLoaderDelegate loaderDelegate = new JJavaLoaderDelegate();
         JJavaExecutionControl control = timeout > 0
-                ? new JJavaExecutionControl(timeout, timeUnit)
-                : new JJavaExecutionControl();
+                ? new JJavaExecutionControl(loaderDelegate, timeout, timeUnit)
+                : new JJavaExecutionControl(loaderDelegate, -1, TimeUnit.MILLISECONDS);
 
         String id = parameters.get(REGISTRATION_ID_KEY);
         if (id != null)
