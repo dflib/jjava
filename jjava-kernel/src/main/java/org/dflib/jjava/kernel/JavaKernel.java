@@ -110,7 +110,7 @@ public class JavaKernel extends BaseKernel {
         String classpathResolved = PathsHandler.joinPaths(PathsHandler.splitAndResolveGlobs(classpath));
         jShell.addToClasspath(classpathResolved);
         if (extensionsEnabled) {
-            installExtensionsFromClasspath(classpathResolved);
+            installExtensions(classpathResolved);
         }
     }
 

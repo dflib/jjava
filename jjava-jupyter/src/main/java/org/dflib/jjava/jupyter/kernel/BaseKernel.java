@@ -39,7 +39,6 @@ import org.dflib.jjava.jupyter.messages.request.IsCompleteRequest;
 import org.dflib.jjava.jupyter.messages.request.KernelInfoRequest;
 import org.dflib.jjava.jupyter.messages.request.ShutdownRequest;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.io.PrintWriter;
@@ -590,7 +589,7 @@ public abstract class BaseKernel {
      * using the kernel's default ClassLoader.
      */
     protected void installDefaultExtensions() {
-        installExtensionsFromClassLoader(getClassLoader());
+        installExtensions(getClassLoader());
     }
 
     /**
@@ -600,22 +599,18 @@ public abstract class BaseKernel {
      *
      * @param classpath one or more filesystem paths separated by {@link java.io.File#pathSeparator}.
      */
-    protected void installExtensionsFromClasspath(String classpath) {
+    protected void installExtensions(String classpath) {
 
         URL[] urls = PathsHandler.split(classpath)
                 .stream()
                 .map(BaseKernel::pathToURL)
                 .toArray(URL[]::new);
 
-        ClassLoader parentClassLoader = getClassLoader();
-        try (URLClassLoader classLoader = new URLClassLoader(urls, parentClassLoader)) {
-            installExtensionsFromClassLoader(classLoader);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        URLClassLoader classLoader = new URLClassLoader(urls, getClassLoader());
+        installExtensions(classLoader);
     }
 
-    protected void installExtensionsFromClassLoader(ClassLoader classLoader) {
+    protected void installExtensions(ClassLoader classLoader) {
         ServiceLoader.load(Extension.class, classLoader).stream()
                 .map(ServiceLoader.Provider::get)
                 .forEach(this::installExtension);
