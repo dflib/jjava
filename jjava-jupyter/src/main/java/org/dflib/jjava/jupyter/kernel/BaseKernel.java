@@ -60,8 +60,12 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * A common superclass of JVM-aware kernels.
+ */
 public abstract class BaseKernel {
 
+    // is only not null between "onStartup" and "onShutdown" of a singleton instance
     protected static BaseKernel notebookKernel;
 
     public static final String IS_COMPLETE_YES = "complete";
