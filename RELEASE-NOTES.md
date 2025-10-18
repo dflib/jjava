@@ -13,6 +13,7 @@
 * #82 Refactoring: Move JavaKernel init logic from constructor to Builder
 * #83 Simplify Kernel metadata loading approach
 * #84 Refactoring: reorg Maven modules for reusability
+* #85 Run extensions in JShell ClassLoader
 * #86 ineffecient / incorrect classpath handling
 * #89 Deprecate redundant magics: %jars, %addMavenDependency
 * #90 Deprecate Ivy artifact syntax for %maven magic
