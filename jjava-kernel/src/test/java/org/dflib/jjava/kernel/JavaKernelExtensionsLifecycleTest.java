@@ -11,23 +11,6 @@ import static org.junit.jupiter.api.Assertions.*;
 public class JavaKernelExtensionsLifecycleTest {
 
     @Test
-    public void defaultExtension() {
-        assertNull(JavaNotebookStatics.kernel);
-
-        JavaKernel kernel = JavaKernel.builder().name("TestKernel").build();
-        assertNull(JavaNotebookStatics.kernel, "Kernel should not have loaded any extensions as of creation");
-
-        try {
-            kernel.onStartup();
-            assertNotNull(JavaNotebookStatics.kernel, "Built-in extension was not installed");
-        } finally {
-            kernel.onShutdown(false);
-        }
-
-        assertNull(JavaNotebookStatics.kernel);
-    }
-
-    @Test
     public void extraClasspathExtension() throws Exception {
         Path extensionJar = TestJarFactory.buildJar(
                 "extensions/classpath/",
@@ -46,7 +29,6 @@ public class JavaKernelExtensionsLifecycleTest {
                 .build();
         try {
             kernel.onStartup();
-            assertNotNull(JavaNotebookStatics.kernel, "Built-in extension was not installed");
             assertNull(System.getProperty(extInstalledProp), "Custom extension should not be installed yet");
 
             kernel.addToClasspath(extraClasspath);
@@ -58,7 +40,6 @@ public class JavaKernelExtensionsLifecycleTest {
             kernel.onShutdown(false);
         }
 
-        assertNull(JavaNotebookStatics.kernel);
         assertNull(System.getProperty(extInstalledProp));
     }
 

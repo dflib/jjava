@@ -62,6 +62,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public abstract class BaseKernel {
 
+    protected static BaseKernel notebookKernel;
+
     public static final String IS_COMPLETE_YES = "complete";
     public static final String IS_COMPLETE_BAD = "invalid";
     public static final String IS_COMPLETE_MAYBE = "unknown";
@@ -79,9 +81,20 @@ public abstract class BaseKernel {
     protected final MagicParser magicParser;
     protected final MagicsRegistry magicsRegistry;
     protected final Map<String, Extension> extensions;
+    // this flag is for custom extensions only. It does not affect the default extensions that are loaded unconditionally
     protected final boolean extensionsEnabled;
     protected final StringStyler errorStyler;
     protected final AtomicInteger executionCount;
+
+    /**
+     * Returns a non-null instance of the kernel associated with the current notebook. Throws an exception if called
+     * outside the notebook lifecycle.
+     */
+    public static BaseKernel notebookKernel() {
+        return Objects.requireNonNull(
+                BaseKernel.notebookKernel,
+                "No kernel running. Likely called outside of the notebook lifecycle");
+    }
 
     protected BaseKernel(
             String name,
@@ -283,9 +296,7 @@ public abstract class BaseKernel {
      * initializes kernel extensions.
      */
     public void onStartup() {
-        if (extensionsEnabled) {
-            installDefaultExtensions();
-        }
+        installNotebookKernel();
     }
 
     /**
@@ -297,7 +308,11 @@ public abstract class BaseKernel {
      *                     is likely to be started up again.
      */
     public void onShutdown(boolean isRestarting) {
+        uninstallExtension();
+        uninstallNotebookKernel();
+    }
 
+    protected void uninstallExtension() {
         Set<Extension> localExts = new HashSet<>(extensions.values());
         extensions.clear();
 
@@ -311,12 +326,28 @@ public abstract class BaseKernel {
         }
     }
 
+    protected void installNotebookKernel() {
+        if (BaseKernel.notebookKernel != null) {
+            throw new IllegalStateException("A different notebook kernel was already started: " + BaseKernel.notebookKernel.getBanner());
+        }
+
+        BaseKernel.notebookKernel = this;
+    }
+
+    protected void uninstallNotebookKernel() {
+        if (BaseKernel.notebookKernel != null && BaseKernel.notebookKernel != this) {
+            throw new IllegalStateException("A different notebook kernel is running: " + BaseKernel.notebookKernel.getBanner());
+        }
+
+        BaseKernel.notebookKernel = null;
+    }
+
     /**
      * Invoked when the kernel.json specifies an {@code interrupt_mode} of {@code message}
      * and the frontend requests an interrupt of the currently running cell.
      */
     public void interrupt() {
-        //no-op
+        // no-op
     }
 
     /**
@@ -547,14 +578,6 @@ public abstract class BaseKernel {
     }
 
     /**
-     * Locates, loads and initializes {@code Extension}s. Extension classes are discovered via {@link ServiceLoader},
-     * using the kernel's default ClassLoader.
-     */
-    protected void installDefaultExtensions() {
-        installExtensionsFromClassLoader(getClassLoader());
-    }
-
-    /**
      * Locates, loads and initializes {@code Extension}s. Extension classes are discovered via {@link ServiceLoader}.
      * It is passed a custom ClassLoader created internally based on a combination of the kernel ClassLoader
      * (see {@link #getClassLoader()}) and the extra classpath specified as an argument.
@@ -579,8 +602,13 @@ public abstract class BaseKernel {
     protected void installExtensionsFromClassLoader(ClassLoader classLoader) {
         ServiceLoader.load(Extension.class, classLoader).stream()
                 .map(ServiceLoader.Provider::get)
-                .filter(e -> extensions.putIfAbsent(e.getClass().getName(), e) == null)
-                .forEach(e -> e.install(this));
+                .forEach(this::installExtension);
+    }
+
+    protected void installExtension(Extension ext) {
+        if (extensions.putIfAbsent(ext.getClass().getName(), ext) == null) {
+            ext.install(this);
+        }
     }
 
     private static URL pathToURL(String path) {
