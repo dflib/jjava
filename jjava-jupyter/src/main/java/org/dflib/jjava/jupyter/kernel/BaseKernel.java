@@ -297,10 +297,14 @@ public abstract class BaseKernel {
 
     /**
      * Invoked after the kernel is created, but before it is returned to the environment. The default implementation
-     * initializes kernel extensions.
+     * initializes static "notebookKernel" variable and loads extensions from the default classpath.
      */
     public void onStartup() {
         installNotebookKernel();
+
+        if (extensionsEnabled) {
+            installDefaultExtensions();
+        }
     }
 
     /**
@@ -579,6 +583,14 @@ public abstract class BaseKernel {
      */
     protected ClassLoader getClassLoader() {
         return ClassLoader.getSystemClassLoader();
+    }
+
+    /**
+     * Locates, loads and initializes {@code Extension}s. Extension classes are discovered via {@link ServiceLoader},
+     * using the kernel's default ClassLoader.
+     */
+    protected void installDefaultExtensions() {
+        installExtensionsFromClassLoader(getClassLoader());
     }
 
     /**

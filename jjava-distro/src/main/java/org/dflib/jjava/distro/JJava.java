@@ -71,10 +71,10 @@ public class JJava {
 
                 .build();
 
-        // install built-in Extensions
+        // defaul startup: init "BaseKernel.notebookKernel" and, optionally, install the default extensions
         kernel.onStartup();
 
-        // add custom locations to JShell classpath, look for Extensions there, load and install them
+        // process custom locations: expand JShell classpath, install extensions from those places
         kernel.addToClasspath(Env.extraClasspath());
 
         // connect to Jupyter
