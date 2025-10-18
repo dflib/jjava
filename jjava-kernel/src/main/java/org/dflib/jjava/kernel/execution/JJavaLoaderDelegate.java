@@ -99,8 +99,9 @@ public class JJavaLoaderDelegate implements LoaderDelegate {
             super(new URL[0]);
         }
 
+        // redefine here for access from the parent class. Otherwise, the "protected" method would be inaccessible
         @Override
-        public void addURL(URL url) {
+        protected void addURL(URL url) {
             super.addURL(url);
         }
 
