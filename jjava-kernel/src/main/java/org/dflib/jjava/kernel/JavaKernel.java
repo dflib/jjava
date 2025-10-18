@@ -348,8 +348,8 @@ public class JavaKernel extends BaseKernel {
     }
 
     @Override
-    protected ClassLoader getParentClassLoader() {
-        return evaluator.getJShellClassLoader();
+    protected ClassLoader getClassLoader() {
+        return evaluator.getClassLoader();
     }
 
     /**

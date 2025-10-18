@@ -273,8 +273,8 @@ public class CodeEvaluator {
         }
     }
 
-    public ClassLoader getJShellClassLoader() {
+    public ClassLoader getClassLoader() {
         JJavaExecutionControl execControl = execControlProvider.getRegisteredControlByID(execControlID);
-        return execControl != null ? execControl.getJShellClassLoader() : null;
+        return execControl != null ? execControl.getClassLoader() : null;
     }
 }

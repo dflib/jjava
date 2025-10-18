@@ -548,18 +548,16 @@ public abstract class BaseKernel {
     }
 
     /**
-     * Returns the parent ClassLoader to use when loading extensions from classpath.
-     *
-     * @return the parent ClassLoader for extension loading
+     * Returns notebook ClassLoader.
      */
-    protected ClassLoader getParentClassLoader() {
+    protected ClassLoader getClassLoader() {
         return ClassLoader.getSystemClassLoader();
     }
 
     /**
      * Locates, loads and initializes {@code Extension}s. Extension classes are discovered via {@link ServiceLoader}.
-     * It is passed a custom ClassLoader created internally based on a combination of the parent ClassLoader
-     * (from {@link #getParentClassLoader()}) and the extra classpath specified as an argument.
+     * It is passed a custom ClassLoader created internally based on a combination of the kernel ClassLoader
+     * (see {@link #getClassLoader()}) and the extra classpath specified as an argument.
      *
      * @param classpath one or more filesystem paths separated by {@link java.io.File#pathSeparator}.
      */
@@ -570,7 +568,7 @@ public abstract class BaseKernel {
                 .map(BaseKernel::pathToURL)
                 .toArray(URL[]::new);
 
-        ClassLoader parentClassLoader = getParentClassLoader();
+        ClassLoader parentClassLoader = getClassLoader();
         try (URLClassLoader classLoader = new URLClassLoader(urls, parentClassLoader)) {
             installExtensionsFromClassLoader(classLoader);
         } catch (IOException e) {
