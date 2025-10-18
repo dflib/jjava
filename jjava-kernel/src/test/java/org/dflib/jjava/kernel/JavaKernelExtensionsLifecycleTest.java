@@ -8,10 +8,10 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class JavaKernelExtensionsLifecycleTest {
+public class JavaKernelExtensionsLifecycleTest {
 
     @Test
-    void defaultExtension() {
+    public void defaultExtension() {
         assertNull(JavaNotebookStatics.kernel);
 
         JavaKernel kernel = JavaKernel.builder().name("TestKernel").build();
@@ -28,7 +28,7 @@ class JavaKernelExtensionsLifecycleTest {
     }
 
     @Test
-    void extraClasspathExtension() throws Exception {
+    public void extraClasspathExtension() throws Exception {
         Path extensionJar = TestJarFactory.buildJar(
                 "extensions/classpath/",
                 "extensions/classpath/org/dflib/jjava/kernel/test/ExtraClasspathExtension.java",
@@ -63,7 +63,7 @@ class JavaKernelExtensionsLifecycleTest {
     }
 
     @Test
-    void evalExtension() throws Exception {
+    public void evalExtension() throws Exception {
         Path extensionJar = TestJarFactory.buildJar(
                 "extensions/eval/",
                 "extensions/eval/org/dflib/jjava/kernel/test/EvalExtension.java",
@@ -91,7 +91,7 @@ class JavaKernelExtensionsLifecycleTest {
     }
 
     @Test
-    void libraryExtension() throws Exception {
+    public void libraryExtension() throws Exception {
         Path libraryJar = TestJarFactory.buildJar(
                 "extensions/library/",
                 "extensions/library/org/dflib/jjava/kernel/test/TestLibraryClass.java"
