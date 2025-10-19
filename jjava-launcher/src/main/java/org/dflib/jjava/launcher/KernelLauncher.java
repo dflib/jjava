@@ -12,6 +12,8 @@ import java.util.logging.Logger;
  * The command to run the kernel is constructed by combining the JVM executable,
  * the JJAVA_JVM_OPTS environment variable (if set), and the kernel arguments.
  */
+// TODO: stop using exceptions for flow control. We are dealing with a single class and a main method here.
+//  All the errors should be reported as exit code and messages printed to stderr
 public class KernelLauncher {
 
     // Since "launcher" is kind of a part of the "distro", we are using JUL directly,
