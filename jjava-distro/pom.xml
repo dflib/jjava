@@ -23,11 +23,6 @@
             <artifactId>jjava-maven</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>org.dflib.jjava</groupId>
-            <artifactId>jjava-launcher</artifactId>
-            <version>${project.version}</version>
-        </dependency>
         <!-- A few upstream libraries using SLF4J should be routed to JUL in the final kernel -->
         <dependency>
             <groupId>org.slf4j</groupId>
