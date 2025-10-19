@@ -19,7 +19,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>org.dflib.jjava.launcher.LauncherMain</mainClass>
+                            <mainClass>org.dflib.jjava.launcher.KernelLauncher</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>

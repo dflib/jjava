@@ -38,6 +38,8 @@ import org.dflib.jjava.jupyter.messages.request.InterruptRequest;
 import org.dflib.jjava.jupyter.messages.request.IsCompleteRequest;
 import org.dflib.jjava.jupyter.messages.request.KernelInfoRequest;
 import org.dflib.jjava.jupyter.messages.request.ShutdownRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
 import java.io.PrintStream;
@@ -63,6 +65,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  * A common superclass of JVM-aware kernels.
  */
 public abstract class BaseKernel {
+
+    private final Logger LOGGER = LoggerFactory.getLogger("BaseKernel");
 
     // is only not null between "onStartup" and "onShutdown" of a singleton instance
     protected static BaseKernel notebookKernel;
@@ -326,8 +330,8 @@ public abstract class BaseKernel {
             try {
                 ext.uninstall(this);
             } catch (Exception e) {
-                System.err.println("Error uninstalling extension '" + ext.getClass().getName() + "', ignoring");
-                e.printStackTrace(System.err);
+                LOGGER.info("Error uninstalling extension '{}', ignoring", ext.getClass().getName());
+                LOGGER.debug("Uninstall error", e);
             }
         }
     }

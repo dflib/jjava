@@ -1,7 +1,6 @@
 package org.dflib.jjava.distro;
 
 import org.dflib.jjava.jupyter.channels.JupyterConnection;
-import org.dflib.jjava.jupyter.channels.JupyterSocket;
 import org.dflib.jjava.jupyter.kernel.KernelConnectionProperties;
 import org.dflib.jjava.kernel.JavaKernel;
 import org.dflib.jjava.kernel.magics.ClasspathMagic;
@@ -20,16 +19,19 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Properties;
-import java.util.logging.Level;
 
 /**
  * The main class launching Jupyter Java kernel.
  */
 public class JJava {
 
+    // single-line JUL logging that mimics the default Jupyter format for the label:
+    // [I 2025-10-19 16:15:41.181 ServerApp]
+    private static final String JUL_JUPYTER_LOG_FORMAT = "[%4$.1s %1$tF %1$tT.%1$tL %3$s] %5$s%n";
     private static final String POM_PROPERTIES = "META-INF/maven/org.dflib.jjava/jjava-distro/pom.properties";
 
     public static void main(String[] args) throws Exception {
+
         if (args.length < 1) {
             throw new IllegalArgumentException("Missing connection file argument");
         }
@@ -39,7 +41,7 @@ public class JJava {
             throw new IllegalArgumentException("Connection file '" + connectionFile + "' isn't a file.");
         }
 
-        JupyterSocket.JUPYTER_LOGGER.setLevel(Level.WARNING);
+        System.setProperty("java.util.logging.SimpleFormatter.format", JUL_JUPYTER_LOG_FORMAT);
 
         KernelConnectionProperties connProps = KernelConnectionProperties.parse(Files.readString(connectionFile));
         JupyterConnection connection = new JupyterConnection(connProps);

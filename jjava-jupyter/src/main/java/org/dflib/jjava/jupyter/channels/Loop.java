@@ -1,14 +1,16 @@
 package org.dflib.jjava.jupyter.channels;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.LongSupplier;
 import java.util.function.ToLongFunction;
-import java.util.logging.Logger;
 
 public class Loop extends Thread {
-    private final Logger logger;
 
+    private final Logger logger;
     private volatile boolean running = false;
     private final LongSupplier loopBody;
 
@@ -25,12 +27,9 @@ public class Loop extends Thread {
 
     public Loop(String name, LongSupplier target) {
         super(name);
-
         this.loopBody = target;
-
         this.runNextQueue = new LinkedBlockingQueue<>();
-
-        this.logger = Logger.getLogger("Loop-" + name);
+        this.logger = LoggerFactory.getLogger("Loop-" + name);
     }
 
     public void onClose(Runnable callback) {
@@ -91,36 +90,37 @@ public class Loop extends Thread {
                 try {
                     Thread.sleep(sleep);
                 } catch (InterruptedException e) {
-                    this.logger.info("Loop interrupted. Stopping...");
+                    logger.debug("Loop interrupted. Stopping...");
                     this.running = false;
                 }
             } else if (sleep < 0) {
-                this.logger.info("Loop interrupted by a negative sleep request. Stopping...");
+                logger.debug("Loop interrupted by a negative sleep request. Stopping...");
                 this.running = false;
             }
         }
 
-        this.logger.info("Running loop shutdown callback.");
+        logger.debug("Running loop shutdown callback.");
 
-        if (this.onCloseCb != null)
-            this.onCloseCb.run();
-        this.onCloseCb = null;
+        if (onCloseCb != null) {
+            onCloseCb.run();
+            onCloseCb = null;
+        }
 
-        this.logger.info("Loop stopped.");
+        logger.info("Loop stopped.");
     }
 
     @Override
     public synchronized void start() {
-        this.logger.info("Loop starting...");
+        logger.debug("Loop starting...");
 
-        this.running = true;
+        running = true;
         super.start();
 
-        this.logger.info("Loop started.");
+        logger.info("Loop started.");
     }
 
     public void shutdown() {
-        this.running = false;
-        this.logger.info("Loop shutdown.");
+        running = false;
+        logger.debug("Loop shutdown.");
     }
 }
