@@ -28,6 +28,11 @@
             <artifactId>jjava-launcher</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <!-- A few upstream libraries using SLF4J should be routed to JUL in the final kernel -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-jdk14</artifactId>
+        </dependency>
 
         <!-- Test dependencies -->
         <dependency>
@@ -38,11 +43,6 @@
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>testcontainers</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-simple</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -138,7 +138,8 @@
                                 <Main-Class>org.dflib.jjava.distro.JJava</Main-Class>
                             </manifestEntries>
                         </transformer>
-                        <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+                        <transformer
+                                implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
                     </transformers>
                 </configuration>
             </plugin>
