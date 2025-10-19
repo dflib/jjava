@@ -19,15 +19,13 @@ public class Loop extends Thread {
     private final Queue<Runnable> runNextQueue;
 
     public Loop(String name, long sleep, Runnable target) {
-        this(name, () -> {
+        super(name);
+
+        this.loopBody = () -> {
             target.run();
             return sleep;
-        });
-    }
+        };
 
-    public Loop(String name, LongSupplier target) {
-        super(name);
-        this.loopBody = target;
         this.runNextQueue = new LinkedBlockingQueue<>();
         this.logger = LoggerFactory.getLogger("Loop-" + name);
     }
