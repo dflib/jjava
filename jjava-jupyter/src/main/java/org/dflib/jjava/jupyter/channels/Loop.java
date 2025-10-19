@@ -11,12 +11,12 @@ import java.util.function.ToLongFunction;
 public class Loop extends Thread {
 
     private final Logger logger;
-    private volatile boolean running = false;
     private final LongSupplier loopBody;
+    private final Queue<Runnable> runNextQueue;
 
+    private volatile boolean running;
     private volatile Runnable onCloseCb;
     private volatile ToLongFunction<Throwable> onErrorCb;
-    private final Queue<Runnable> runNextQueue;
 
     public Loop(String name, long sleep, Runnable target) {
         super(name);
@@ -31,20 +31,20 @@ public class Loop extends Thread {
     }
 
     public void onClose(Runnable callback) {
-        if (this.onCloseCb != null) {
+        if (onCloseCb != null) {
             Runnable oldCallback = this.onCloseCb;
-            this.onCloseCb = () -> {
+            onCloseCb = () -> {
                 oldCallback.run();
                 callback.run();
             };
         } else {
-            this.onCloseCb = callback;
+            onCloseCb = callback;
         }
     }
 
     public void onError(ToLongFunction<Throwable> callback) {
-        if (this.onErrorCb == null) {
-            this.onErrorCb = callback;
+        if (onErrorCb == null) {
+            onErrorCb = callback;
             return;
         }
 
@@ -52,7 +52,7 @@ public class Loop extends Thread {
         // previous one throws (or rethrows) the incoming exception.
         // The callback is invoked with the rethrown exception.
         ToLongFunction<Throwable> oldCallback = this.onErrorCb;
-        this.onErrorCb = t -> {
+        onErrorCb = t -> {
             try {
                 return oldCallback.applyAsLong(t);
             } catch (Throwable tPrime) {
@@ -68,20 +68,22 @@ public class Loop extends Thread {
     @Override
     public void run() {
         Runnable next;
-        while (this.running) {
+        while (running) {
             long sleep;
             try {
                 // Run the loop body
                 sleep = this.loopBody.getAsLong();
 
                 // Run all queued tasks
-                while ((next = this.runNextQueue.poll()) != null)
+                while ((next = this.runNextQueue.poll()) != null) {
                     next.run();
+                }
             } catch (Throwable t) {
-                if (this.onErrorCb != null)
+                if (this.onErrorCb != null) {
                     sleep = this.onErrorCb.applyAsLong(t);
-                else
+                } else {
                     throw t;
+                }
             }
 
             if (sleep > 0) {
@@ -89,11 +91,11 @@ public class Loop extends Thread {
                     Thread.sleep(sleep);
                 } catch (InterruptedException e) {
                     logger.debug("Loop interrupted. Stopping...");
-                    this.running = false;
+                    running = false;
                 }
             } else if (sleep < 0) {
                 logger.debug("Loop interrupted by a negative sleep request. Stopping...");
-                this.running = false;
+                running = false;
             }
         }
 
