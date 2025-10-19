@@ -1,9 +1,9 @@
-package org.dfllib.jjava.maven.magics;
+package org.dflib.jjava.maven.magics;
 
 import org.dflib.jjava.kernel.JavaKernel;
 import org.dflib.jjava.jupyter.kernel.magic.LineMagic;
 import org.dflib.jjava.jupyter.kernel.magic.MagicsArgs;
-import org.dfllib.jjava.maven.MavenDependencyResolver;
+import org.dflib.jjava.maven.MavenDependencyResolver;
 
 import java.util.List;
 import java.util.Map;

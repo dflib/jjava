@@ -7,12 +7,12 @@ import org.dflib.jjava.kernel.JavaKernel;
 import org.dflib.jjava.kernel.magics.ClasspathMagic;
 import org.dflib.jjava.kernel.magics.JarsMagic;
 import org.dflib.jjava.kernel.magics.LoadCodeMagic;
-import org.dfllib.jjava.maven.MavenDependencyResolver;
-import org.dfllib.jjava.maven.magics.AddMavenDependencyMagic;
-import org.dfllib.jjava.maven.magics.LoadFromPomCellMagic;
-import org.dfllib.jjava.maven.magics.LoadFromPomLineMagic;
-import org.dfllib.jjava.maven.magics.MavenMagic;
-import org.dfllib.jjava.maven.magics.MavenRepoMagic;
+import org.dflib.jjava.maven.MavenDependencyResolver;
+import org.dflib.jjava.maven.magics.AddMavenDependencyMagic;
+import org.dflib.jjava.maven.magics.LoadFromPomCellMagic;
+import org.dflib.jjava.maven.magics.LoadFromPomLineMagic;
+import org.dflib.jjava.maven.magics.MavenMagic;
+import org.dflib.jjava.maven.magics.MavenRepoMagic;
 
 import java.io.IOException;
 import java.io.InputStream;

@@ -1,9 +1,9 @@
-package org.dfllib.jjava.maven.magics;
+package org.dflib.jjava.maven.magics;
 
 import org.dflib.jjava.jupyter.kernel.magic.CellMagic;
 import org.dflib.jjava.jupyter.kernel.util.PathsHandler;
 import org.dflib.jjava.kernel.JavaKernel;
-import org.dfllib.jjava.maven.MavenDependencyResolver;
+import org.dflib.jjava.maven.MavenDependencyResolver;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;

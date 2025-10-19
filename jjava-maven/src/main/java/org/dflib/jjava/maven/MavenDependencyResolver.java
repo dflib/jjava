@@ -1,4 +1,4 @@
-package org.dfllib.jjava.maven;
+package org.dflib.jjava.maven;
 
 import eu.maveniverse.maven.mima.context.Context;
 import eu.maveniverse.maven.mima.context.ContextOverrides;
