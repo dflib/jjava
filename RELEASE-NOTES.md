@@ -18,7 +18,7 @@
 * #89 Deprecate redundant magics: %jars, %addMavenDependency
 * #90 Deprecate Ivy artifact syntax for %maven magic
 * #93 Extensions / kernel lifecycle
-* #99 Get rid of SLF4J transitive dependency
+* #99 Deal with SLF4J transitive dependency
 * #100 Organize internal logging around SLF4J and JUL
 
 ## 1.0-a5
