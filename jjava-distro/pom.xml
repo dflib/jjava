@@ -64,27 +64,44 @@
                     <createDependencyReducedPom>true</createDependencyReducedPom>
                     <relocations>
                         <relocation>
-                            <!-- com.google.gson and com.google.errorprone packages -->
                             <pattern>com.google</pattern>
                             <shadedPattern>org.dflib.jjava.shaded.com.google</shadedPattern>
                         </relocation>
                         <relocation>
-                            <pattern>eu.neilalexander.jnacl</pattern>
-                            <shadedPattern>org.dflib.jjava.shaded.eu.neilalexander.jnacl</shadedPattern>
+                            <pattern>com.neilalexander</pattern>
+                            <shadedPattern>org.dflib.jjava.shaded.com.neilalexander</shadedPattern>
                         </relocation>
                         <relocation>
-                            <pattern>org.apache.commons.lang3</pattern>
-                            <shadedPattern>org.dflib.jjava.shaded.org.apache.commons.lang3</shadedPattern>
+                            <pattern>eu.maveniverse</pattern>
+                            <shadedPattern>org.dflib.jjava.shaded.eu.maveniverse</shadedPattern>
                         </relocation>
                         <relocation>
-                            <!-- multiple maven dependencies -->
-                            <pattern>org.apache.maven</pattern>
-                            <shadedPattern>org.dflib.jjava.shaded.org.apache.maven</shadedPattern>
+                            <pattern>eu.neilalexander</pattern>
+                            <shadedPattern>org.dflib.jjava.shaded.eu.neilalexander</shadedPattern>
                         </relocation>
                         <relocation>
-                            <!-- multiple plexus dependencies -->
-                            <pattern>org.codehaus.plexus</pattern>
-                            <shadedPattern>org.dflib.jjava.shaded.org.codehaus.plexus</shadedPattern>
+                            <pattern>javax.inject</pattern>
+                            <shadedPattern>org.dflib.jjava.shaded.javax.inject</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>org.apache</pattern>
+                            <shadedPattern>org.dflib.jjava.shaded.org.apache</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>org.codehaus</pattern>
+                            <shadedPattern>org.dflib.jjava.shaded.org.codehaus</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>org.eclipse</pattern>
+                            <shadedPattern>org.dflib.jjava.shaded.org.eclipse</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>org.slf4j</pattern>
+                            <shadedPattern>org.dflib.jjava.shaded.org.slf4j</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>org.sonatype</pattern>
+                            <shadedPattern>org.dflib.jjava.shaded.org.sonatype</shadedPattern>
                         </relocation>
                         <relocation>
                             <pattern>org.zeromq</pattern>
