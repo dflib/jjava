@@ -1,5 +1,6 @@
 package org.dflib.jjava.distro;
 
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,7 +14,6 @@ import org.testcontainers.utility.MountableFile;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -24,7 +24,7 @@ public abstract class ContainerizedKernelCase {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ContainerizedKernelCase.class);
 
-    protected static final GenericContainer<?> container;
+    protected static GenericContainer<?> container;
     protected static final String WORKING_DIRECTORY = "/test";
     protected static final String CONTAINER_KERNELSPEC = "/usr/share/jupyter/kernels/java";
     protected static final String CONTAINER_RESOURCES = WORKING_DIRECTORY + "/resources";
@@ -34,20 +34,13 @@ public abstract class ContainerizedKernelCase {
     private static final String FS_KERNELSPEC = "../kernelspec/java";
     private static final String FS_RESOURCES = "src/test/resources";
 
-    static {
-        container = new GenericContainer<>(BASE_IMAGE)
-                .withWorkingDirectory(WORKING_DIRECTORY)
-                .withCopyToContainer(MountableFile.forHostPath(FS_KERNELSPEC), CONTAINER_KERNELSPEC)
-                .withCopyToContainer(MountableFile.forHostPath(FS_RESOURCES), CONTAINER_RESOURCES)
-                .withCommand("bash", "-c", getStartupCommand())
-                .withLogConsumer(new Slf4jLogConsumer(LOGGER))
-                .waitingFor(Wait.forSuccessfulCommand(getSuccessfulCommand()))
-                .withStartupTimeout(Duration.ofMinutes(1));
-        container.start();
-    }
+    private static final String TESTS_ENABLED_PROPERTY = "docker.tests.enabled";
 
     @BeforeAll
-    static void compileSources() throws IOException, InterruptedException {
+    static void setUp() throws IOException, InterruptedException {
+        initializeContainer();
+        Assumptions.assumeTrue(container != null, "Docker tests are disabled. Enable with -Pdocker");
+
         String source = "$(find " + CONTAINER_RESOURCES + "/src -name '*.java')";
         Container.ExecResult compileResult = executeInContainer("javac -d " + TEST_CLASSPATH + " " + source);
 
@@ -68,9 +61,28 @@ public abstract class ContainerizedKernelCase {
     }
 
     protected static Container.ExecResult executeInKernel(String snippet, Map<String, String> env) throws IOException, InterruptedException {
-        String snippet64 = Base64.getEncoder().encodeToString(snippet.getBytes());
-        String jupyterCommand = venvCommand("jupyter console --kernel=java --simple-prompt");
-        String[] containerCommand = new String[]{"bash", "-c", "echo \"" + snippet64 + "\" | base64 -d | " + jupyterCommand};
+        StringBuilder snippetLines = new StringBuilder();
+        for (String line : snippet.split("\n")) {
+            String lineEscaped = line.replace("\\", "\\\\").replace("\"", "\\\"");
+            snippetLines.append("p.sendline(\"").append(lineEscaped).append("\")\n");
+            snippetLines.append("p.expect(r'In \\[\\d+\\]:')\n");
+        }
+
+        String pexpectScript = String.join("\n",
+                "import pexpect,sys,os,time",
+                "p=pexpect.spawn('" + venvCommand("jupyter") + "',"
+                        + "['console','--kernel=java','--no-confirm-exit','--simple-prompt'],"
+                        + "env=os.environ,timeout=60,encoding='utf-8')",
+                "p.logfile=sys.stdout",
+                "p.expect(r'In \\[\\d+\\]:',timeout=10)",
+                snippetLines.toString(),
+                "p.logfile.flush()",
+                "time.sleep(0.1)",
+                "p.sendeof()",
+                "p.expect(pexpect.EOF,timeout=5)",
+                "p.close()"
+        );
+        String[] containerCommand = new String[]{venvCommand("python"), "-c", pexpectScript};
         Container.ExecResult execResult = container.execInContainer(ExecConfig.builder()
                 .envVars(env)
                 .command(containerCommand)
@@ -80,17 +92,32 @@ public abstract class ContainerizedKernelCase {
         LOGGER.info("env = {}", env);
         LOGGER.info("snippet = {}", snippet);
         LOGGER.info("exitCode = {}", execResult.getExitCode());
-        LOGGER.debug("stderr = {}", execResult.getStderr());
         LOGGER.debug("stdout = {}", execResult.getStdout());
         return execResult;
+    }
+
+    private static void initializeContainer() {
+        if (container != null || !"true".equals(System.getProperty(TESTS_ENABLED_PROPERTY))) {
+            return;
+        }
+
+        container = new GenericContainer<>(BASE_IMAGE)
+                .withWorkingDirectory(WORKING_DIRECTORY)
+                .withCopyToContainer(MountableFile.forHostPath(FS_KERNELSPEC), CONTAINER_KERNELSPEC)
+                .withCopyToContainer(MountableFile.forHostPath(FS_RESOURCES), CONTAINER_RESOURCES)
+                .withCommand("bash", "-c", getStartupCommand())
+                .withLogConsumer(new Slf4jLogConsumer(LOGGER))
+                .waitingFor(Wait.forSuccessfulCommand(getSuccessfulCommand()))
+                .withStartupTimeout(Duration.ofMinutes(1));
+        container.start();
     }
 
     private static String getStartupCommand() {
         return String.join(" && ",
                 "apt-get update",
-                "apt-get install --no-install-recommends -y python3 python3-pip python3-venv",
+                "apt-get install --no-install-recommends -y python3 python3-pip python3-venv curl",
                 "python3 -m venv ./venv",
-                venvCommand("pip install jupyter-console --progress-bar off"),
+                venvCommand("pip install jupyter-console pexpect --progress-bar off"),
                 "tail -f /dev/null"
         );
     }
