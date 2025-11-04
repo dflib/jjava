@@ -14,9 +14,12 @@ import org.testcontainers.utility.MountableFile;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -61,7 +64,15 @@ public abstract class ContainerizedKernelCase {
     }
 
     protected static Container.ExecResult executeInKernel(String snippet, Map<String, String> env) throws IOException, InterruptedException {
+        long snippetLines = snippet.lines().count();
         String snippetEscaped = snippet.replace("\\", "\\\\").replace("\"", "\\\"");
+        String snippetFeeding = Arrays.stream(snippetEscaped.split("\n"))
+                .flatMap(line -> Stream.of(
+                        "p.expect(r'In \\[\\d+\\]:')",
+                        "p.sendline(\"" + line + "\")"
+                ))
+                .collect(Collectors.joining("\n"));
+
         String pexpectScript = String.join("\n",
                 "import pexpect, sys, os, time",
                 "env = os.environ.copy()",
@@ -70,15 +81,10 @@ public abstract class ContainerizedKernelCase {
                 "p=pexpect.spawn('" + venvCommand("jupyter") + "', "
                         + "['console', '--kernel=java', '--no-confirm-exit'], "
                         + "env=env, timeout=60, encoding='utf-8')",
-                "p.logfile = sys.stdout",
-                "p.expect(r'In \\[\\d+\\]:', timeout=10)",
-                "p.send(\"\"\"" + snippetEscaped + "\\n\"\"\")",
-                "p.expect(r'In \\[\\d+\\]:')",
-                "p.logfile.flush()",
-                "time.sleep(0.1)",
-                "p.sendeof()",
-                "p.expect(pexpect.EOF, timeout=5)",
-                "p.close()"
+                "p.logfile_read = sys.stdout",
+                snippetFeeding,
+                "p.expect(r'In \\[" + (snippetLines + 1) + "\\]:')",
+                "p.close(force=True)"
         );
         String[] containerCommand = new String[]{venvCommand("python"), "-c", pexpectScript};
         Container.ExecResult execResult = container.execInContainer(ExecConfig.builder()
