@@ -55,7 +55,6 @@ public class JJava {
                 .version((String) pomProps.getOrDefault("version", ""))
 
                 .extensionsEnabled(Env.extensionsEnabled())
-                .startupSnippets(Env.startupSnippets())
                 .compilerOpts(Env.compilerOpts())
                 .timeout(Env.timeout())
 
@@ -78,6 +77,9 @@ public class JJava {
 
         // process custom locations: expand JShell classpath, install extensions from those places (if enabled)
         kernel.addToClasspath(Env.extraClasspath());
+
+        // run user defined startup snippets explicitly after the default startup
+        Env.startupSnippets().forEach(kernel::evalRaw);
 
         // connect to Jupyter
         kernel.becomeHandlerForConnection(connection);

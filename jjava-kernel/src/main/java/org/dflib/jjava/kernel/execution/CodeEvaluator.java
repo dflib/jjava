@@ -37,21 +37,16 @@ public class CodeEvaluator {
     private final JJavaExecutionControlProvider execControlProvider;
     private final String execControlID;
     private final SourceCodeAnalysis sourceAnalyzer;
-    private final List<String> startupSnippets;
-
-    private volatile boolean initialized;
 
     public CodeEvaluator(
             JShell shell,
             JJavaExecutionControlProvider execControlProvider,
-            String execControlID,
-            List<String> startupSnippets) {
+            String execControlID) {
 
         this.shell = shell;
         this.execControlProvider = execControlProvider;
         this.execControlID = execControlID;
         this.sourceAnalyzer = shell.sourceCodeAnalysis();
-        this.startupSnippets = startupSnippets;
     }
 
     private SourceCodeAnalysis.CompletionInfo analyzeCompletion(String source) {
@@ -129,35 +124,6 @@ public class CodeEvaluator {
     }
 
     public Object eval(String code) {
-        initIfNeeded();
-        return doEval(code);
-    }
-
-    private void initIfNeeded() {
-
-        // TODO: should we even bother trying to avoid a race condition with locking? Does Jupyter guarantee serial
-        //  cell execution?
-        if (!initialized) {
-            synchronized (this) {
-                if (!initialized) {
-
-                    // Runs startup snippets in the shell to initialize the environment. The call is deferred until the
-                    // first user requested evaluation to cleanly return errors when they happen.
-
-                    for (String s : startupSnippets) {
-                        // call "doEval" to bypass "initIfNeeded" and avoid infinite recursion
-                        doEval(s);
-                    }
-
-                    startupSnippets.clear();
-                    initialized = true;
-                }
-            }
-        }
-    }
-
-
-    private Object doEval(String code) {
         Object lastEvalResult = null;
         SourceCodeAnalysis.CompletionInfo info = this.sourceAnalyzer.analyzeCompletion(code);
 

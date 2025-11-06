@@ -82,7 +82,7 @@ public abstract class JavaKernelBuilder<
     }
 
     protected CodeEvaluator buildCodeEvaluator(JShell jShell, JJavaExecutionControlProvider jShellExecControlProvider) {
-        return new CodeEvaluator(jShell, jShellExecControlProvider, jShellExecControlID, startupSnippets);
+        return new CodeEvaluator(jShell, jShellExecControlProvider, jShellExecControlID);
     }
 
     protected MagicParser buildMagicParser(MagicTranspiler transpiler) {
