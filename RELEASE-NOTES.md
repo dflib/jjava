@@ -1,3 +1,7 @@
+## 1.0-a7
+
+* #102 Eval startup snippets explicitly
+
 ## 1.0-a6
 
 * #68 CompilationException doesn't provide any information about the underlying problem
