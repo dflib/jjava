@@ -1,5 +1,6 @@
 ## 1.0-a7
 
+* #67 JJAVA_STARTUP_SCRIPT can't start up spark
 * #102 Eval startup snippets explicitly
 
 ## 1.0-a6
