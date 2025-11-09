@@ -1,14 +1,16 @@
 package org.dflib.jjava.jupyter.kernel.magic;
 
+import java.util.List;
+
 public class ParsedCellMagic {
 
-    public final CellMagicArgs magicCall;
-    public final String rawArgsLine;
-    public final String rawCell;
+    public final String name;
+    public final List<String> args;
+    public final String cellBodyAfterMagic;
 
-    public ParsedCellMagic(CellMagicArgs magicCall, String rawArgsLine, String rawCell) {
-        this.magicCall = magicCall;
-        this.rawArgsLine = rawArgsLine;
-        this.rawCell = rawCell;
+    public ParsedCellMagic(String name, List<String> args, String cellBodyAfterMagic) {
+        this.name = name;
+        this.args = args;
+        this.cellBodyAfterMagic = cellBodyAfterMagic;
     }
 }

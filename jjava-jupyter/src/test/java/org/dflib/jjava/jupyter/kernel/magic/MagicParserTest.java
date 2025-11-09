@@ -18,11 +18,9 @@ public class MagicParserTest {
         ParsedCellMagic parsed = inlineParser(emptyTranspiler).parseCellMagic(cell);
 
         assertNotNull(parsed);
-        assertEquals("cellMagicName", parsed.magicCall.name);
-        assertEquals(Arrays.asList("arg1", "arg2 arg2", "arg3"), parsed.magicCall.args);
-        assertEquals("This is the body\nwith multiple lines", parsed.magicCall.body);
-        assertEquals("//%%cellMagicName arg1 \"arg2 arg2\" arg3  ", parsed.rawArgsLine);
-        assertEquals(cell, parsed.rawCell);
+        assertEquals("cellMagicName", parsed.name);
+        assertEquals(Arrays.asList("arg1", "arg2 arg2", "arg3"), parsed.args);
+        assertEquals("This is the body\nwith multiple lines", parsed.cellBodyAfterMagic);
     }
 
     @Test
@@ -118,7 +116,7 @@ public class MagicParserTest {
 
         @Override
         public String transpileLine(ParsedLineMagic magic) {
-            return "**" + magic.magicCall.name + "-" + String.join(",", magic.magicCall.args);
+            return "**" + magic.name + "-" + String.join(",", magic.args);
         }
     };
 
@@ -131,7 +129,7 @@ public class MagicParserTest {
 
         @Override
         public String transpileLine(ParsedLineMagic magic) {
-            return magic.magicCall.name;
+            return magic.name;
         }
     };
 }
