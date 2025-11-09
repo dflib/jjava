@@ -8,7 +8,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
- * A converter (aka "transpiler") of the generic magic syntax into kernel-specific syntax (such as Java).
+ * A converter (aka "transpiler") of generic syntax of a single magic into kernel-specific syntax (such as Java).
  */
 public class MagicTranspiler {
 

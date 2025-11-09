@@ -7,14 +7,15 @@ import java.util.regex.Pattern;
 
 /**
  * Locates line and cell magic syntax in the cell code and replaces it with code native to the underlying kernel.
+ * Code replacement happens via {@link MagicTranspiler}.
  */
-public class MagicParser {
+public class MagicsResolver {
 
     private final Pattern lineMagicPattern;
     private final Pattern cellMagicPattern;
     private final MagicTranspiler magicTranspiler;
 
-    public MagicParser(String lineMagicStart, String cellMagicStart, MagicTranspiler magicTranspiler) {
+    public MagicsResolver(String lineMagicStart, String cellMagicStart, MagicTranspiler magicTranspiler) {
         this.lineMagicPattern = Pattern.compile(lineMagicStart + "(?<args>\\w.*?)$", Pattern.MULTILINE);
         this.cellMagicPattern = Pattern.compile("^(?<argsLine>" + cellMagicStart + "(?<args>\\w.*?))\\R(?<body>(?sU).+?)$");
         this.magicTranspiler = magicTranspiler;
@@ -23,7 +24,7 @@ public class MagicParser {
     /**
      * Replaces cell and line magics in the source with native kernel code.
      */
-    public String resolveMagics(String cellSource) {
+    public String resolve(String cellSource) {
         ParsedCellMagic parsedCell = parseCellMagic(cellSource);
         return parsedCell != null
                 ? magicTranspiler.transpileCell(parsedCell)

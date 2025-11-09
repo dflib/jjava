@@ -5,7 +5,7 @@ import java.util.List;
 
 class Opts {
 
-    // TODO: see 7205d03766c8 and c91ade8fec0cdc. A similar split method in MagicParser got altered in a few subtle
+    // TODO: see 7205d03766c8 and c91ade8fec0cdc. A similar split method in MagicsResolver got altered in a few subtle
     //  ways... Do those changes alloy here, and should we have a single splitter?
     //  7205d03766c8
     //  - if (current.length() > 0 && inQuotes) {

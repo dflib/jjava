@@ -3,7 +3,7 @@ package org.dflib.jjava.kernel;
 import jdk.jshell.JShell;
 import org.dflib.jjava.jupyter.kernel.BaseKernelBuilder;
 import org.dflib.jjava.jupyter.kernel.LanguageInfo;
-import org.dflib.jjava.jupyter.kernel.magic.MagicParser;
+import org.dflib.jjava.jupyter.kernel.magic.MagicsResolver;
 import org.dflib.jjava.jupyter.kernel.magic.MagicTranspiler;
 import org.dflib.jjava.kernel.execution.CodeEvaluator;
 import org.dflib.jjava.kernel.execution.JJavaExecutionControlProvider;
@@ -75,10 +75,10 @@ public abstract class JavaKernelBuilder<
         return new CodeEvaluator(jShell, jShellExecControlProvider, jShellExecControlID);
     }
 
-    protected MagicParser buildMagicParser(MagicTranspiler transpiler) {
-        return magicParser != null
-                ? magicParser
-                : new MagicParser("(?<=(?:^|=))\\s*%", "%%", transpiler);
+    protected MagicsResolver buildMagicsResolver(MagicTranspiler transpiler) {
+        return magicsResolver != null
+                ? magicsResolver
+                : new MagicsResolver("(?<=(?:^|=))\\s*%", "%%", transpiler);
     }
 
     protected LanguageInfo buildLanguageInfo() {

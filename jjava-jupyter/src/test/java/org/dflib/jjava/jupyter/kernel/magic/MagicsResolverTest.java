@@ -7,7 +7,7 @@ import java.util.Arrays;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-public class MagicParserTest {
+public class MagicsResolverTest {
 
     @Test
     public void parseCellMagic() {
@@ -87,12 +87,12 @@ public class MagicParserTest {
         assertEquals(expectedTransformedCell, transformedCell);
     }
 
-    static MagicParser inlineParser(MagicTranspiler transpiler) {
-        return new MagicParser("//%", "//%%", transpiler);
+    static MagicsResolver inlineParser(MagicTranspiler transpiler) {
+        return new MagicsResolver("//%", "//%%", transpiler);
     }
 
-    static MagicParser startOfLineParser(MagicTranspiler transpiler) {
-        return new MagicParser("^\\s*//%", "//%%", transpiler);
+    static MagicsResolver startOfLineParser(MagicTranspiler transpiler) {
+        return new MagicsResolver("^\\s*//%", "//%%", transpiler);
     }
 
     static final MagicTranspiler emptyTranspiler = new MagicTranspiler() {
