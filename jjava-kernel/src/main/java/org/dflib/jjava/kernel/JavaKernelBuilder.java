@@ -24,25 +24,15 @@ public abstract class JavaKernelBuilder<
     protected final String jShellExecControlID;
     protected JJavaExecutionControlProvider jShellExecControlProvider;
     protected String timeout;
-    protected final List<String> startupSnippets;
     protected final List<String> compilerOpts;
 
     protected JavaKernelBuilder() {
         this.jShellExecControlID = UUID.randomUUID().toString();
-        this.startupSnippets = new ArrayList<>();
         this.compilerOpts = new ArrayList<>();
     }
 
     public B jShellExecControlProvider(JJavaExecutionControlProvider jShellExecControlProvider) {
         this.jShellExecControlProvider = jShellExecControlProvider;
-        return (B) this;
-    }
-
-    /**
-     * Adds a snippet of script code to execute on startup.
-     */
-    public B startupSnippets(Iterable<String> code) {
-        code.forEach(startupSnippets::add);
         return (B) this;
     }
 
