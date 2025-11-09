@@ -2,7 +2,6 @@ package org.dflib.jjava.jupyter.kernel.magic;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -13,34 +12,32 @@ public class MagicParser {
 
     private final Pattern lineMagicPattern;
     private final Pattern cellMagicPattern;
-    private final MagicTranspiler transpiler;
+    private final MagicTranspiler magicTranspiler;
 
-    public MagicParser(String lineMagicStart, String cellMagicStart, MagicTranspiler transpiler) {
+    public MagicParser(String lineMagicStart, String cellMagicStart, MagicTranspiler magicTranspiler) {
         this.lineMagicPattern = Pattern.compile(lineMagicStart + "(?<args>\\w.*?)$", Pattern.MULTILINE);
         this.cellMagicPattern = Pattern.compile("^(?<argsLine>" + cellMagicStart + "(?<args>\\w.*?))\\R(?<body>(?sU).+?)$");
-        this.transpiler = transpiler;
+        this.magicTranspiler = magicTranspiler;
     }
 
     /**
      * Replaces cell and line magics in the source with native kernel code.
      */
     public String resolveMagics(String cellSource) {
-        return transpileCellMagic(cellSource).orElse(transpileLineMagics(cellSource));
-    }
-
-    private Optional<String> transpileCellMagic(String cellSource) {
         ParsedCellMagic parsedCell = parseCellMagic(cellSource);
-        return Optional.ofNullable(parsedCell).map(transpiler::transpileCell);
+        return parsedCell != null
+                ? magicTranspiler.transpileCell(parsedCell)
+                : resolveLineMagics(cellSource);
     }
 
-    String transpileLineMagics(String cellSource) {
+    String resolveLineMagics(String cellSource) {
 
         StringBuffer out = new StringBuffer();
         Matcher m = lineMagicPattern.matcher(cellSource);
 
         while (m.find()) {
             ParsedLineMagic parsed = parseLineMagic(cellSource, m);
-            String transformed = transpiler.transpileLine(parsed);
+            String transformed = magicTranspiler.transpileLine(parsed);
             m.appendReplacement(out, Matcher.quoteReplacement(transformed));
         }
 
@@ -56,12 +53,12 @@ public class MagicParser {
         }
 
         List<String> split = split(m.group("args"));
-        String body = m.group("body");
+        String bodyAfterMagic = m.group("body");
 
         return new ParsedCellMagic(
                 split.get(0),
                 split.subList(1, split.size()),
-                body);
+                bodyAfterMagic);
     }
 
     private ParsedLineMagic parseLineMagic(String cellSource, Matcher matchedLine) {

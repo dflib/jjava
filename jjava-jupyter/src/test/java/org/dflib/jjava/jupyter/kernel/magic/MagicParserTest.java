@@ -24,7 +24,7 @@ public class MagicParserTest {
     }
 
     @Test
-    public void transpileLineMagics() {
+    public void resolveLineMagics() {
         String cell = "//%magicName arg1 arg2\n" +
                 "Inline magic = //%magicName2 arg1\n" +
                 "//Just a comment\n" +
@@ -33,7 +33,7 @@ public class MagicParserTest {
                 "//%magicName5 \"quoted-escaped\\\\backslash\" \"quoted-escaped\\\"quote\"\n" +
                 "//%magicName6 \"\" quoted-empty-string";
 
-        String transpiled = inlineParser(joinTranspiler).transpileLineMagics(cell);
+        String transpiled = inlineParser(joinTranspiler).resolveLineMagics(cell);
 
         String transpiledExpected = "**magicName-arg1,arg2\n" +
                 "Inline magic = **magicName2-arg1\n" +
@@ -47,20 +47,20 @@ public class MagicParserTest {
     }
 
     @Test
-    public void transpileLineMagics_startOfLineParserSkipsInline1() {
+    public void resolveLineMagics_startOfLineParserSkipsInline1() {
         String cell = "System.out.printf(\"Fmt //%s string\", \"test\");";
-        String transpiled = startOfLineParser(emptyTranspiler).transpileLineMagics(cell);
+        String transpiled = startOfLineParser(emptyTranspiler).resolveLineMagics(cell);
         assertEquals(cell, transpiled);
     }
 
     @Test
-    public void transpileLineMagics_startOfLineParserSkipsInline2() {
+    public void resolveLineMagics_startOfLineParserSkipsInline2() {
         String cell = String.join("\n",
                 "//%sol",
                 "Not //%sol"
         );
 
-        String transformedCell = startOfLineParser(nameTranspiler).transpileLineMagics(cell);
+        String transformedCell = startOfLineParser(nameTranspiler).resolveLineMagics(cell);
         String expectedTransformedCell = String.join("\n",
                 "sol",
                 "Not //%sol"
@@ -77,7 +77,7 @@ public class MagicParserTest {
                 "\t//%sol3"
         );
 
-        String transformedCell = startOfLineParser(nameTranspiler).transpileLineMagics(cell);
+        String transformedCell = startOfLineParser(nameTranspiler).resolveLineMagics(cell);
         String expectedTransformedCell = String.join("\n",
                 "sol",
                 "sol2",
