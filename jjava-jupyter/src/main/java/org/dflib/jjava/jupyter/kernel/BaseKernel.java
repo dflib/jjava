@@ -11,7 +11,7 @@ import org.dflib.jjava.jupyter.kernel.display.common.Text;
 import org.dflib.jjava.jupyter.kernel.display.common.Url;
 import org.dflib.jjava.jupyter.kernel.history.HistoryEntry;
 import org.dflib.jjava.jupyter.kernel.history.HistoryManager;
-import org.dflib.jjava.jupyter.kernel.magic.MagicParser;
+import org.dflib.jjava.jupyter.kernel.magic.MagicsResolver;
 import org.dflib.jjava.jupyter.kernel.magic.MagicsRegistry;
 import org.dflib.jjava.jupyter.kernel.util.PathsHandler;
 import org.dflib.jjava.jupyter.kernel.util.StringStyler;
@@ -85,7 +85,7 @@ public abstract class BaseKernel {
     protected final JupyterIO io;
     protected final CommManager commManager;
     protected final Renderer renderer;
-    protected final MagicParser magicParser;
+    protected final MagicsResolver magicsResolver;
     protected final MagicsRegistry magicsRegistry;
     protected final Map<String, Extension> extensions;
     protected final boolean extensionsEnabled;
@@ -111,7 +111,7 @@ public abstract class BaseKernel {
             JupyterIO io,
             CommManager commManager,
             Renderer renderer,
-            MagicParser magicParser,
+            MagicsResolver magicsResolver,
             MagicsRegistry magicsRegistry,
             boolean extensionsEnabled,
             StringStyler errorStyler) {
@@ -127,7 +127,7 @@ public abstract class BaseKernel {
         this.io = Objects.requireNonNull(io);
         this.commManager = Objects.requireNonNull(commManager);
         this.renderer = Objects.requireNonNull(renderer);
-        this.magicParser = magicParser;
+        this.magicsResolver = magicsResolver;
         this.magicsRegistry = magicsRegistry;
         this.extensionsEnabled = extensionsEnabled;
         this.extensions = new ConcurrentHashMap<>();
@@ -156,8 +156,8 @@ public abstract class BaseKernel {
         return magicsRegistry;
     }
 
-    public MagicParser getMagicParser() {
-        return magicParser;
+    public MagicsResolver getMagicsResolver() {
+        return magicsResolver;
     }
 
     public JupyterIO getIO() {

@@ -7,7 +7,7 @@ import java.util.Arrays;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-public class MagicParserTest {
+public class MagicsResolverTest {
 
     @Test
     public void parseCellMagic() {
@@ -18,15 +18,13 @@ public class MagicParserTest {
         ParsedCellMagic parsed = inlineParser(emptyTranspiler).parseCellMagic(cell);
 
         assertNotNull(parsed);
-        assertEquals("cellMagicName", parsed.magicCall.name);
-        assertEquals(Arrays.asList("arg1", "arg2 arg2", "arg3"), parsed.magicCall.args);
-        assertEquals("This is the body\nwith multiple lines", parsed.magicCall.body);
-        assertEquals("//%%cellMagicName arg1 \"arg2 arg2\" arg3  ", parsed.rawArgsLine);
-        assertEquals(cell, parsed.rawCell);
+        assertEquals("cellMagicName", parsed.name);
+        assertEquals(Arrays.asList("arg1", "arg2 arg2", "arg3"), parsed.args);
+        assertEquals("This is the body\nwith multiple lines", parsed.cellBodyAfterMagic);
     }
 
     @Test
-    public void transpileLineMagics() {
+    public void resolveLineMagics() {
         String cell = "//%magicName arg1 arg2\n" +
                 "Inline magic = //%magicName2 arg1\n" +
                 "//Just a comment\n" +
@@ -35,7 +33,7 @@ public class MagicParserTest {
                 "//%magicName5 \"quoted-escaped\\\\backslash\" \"quoted-escaped\\\"quote\"\n" +
                 "//%magicName6 \"\" quoted-empty-string";
 
-        String transpiled = inlineParser(joinTranspiler).transpileLineMagics(cell);
+        String transpiled = inlineParser(joinTranspiler).resolveLineMagics(cell);
 
         String transpiledExpected = "**magicName-arg1,arg2\n" +
                 "Inline magic = **magicName2-arg1\n" +
@@ -49,20 +47,20 @@ public class MagicParserTest {
     }
 
     @Test
-    public void transpileLineMagics_startOfLineParserSkipsInline1() {
+    public void resolveLineMagics_startOfLineParserSkipsInline1() {
         String cell = "System.out.printf(\"Fmt //%s string\", \"test\");";
-        String transpiled = startOfLineParser(emptyTranspiler).transpileLineMagics(cell);
+        String transpiled = startOfLineParser(emptyTranspiler).resolveLineMagics(cell);
         assertEquals(cell, transpiled);
     }
 
     @Test
-    public void transpileLineMagics_startOfLineParserSkipsInline2() {
+    public void resolveLineMagics_startOfLineParserSkipsInline2() {
         String cell = String.join("\n",
                 "//%sol",
                 "Not //%sol"
         );
 
-        String transformedCell = startOfLineParser(nameTranspiler).transpileLineMagics(cell);
+        String transformedCell = startOfLineParser(nameTranspiler).resolveLineMagics(cell);
         String expectedTransformedCell = String.join("\n",
                 "sol",
                 "Not //%sol"
@@ -79,7 +77,7 @@ public class MagicParserTest {
                 "\t//%sol3"
         );
 
-        String transformedCell = startOfLineParser(nameTranspiler).transpileLineMagics(cell);
+        String transformedCell = startOfLineParser(nameTranspiler).resolveLineMagics(cell);
         String expectedTransformedCell = String.join("\n",
                 "sol",
                 "sol2",
@@ -89,12 +87,12 @@ public class MagicParserTest {
         assertEquals(expectedTransformedCell, transformedCell);
     }
 
-    static MagicParser inlineParser(MagicTranspiler transpiler) {
-        return new MagicParser("//%", "//%%", transpiler);
+    static MagicsResolver inlineParser(MagicTranspiler transpiler) {
+        return new MagicsResolver("//%", "//%%", transpiler);
     }
 
-    static MagicParser startOfLineParser(MagicTranspiler transpiler) {
-        return new MagicParser("^\\s*//%", "//%%", transpiler);
+    static MagicsResolver startOfLineParser(MagicTranspiler transpiler) {
+        return new MagicsResolver("^\\s*//%", "//%%", transpiler);
     }
 
     static final MagicTranspiler emptyTranspiler = new MagicTranspiler() {
@@ -118,7 +116,7 @@ public class MagicParserTest {
 
         @Override
         public String transpileLine(ParsedLineMagic magic) {
-            return "**" + magic.magicCall.name + "-" + String.join(",", magic.magicCall.args);
+            return "**" + magic.name + "-" + String.join(",", magic.args);
         }
     };
 
@@ -131,7 +129,7 @@ public class MagicParserTest {
 
         @Override
         public String transpileLine(ParsedLineMagic magic) {
-            return magic.magicCall.name;
+            return magic.name;
         }
     };
 }

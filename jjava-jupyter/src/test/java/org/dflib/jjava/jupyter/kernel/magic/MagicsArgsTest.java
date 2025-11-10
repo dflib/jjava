@@ -22,7 +22,7 @@ public class MagicsArgsTest {
     @ParameterizedTest(name = "{index}: \"{0}\" with \"{1}\"")
     @MethodSource
     public void values(MagicsArgs schema, String args, Matcher<Map<String, List<String>>> matcher) {
-        List<String> rawArgs = MagicParser.split(args);
+        List<String> rawArgs = MagicsResolver.split(args);
         Map<String, List<String>> actual = assertDoesNotThrow(() -> schema.parse(rawArgs));
 
         assertThat(actual, matcher);
@@ -143,7 +143,7 @@ public class MagicsArgsTest {
     @ParameterizedTest(name = "{index}: \"{0}\" with \"{1}\"")
     @MethodSource
     public void flags(MagicsArgs schema, String args, Matcher<Map<String, List<String>>> matcher) {
-        List<String> rawArgs = MagicParser.split(args);
+        List<String> rawArgs = MagicsResolver.split(args);
         Map<String, List<String>> actual = Assertions.assertDoesNotThrow(() -> schema.parse(rawArgs));
 
         assertThat(actual, matcher);
@@ -182,7 +182,7 @@ public class MagicsArgsTest {
     @ParameterizedTest(name = "{index}: \"{0}\" with \"{1}\"")
     @MethodSource
     public void keywords(MagicsArgs schema, String args, Matcher<Map<String, List<String>>> matcher) {
-        List<String> rawArgs = MagicParser.split(args);
+        List<String> rawArgs = MagicsResolver.split(args);
         Map<String, List<String>> actual = Assertions.assertDoesNotThrow(() -> schema.parse(rawArgs));
 
         assertThat(actual, matcher);
@@ -226,7 +226,7 @@ public class MagicsArgsTest {
     @ParameterizedTest(name = "{index}: \"{0}\" with \"{1}\"")
     @MethodSource
     public void flagsAndKeyWords(MagicsArgs schema, String args, Matcher<Map<String, List<String>>> matcher) {
-        List<String> rawArgs = MagicParser.split(args);
+        List<String> rawArgs = MagicsResolver.split(args);
         Map<String, List<String>> actual = Assertions.assertDoesNotThrow(() -> schema.parse(rawArgs));
 
         assertThat(actual, matcher);
@@ -246,7 +246,7 @@ public class MagicsArgsTest {
     @MethodSource
     public void positionalsAndFlagsAndKeywords(MagicsArgs schema, String args,
                                                Matcher<Map<String, List<String>>> matcher) {
-        List<String> rawArgs = MagicParser.split(args);
+        List<String> rawArgs = MagicsResolver.split(args);
         Map<String, List<String>> actual = Assertions.assertDoesNotThrow(() -> schema.parse(rawArgs));
 
         assertThat(actual, matcher);
@@ -271,7 +271,7 @@ public class MagicsArgsTest {
     @ParameterizedTest(name = "{index}: \"{0}\" with \"{1}\"")
     @MethodSource
     public void strange(MagicsArgs schema, String args, Matcher<Map<String, List<String>>> matcher) {
-        List<String> rawArgs = MagicParser.split(args);
+        List<String> rawArgs = MagicsResolver.split(args);
         Map<String, List<String>> actual = Assertions.assertDoesNotThrow(() -> schema.parse(rawArgs));
 
         assertThat(actual, matcher);
@@ -300,7 +300,7 @@ public class MagicsArgsTest {
     @ParameterizedTest(name = "{index}: \"{0}\" with \"{1}\"")
     @MethodSource
     public void any_throws(MagicsArgs schema, String args) {
-        List<String> rawArgs = MagicParser.split(args);
+        List<String> rawArgs = MagicsResolver.split(args);
 
         assertThrows(MagicArgsParseException.class, () -> schema.parse(rawArgs));
     }
