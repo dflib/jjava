@@ -1,7 +1,5 @@
 package org.dflib.jjava.jupyter.messages;
 
-import org.dflib.jjava.jupyter.channels.JupyterSocket;
-
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
