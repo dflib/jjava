@@ -58,7 +58,7 @@ public class JJavaLoaderDelegate implements LoaderDelegate {
                 classLoader.addURL(Path.of(next).toUri().toURL());
 
                 String classpath = System.getProperty(CLASSPATH_PROPERTY);
-                classpath += System.lineSeparator() + path;
+                classpath += System.lineSeparator() + next;
                 System.setProperty(CLASSPATH_PROPERTY, classpath);
             } catch (MalformedURLException e) {
                 throw new ExecutionControl.InternalException("Unable to resolve classpath " + next
