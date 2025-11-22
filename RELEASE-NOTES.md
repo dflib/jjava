@@ -1,5 +1,6 @@
 ## 1.0-a7
 
+* #65 mutual dependent class not working
 * #67 JJAVA_STARTUP_SCRIPT can't start up spark
 * #102 Eval startup snippets explicitly
 * #105 Exploding classpath
