@@ -2,6 +2,7 @@
 
 * #67 JJAVA_STARTUP_SCRIPT can't start up spark
 * #102 Eval startup snippets explicitly
+* #105 Exploding classpath
 
 ## 1.0-a6
 
