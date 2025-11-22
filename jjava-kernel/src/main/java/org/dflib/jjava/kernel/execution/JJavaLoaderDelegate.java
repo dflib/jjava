@@ -15,6 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class JJavaLoaderDelegate implements LoaderDelegate {
 
     private static final String CLASSPATH_PROPERTY = "java.class.path";
+    private static final String PATH_SEPARATOR = System.getProperty("path.separator");
 
     private final Map<String, byte[]> declaredClasses;
     private final Map<String, Class<?>> loadedClasses;
@@ -57,9 +58,10 @@ public class JJavaLoaderDelegate implements LoaderDelegate {
             try {
                 classLoader.addURL(Path.of(next).toUri().toURL());
 
-                String classpath = System.getProperty(CLASSPATH_PROPERTY);
-                classpath += System.lineSeparator() + next;
-                System.setProperty(CLASSPATH_PROPERTY, classpath);
+                System.setProperty(
+                        CLASSPATH_PROPERTY,
+                        System.getProperty(CLASSPATH_PROPERTY) + PATH_SEPARATOR + next);
+
             } catch (MalformedURLException e) {
                 throw new ExecutionControl.InternalException("Unable to resolve classpath " + next
                         + ": " + e.getMessage());
