@@ -5,9 +5,9 @@ import org.dflib.jjava.jupyter.kernel.display.Renderer;
 import org.dflib.jjava.jupyter.kernel.history.HistoryManager;
 import org.dflib.jjava.jupyter.kernel.magic.CellMagic;
 import org.dflib.jjava.jupyter.kernel.magic.LineMagic;
-import org.dflib.jjava.jupyter.kernel.magic.MagicsResolver;
 import org.dflib.jjava.jupyter.kernel.magic.MagicTranspiler;
 import org.dflib.jjava.jupyter.kernel.magic.MagicsRegistry;
+import org.dflib.jjava.jupyter.kernel.magic.MagicsResolver;
 import org.dflib.jjava.jupyter.kernel.util.StringStyler;
 import org.dflib.jjava.jupyter.kernel.util.TextColor;
 

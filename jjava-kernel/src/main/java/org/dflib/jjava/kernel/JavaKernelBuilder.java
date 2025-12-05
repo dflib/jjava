@@ -3,8 +3,8 @@ package org.dflib.jjava.kernel;
 import jdk.jshell.JShell;
 import org.dflib.jjava.jupyter.kernel.BaseKernelBuilder;
 import org.dflib.jjava.jupyter.kernel.LanguageInfo;
-import org.dflib.jjava.jupyter.kernel.magic.MagicsResolver;
 import org.dflib.jjava.jupyter.kernel.magic.MagicTranspiler;
+import org.dflib.jjava.jupyter.kernel.magic.MagicsResolver;
 import org.dflib.jjava.kernel.execution.CodeEvaluator;
 import org.dflib.jjava.kernel.execution.JJavaExecutionControlProvider;
 
