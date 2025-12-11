@@ -13,17 +13,17 @@ import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class PathsHandlerTest {
+public class PathsHandlerTest {
 
     @Test
-    void testSpit() {
+    public void testSpit() {
         assertEquals(List.of(), PathsHandler.split(""));
         assertEquals(List.of("a"), PathsHandler.split("a"));
         assertEquals(List.of("a", "b/c/d"), PathsHandler.split("a" + File.pathSeparator + "b/c/d"));
     }
 
     @Test
-    void testSpitAndResolveGlobs(@TempDir Path dir) throws IOException {
+    public void testSpitAndResolveGlobs(@TempDir Path dir) throws IOException {
 
         Files.createFile(dir.resolve("a1.txt"));
         Files.createFile(dir.resolve("a2.txt"));
