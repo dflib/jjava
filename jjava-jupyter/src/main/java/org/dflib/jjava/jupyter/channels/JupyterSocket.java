@@ -25,6 +25,7 @@ import org.dflib.jjava.jupyter.messages.adapters.ReplyTypeAdapter;
 import org.dflib.jjava.jupyter.messages.publish.PublishStatus;
 import org.dflib.jjava.jupyter.messages.reply.ErrorReply;
 import org.dflib.jjava.jupyter.messages.request.HistoryRequest;
+import org.slf4j.Logger;
 import org.zeromq.SocketType;
 import org.zeromq.ZMQ;
 
@@ -35,18 +36,21 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
 
 public abstract class JupyterSocket extends ZMQ.Socket {
+
     protected static String formatAddress(String transport, String ip, int port) {
         return transport + "://" + ip + ":" + port;
     }
 
-    private static final byte[] IDENTITY_BLOB_DELIMITER = "<IDS|MSG>".getBytes(StandardCharsets.US_ASCII); // Comes from a python bytestring
+    // Comes from a Python bytestring
+    private static final byte[] IDENTITY_BLOB_DELIMITER = "<IDS|MSG>".getBytes(StandardCharsets.US_ASCII);
+
     private static final Gson replyGson = new GsonBuilder()
             .registerTypeAdapter(HistoryEntry.class, HistoryEntryAdapter.INSTANCE)
             .registerTypeAdapter(ExpressionValue.class, ExpressionValueAdapter.INSTANCE)
             .create();
+
     private static final Gson gson = new GsonBuilder()
             .registerTypeAdapter(KernelTimestamp.class, KernelTimestampAdapter.INSTANCE)
             .registerTypeAdapter(Header.class, HeaderAdapter.INSTANCE)
@@ -54,13 +58,10 @@ public abstract class JupyterSocket extends ZMQ.Socket {
             .registerTypeAdapter(PublishStatus.class, PublishStatusAdapter.INSTANCE)
             .registerTypeAdapter(HistoryRequest.class, HistoryRequestAdapter.INSTANCE)
             .registerTypeHierarchyAdapter(ReplyType.class, new ReplyTypeAdapter(replyGson))
-            //.setPrettyPrinting()
             .create();
     private static final byte[] EMPTY_JSON_OBJECT = "{}".getBytes(StandardCharsets.UTF_8);
     private static final Type JSON_OBJ_AS_MAP = new TypeToken<Map<String, Object>>() {
     }.getType();
-
-    public static final Logger JUPYTER_LOGGER = Logger.getLogger("Jupyter");
 
     protected final ZMQ.Context ctx;
     protected final HMACGenerator hmacGenerator;
@@ -71,7 +72,6 @@ public abstract class JupyterSocket extends ZMQ.Socket {
         super(context, type);
         this.ctx = context;
         this.hmacGenerator = hmacGenerator;
-        logger.setParent(JUPYTER_LOGGER);
         this.logger = logger;
         this.closed = false;
     }
@@ -129,7 +129,10 @@ public abstract class JupyterSocket extends ZMQ.Socket {
         }
 
         Message<?> message = new Message(identities, header, parentHeader, metadata, content, blobs);
-        logger.finer(() -> "Received from " + super.base().getSocketOptx(zmq.ZMQ.ZMQ_LAST_ENDPOINT) + ":\n" + gson.toJson(message));
+
+        if (logger.isTraceEnabled()) {
+            logger.trace("Received from {}:\n{}", super.base().getSocketOptx(zmq.ZMQ.ZMQ_LAST_ENDPOINT), gson.toJson(message));
+        }
 
         return message;
     }
@@ -157,7 +160,9 @@ public abstract class JupyterSocket extends ZMQ.Socket {
 
         String hmac = hmacGenerator.calculateSignature(headerRaw, parentHeaderRaw, metadata, content);
 
-        logger.finer(() -> "Sending to " + super.base().getSocketOptx(zmq.ZMQ.ZMQ_LAST_ENDPOINT) + ":\n" + gson.toJson(message));
+        if (logger.isTraceEnabled()) {
+            logger.trace("Sending to {}:\n{}", super.base().getSocketOptx(zmq.ZMQ.ZMQ_LAST_ENDPOINT), gson.toJson(message));
+        }
 
         message.getIdentities().forEach(super::sendMore);
         super.sendMore(IDENTITY_BLOB_DELIMITER);

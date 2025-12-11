@@ -16,7 +16,7 @@ import org.dflib.jjava.jupyter.kernel.comm.CommManager;
 import org.dflib.jjava.jupyter.kernel.display.DisplayData;
 import org.dflib.jjava.jupyter.kernel.display.Renderer;
 import org.dflib.jjava.jupyter.kernel.history.HistoryManager;
-import org.dflib.jjava.jupyter.kernel.magic.MagicParser;
+import org.dflib.jjava.jupyter.kernel.magic.MagicsResolver;
 import org.dflib.jjava.jupyter.kernel.magic.MagicTranspiler;
 import org.dflib.jjava.jupyter.kernel.magic.MagicsRegistry;
 import org.dflib.jjava.jupyter.kernel.util.CharPredicate;
@@ -72,7 +72,7 @@ public class JavaKernel extends BaseKernel {
             JupyterIO io,
             CommManager commManager,
             Renderer renderer,
-            MagicParser magicParser,
+            MagicsResolver magicsResolver,
             MagicsRegistry magicsRegistry,
             boolean extensionsEnabled,
             StringStyler errorStyler,
@@ -88,7 +88,7 @@ public class JavaKernel extends BaseKernel {
                 io,
                 commManager,
                 renderer,
-                magicParser,
+                magicsResolver,
                 magicsRegistry,
                 extensionsEnabled,
                 errorStyler);
@@ -110,7 +110,7 @@ public class JavaKernel extends BaseKernel {
         String classpathResolved = PathsHandler.joinPaths(PathsHandler.splitAndResolveGlobs(classpath));
         jShell.addToClasspath(classpathResolved);
         if (extensionsEnabled) {
-            installExtensionsFromClasspath(classpathResolved);
+            installExtensions(classpathResolved);
         }
     }
 
@@ -231,7 +231,7 @@ public class JavaKernel extends BaseKernel {
      */
     @Override
     public Object evalRaw(String source) {
-        return evaluator.eval(magicParser.resolveMagics(source));
+        return evaluator.eval(magicsResolver.resolve(source));
     }
 
     @Override
@@ -348,6 +348,14 @@ public class JavaKernel extends BaseKernel {
     }
 
     /**
+     * Returns notebook ClassLoader, which in the case of JavaKernel is a JShell ClassLoader.
+     */
+    @Override
+    protected ClassLoader getClassLoader() {
+        return evaluator.getClassLoader();
+    }
+
+    /**
      * @return a JShell instance used to evaluate Java code.
      */
     public JShell getJShell() {
@@ -377,7 +385,7 @@ public class JavaKernel extends BaseKernel {
                     buildJupyterIO(jupyterEncoding),
                     buildCommManager(),
                     buildRenderer(),
-                    buildMagicParser(magicTranspiler),
+                    buildMagicsResolver(magicTranspiler),
                     buildMagicsRegistry(),
                     buildExtensionsEnabled(),
                     buildErrorStyler(),

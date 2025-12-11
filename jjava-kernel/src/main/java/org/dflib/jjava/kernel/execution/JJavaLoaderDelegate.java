@@ -9,30 +9,37 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Path;
 import java.security.CodeSource;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class JJavaLoaderDelegate implements LoaderDelegate {
 
     private static final String CLASSPATH_PROPERTY = "java.class.path";
+    private static final String PATH_SEPARATOR = System.getProperty("path.separator");
 
     private final Map<String, byte[]> declaredClasses;
     private final Map<String, Class<?>> loadedClasses;
-    private final BytecodeClassLoader classLoader;
+    private final JJavaClassLoader classLoader;
 
     public JJavaLoaderDelegate() {
-        this.declaredClasses = new HashMap<>();
-        this.loadedClasses = new HashMap<>();
-        this.classLoader = new BytecodeClassLoader();
+        this.declaredClasses = new ConcurrentHashMap<>();
+        this.loadedClasses = new ConcurrentHashMap<>();
+        this.classLoader = new JJavaClassLoader();
         Thread.currentThread().setContextClassLoader(classLoader);
     }
 
     @Override
     public void load(ExecutionControl.ClassBytecodes[] cbcs) throws ExecutionControl.ClassInstallException {
         boolean[] installed = new boolean[cbcs.length];
-        int i = 0;
-        for(var cbc: cbcs) {
+
+        // Must record all defined classes before attempting to load them. Otherwise, classes depending on other,
+        // not yet loaded classes, may fail (see https://github.com/dflib/jjava/issues/65)
+        for (ExecutionControl.ClassBytecodes cbc : cbcs) {
             declaredClasses.put(cbc.name(), cbc.bytecodes());
+        }
+
+        int i = 0;
+        for (ExecutionControl.ClassBytecodes cbc : cbcs) {
             try {
                 Class<?> loaderClass = classLoader.findClass(cbc.name());
                 loadedClasses.put(cbc.name(), loaderClass);
@@ -46,7 +53,7 @@ public class JJavaLoaderDelegate implements LoaderDelegate {
 
     @Override
     public void classesRedefined(ExecutionControl.ClassBytecodes[] cbcs) {
-        for(var cbc: cbcs) {
+        for (ExecutionControl.ClassBytecodes cbc : cbcs) {
             declaredClasses.put(cbc.name(), cbc.bytecodes());
         }
     }
@@ -57,9 +64,10 @@ public class JJavaLoaderDelegate implements LoaderDelegate {
             try {
                 classLoader.addURL(Path.of(next).toUri().toURL());
 
-                String classpath = System.getProperty(CLASSPATH_PROPERTY);
-                classpath += System.lineSeparator() + path;
-                System.setProperty(CLASSPATH_PROPERTY, classpath);
+                System.setProperty(
+                        CLASSPATH_PROPERTY,
+                        System.getProperty(CLASSPATH_PROPERTY) + PATH_SEPARATOR + next);
+
             } catch (MalformedURLException e) {
                 throw new ExecutionControl.InternalException("Unable to resolve classpath " + next
                         + ": " + e.getMessage());
@@ -74,7 +82,7 @@ public class JJavaLoaderDelegate implements LoaderDelegate {
             // check if it was removed
             klass = loadClass(name);
         }
-        if(klass == null) {
+        if (klass == null) {
             throw new ClassNotFoundException(name + " not found");
         }
         return klass;
@@ -89,13 +97,19 @@ public class JJavaLoaderDelegate implements LoaderDelegate {
         declaredClasses.remove(name);
     }
 
-    class BytecodeClassLoader extends URLClassLoader {
+    public ClassLoader getClassLoader() {
+        return classLoader;
+    }
 
-        public BytecodeClassLoader() {
+    class JJavaClassLoader extends URLClassLoader {
+
+        public JJavaClassLoader() {
             super(new URL[0]);
         }
 
-        public void addURL(URL url) {
+        // redefine here for access from the parent class. Otherwise, the "protected" method would be inaccessible
+        @Override
+        protected void addURL(URL url) {
             super.addURL(url);
         }
 

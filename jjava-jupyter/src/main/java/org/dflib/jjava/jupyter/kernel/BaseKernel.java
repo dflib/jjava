@@ -11,7 +11,7 @@ import org.dflib.jjava.jupyter.kernel.display.common.Text;
 import org.dflib.jjava.jupyter.kernel.display.common.Url;
 import org.dflib.jjava.jupyter.kernel.history.HistoryEntry;
 import org.dflib.jjava.jupyter.kernel.history.HistoryManager;
-import org.dflib.jjava.jupyter.kernel.magic.MagicParser;
+import org.dflib.jjava.jupyter.kernel.magic.MagicsResolver;
 import org.dflib.jjava.jupyter.kernel.magic.MagicsRegistry;
 import org.dflib.jjava.jupyter.kernel.util.PathsHandler;
 import org.dflib.jjava.jupyter.kernel.util.StringStyler;
@@ -38,8 +38,9 @@ import org.dflib.jjava.jupyter.messages.request.InterruptRequest;
 import org.dflib.jjava.jupyter.messages.request.IsCompleteRequest;
 import org.dflib.jjava.jupyter.messages.request.KernelInfoRequest;
 import org.dflib.jjava.jupyter.messages.request.ShutdownRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.io.PrintWriter;
@@ -60,7 +61,15 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * A common superclass of JVM-aware kernels.
+ */
 public abstract class BaseKernel {
+
+    private final Logger LOGGER = LoggerFactory.getLogger("BaseKernel");
+
+    // is only not null between "onStartup" and "onShutdown" of a singleton instance
+    protected static BaseKernel notebookKernel;
 
     public static final String IS_COMPLETE_YES = "complete";
     public static final String IS_COMPLETE_BAD = "invalid";
@@ -76,12 +85,22 @@ public abstract class BaseKernel {
     protected final JupyterIO io;
     protected final CommManager commManager;
     protected final Renderer renderer;
-    protected final MagicParser magicParser;
+    protected final MagicsResolver magicsResolver;
     protected final MagicsRegistry magicsRegistry;
     protected final Map<String, Extension> extensions;
     protected final boolean extensionsEnabled;
     protected final StringStyler errorStyler;
     protected final AtomicInteger executionCount;
+
+    /**
+     * Returns a non-null instance of the kernel associated with the current notebook. Throws an exception if called
+     * outside the notebook lifecycle.
+     */
+    public static BaseKernel notebookKernel() {
+        return Objects.requireNonNull(
+                BaseKernel.notebookKernel,
+                "No kernel running. Likely called outside of the notebook lifecycle");
+    }
 
     protected BaseKernel(
             String name,
@@ -92,7 +111,7 @@ public abstract class BaseKernel {
             JupyterIO io,
             CommManager commManager,
             Renderer renderer,
-            MagicParser magicParser,
+            MagicsResolver magicsResolver,
             MagicsRegistry magicsRegistry,
             boolean extensionsEnabled,
             StringStyler errorStyler) {
@@ -108,7 +127,7 @@ public abstract class BaseKernel {
         this.io = Objects.requireNonNull(io);
         this.commManager = Objects.requireNonNull(commManager);
         this.renderer = Objects.requireNonNull(renderer);
-        this.magicParser = magicParser;
+        this.magicsResolver = magicsResolver;
         this.magicsRegistry = magicsRegistry;
         this.extensionsEnabled = extensionsEnabled;
         this.extensions = new ConcurrentHashMap<>();
@@ -137,8 +156,8 @@ public abstract class BaseKernel {
         return magicsRegistry;
     }
 
-    public MagicParser getMagicParser() {
-        return magicParser;
+    public MagicsResolver getMagicsResolver() {
+        return magicsResolver;
     }
 
     public JupyterIO getIO() {
@@ -280,9 +299,11 @@ public abstract class BaseKernel {
 
     /**
      * Invoked after the kernel is created, but before it is returned to the environment. The default implementation
-     * initializes kernel extensions.
+     * initializes static "notebookKernel" variable and loads extensions from the default classpath.
      */
     public void onStartup() {
+        installNotebookKernel();
+
         if (extensionsEnabled) {
             installDefaultExtensions();
         }
@@ -297,7 +318,11 @@ public abstract class BaseKernel {
      *                     is likely to be started up again.
      */
     public void onShutdown(boolean isRestarting) {
+        uninstallExtension();
+        uninstallNotebookKernel();
+    }
 
+    protected void uninstallExtension() {
         Set<Extension> localExts = new HashSet<>(extensions.values());
         extensions.clear();
 
@@ -305,10 +330,26 @@ public abstract class BaseKernel {
             try {
                 ext.uninstall(this);
             } catch (Exception e) {
-                System.err.println("Error uninstalling extension '" + ext.getClass().getName() + "', ignoring");
-                e.printStackTrace(System.err);
+                LOGGER.info("Error uninstalling extension '{}', ignoring", ext.getClass().getName());
+                LOGGER.debug("Uninstall error", e);
             }
         }
+    }
+
+    protected void installNotebookKernel() {
+        if (BaseKernel.notebookKernel != null) {
+            throw new IllegalStateException("A different notebook kernel was already started: " + BaseKernel.notebookKernel.getBanner());
+        }
+
+        BaseKernel.notebookKernel = this;
+    }
+
+    protected void uninstallNotebookKernel() {
+        if (BaseKernel.notebookKernel != null && BaseKernel.notebookKernel != this) {
+            throw new IllegalStateException("A different notebook kernel is running: " + BaseKernel.notebookKernel.getBanner());
+        }
+
+        BaseKernel.notebookKernel = null;
     }
 
     /**
@@ -316,7 +357,7 @@ public abstract class BaseKernel {
      * and the frontend requests an interrupt of the currently running cell.
      */
     public void interrupt() {
-        //no-op
+        // no-op
     }
 
     /**
@@ -540,39 +581,48 @@ public abstract class BaseKernel {
     }
 
     /**
+     * Returns notebook ClassLoader.
+     */
+    protected ClassLoader getClassLoader() {
+        return ClassLoader.getSystemClassLoader();
+    }
+
+    /**
      * Locates, loads and initializes {@code Extension}s. Extension classes are discovered via {@link ServiceLoader},
      * using the kernel's default ClassLoader.
      */
     protected void installDefaultExtensions() {
-        installExtensionsFromClassLoader(getClass().getClassLoader());
+        installExtensions(getClassLoader());
     }
 
     /**
      * Locates, loads and initializes {@code Extension}s. Extension classes are discovered via {@link ServiceLoader}.
-     * It is passed a custom ClassLoader created internally based on a combination of system ClassLoader and the extra
-     * classpath specified as an argument.
+     * It is passed a custom ClassLoader created internally based on a combination of the kernel ClassLoader
+     * (see {@link #getClassLoader()}) and the extra classpath specified as an argument.
      *
      * @param classpath one or more filesystem paths separated by {@link java.io.File#pathSeparator}.
      */
-    protected void installExtensionsFromClasspath(String classpath) {
+    protected void installExtensions(String classpath) {
 
         URL[] urls = PathsHandler.split(classpath)
                 .stream()
                 .map(BaseKernel::pathToURL)
                 .toArray(URL[]::new);
 
-        try (URLClassLoader classLoader = URLClassLoader.newInstance(urls)) {
-            installExtensionsFromClassLoader(classLoader);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        URLClassLoader classLoader = new URLClassLoader(urls, getClassLoader());
+        installExtensions(classLoader);
     }
 
-    protected void installExtensionsFromClassLoader(ClassLoader classLoader) {
+    protected void installExtensions(ClassLoader classLoader) {
         ServiceLoader.load(Extension.class, classLoader).stream()
                 .map(ServiceLoader.Provider::get)
-                .filter(e -> extensions.putIfAbsent(e.getClass().getName(), e) == null)
-                .forEach(e -> e.install(this));
+                .forEach(this::installExtension);
+    }
+
+    protected void installExtension(Extension ext) {
+        if (extensions.putIfAbsent(ext.getClass().getName(), ext) == null) {
+            ext.install(this);
+        }
     }
 
     private static URL pathToURL(String path) {

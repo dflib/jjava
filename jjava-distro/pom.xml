@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
@@ -23,10 +22,10 @@
             <artifactId>jjava-maven</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <!-- A few upstream libraries using SLF4J should be routed to JUL in the final kernel -->
         <dependency>
-            <groupId>org.dflib.jjava</groupId>
-            <artifactId>jjava-launcher</artifactId>
-            <version>${project.version}</version>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-jdk14</artifactId>
         </dependency>
 
         <!-- Test dependencies -->
@@ -41,8 +40,8 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-simple</artifactId>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -64,27 +63,44 @@
                     <createDependencyReducedPom>true</createDependencyReducedPom>
                     <relocations>
                         <relocation>
-                            <!-- com.google.gson and com.google.errorprone packages -->
                             <pattern>com.google</pattern>
                             <shadedPattern>org.dflib.jjava.shaded.com.google</shadedPattern>
                         </relocation>
                         <relocation>
-                            <pattern>eu.neilalexander.jnacl</pattern>
-                            <shadedPattern>org.dflib.jjava.shaded.eu.neilalexander.jnacl</shadedPattern>
+                            <pattern>com.neilalexander</pattern>
+                            <shadedPattern>org.dflib.jjava.shaded.com.neilalexander</shadedPattern>
                         </relocation>
                         <relocation>
-                            <pattern>org.apache.commons.lang3</pattern>
-                            <shadedPattern>org.dflib.jjava.shaded.org.apache.commons.lang3</shadedPattern>
+                            <pattern>eu.maveniverse</pattern>
+                            <shadedPattern>org.dflib.jjava.shaded.eu.maveniverse</shadedPattern>
                         </relocation>
                         <relocation>
-                            <!-- multiple maven dependencies -->
-                            <pattern>org.apache.maven</pattern>
-                            <shadedPattern>org.dflib.jjava.shaded.org.apache.maven</shadedPattern>
+                            <pattern>eu.neilalexander</pattern>
+                            <shadedPattern>org.dflib.jjava.shaded.eu.neilalexander</shadedPattern>
                         </relocation>
                         <relocation>
-                            <!-- multiple plexus dependencies -->
-                            <pattern>org.codehaus.plexus</pattern>
-                            <shadedPattern>org.dflib.jjava.shaded.org.codehaus.plexus</shadedPattern>
+                            <pattern>javax.inject</pattern>
+                            <shadedPattern>org.dflib.jjava.shaded.javax.inject</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>org.apache</pattern>
+                            <shadedPattern>org.dflib.jjava.shaded.org.apache</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>org.codehaus</pattern>
+                            <shadedPattern>org.dflib.jjava.shaded.org.codehaus</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>org.eclipse</pattern>
+                            <shadedPattern>org.dflib.jjava.shaded.org.eclipse</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>org.slf4j</pattern>
+                            <shadedPattern>org.dflib.jjava.shaded.org.slf4j</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>org.sonatype</pattern>
+                            <shadedPattern>org.dflib.jjava.shaded.org.sonatype</shadedPattern>
                         </relocation>
                         <relocation>
                             <pattern>org.zeromq</pattern>
@@ -106,17 +122,14 @@
                         </filter>
                     </filters>
                     <transformers>
-                        <transformer
-                                implementation="org.apache.maven.plugins.shade.resource.ApacheLicenseResourceTransformer"/>
-                        <transformer
-                                implementation="org.apache.maven.plugins.shade.resource.ApacheNoticeResourceTransformer">
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheLicenseResourceTransformer" />
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheNoticeResourceTransformer">
                             <addHeader>false</addHeader>
                         </transformer>
                         <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
                             <resource>META-INF/sisu/javax.inject.Named</resource>
                         </transformer>
-                        <transformer
-                                implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                             <manifestEntries>
                                 <Main-Class>org.dflib.jjava.distro.JJava</Main-Class>
                             </manifestEntries>

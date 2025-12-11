@@ -8,7 +8,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
- * A converter (aka "transpiler") of the generic magic syntax into kernel-specific syntax (such as Java).
+ * A converter (aka "transpiler") of generic syntax of a single magic into kernel-specific syntax (such as Java).
  */
 public class MagicTranspiler {
 
@@ -21,29 +21,29 @@ public class MagicTranspiler {
 
     public String transpileCell(ParsedCellMagic magic) {
         return String.format(CELL_CALL_TEMPLATE,
-                argWithEscapingToJava(magic.magicCall.name),
-                magic.magicCall.args.stream()
+                argWithEscapingToJava(magic.name),
+                magic.args.stream()
                         .map(this::argWithEscapingToJava)
                         .collect(Collectors.joining(",")),
-                argWithEscapingToJava(magic.magicCall.body)
+                argWithEscapingToJava(magic.cellBodyAfterMagic)
         );
     }
 
     public String transpileLine(ParsedLineMagic magic) {
         boolean inString = false;
-        Matcher m = UNESCAPED_QUOTE.matcher(magic.linePrefix);
+        Matcher m = UNESCAPED_QUOTE.matcher(magic.magicLinePrefix);
         while (m.find()) {
             inString = !inString;
         }
 
         // If in a string literal, don't apply the magic, just use the original
         if (inString) {
-            return magic.raw;
+            return magic.unparsedMagic;
         }
 
         return String.format(LINE_CALL_TEMPLATE,
-                argWithEscapingToJava(magic.magicCall.name),
-                magic.magicCall.args.stream()
+                argWithEscapingToJava(magic.name),
+                magic.args.stream()
                         .map(this::argWithEscapingToJava)
                         .collect(Collectors.joining(","))
         );

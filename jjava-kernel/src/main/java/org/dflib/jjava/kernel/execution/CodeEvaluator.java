@@ -37,21 +37,16 @@ public class CodeEvaluator {
     private final JJavaExecutionControlProvider execControlProvider;
     private final String execControlID;
     private final SourceCodeAnalysis sourceAnalyzer;
-    private final List<String> startupSnippets;
-
-    private volatile boolean initialized;
 
     public CodeEvaluator(
             JShell shell,
             JJavaExecutionControlProvider execControlProvider,
-            String execControlID,
-            List<String> startupSnippets) {
+            String execControlID) {
 
         this.shell = shell;
         this.execControlProvider = execControlProvider;
         this.execControlID = execControlID;
         this.sourceAnalyzer = shell.sourceCodeAnalysis();
-        this.startupSnippets = startupSnippets;
     }
 
     private SourceCodeAnalysis.CompletionInfo analyzeCompletion(String source) {
@@ -119,7 +114,10 @@ public class CodeEvaluator {
                     throw new RuntimeException(e);
                 }
 
-                if (!event.status().isDefined()) {
+                // Undefined snippets are generally bad, unless we can still recover from them. E.g.,
+                // "Unresolved dependencies" errors are recoverable when those dependencies are defined in the later
+                // snippets.
+                if (event.status() != Snippet.Status.RECOVERABLE_NOT_DEFINED && !event.status().isDefined()) {
                     throw new CompilationException(event);
                 }
             }
@@ -129,35 +127,6 @@ public class CodeEvaluator {
     }
 
     public Object eval(String code) {
-        initIfNeeded();
-        return doEval(code);
-    }
-
-    private void initIfNeeded() {
-
-        // TODO: should we even bother trying to avoid a race condition with locking? Does Jupyter guarantee serial
-        //  cell execution?
-        if (!initialized) {
-            synchronized (this) {
-                if (!initialized) {
-
-                    // Runs startup snippets in the shell to initialize the environment. The call is deferred until the
-                    // first user requested evaluation to cleanly return errors when they happen.
-
-                    for (String s : startupSnippets) {
-                        // call "doEval" to bypass "initIfNeeded" and avoid infinite recursion
-                        doEval(s);
-                    }
-
-                    startupSnippets.clear();
-                    initialized = true;
-                }
-            }
-        }
-    }
-
-
-    private Object doEval(String code) {
         Object lastEvalResult = null;
         SourceCodeAnalysis.CompletionInfo info = this.sourceAnalyzer.analyzeCompletion(code);
 
@@ -177,7 +146,7 @@ public class CodeEvaluator {
      * Try to clean up information linked to a code snippet and the snippet itself
      */
     private void dropSnippet(Snippet snippet) {
-        JJavaExecutionControl execControl = execControlProvider.getRegisteredControlByID(this.execControlID);
+        JJavaExecutionControl execControl = execControlProvider.getRegisteredControlByID(execControlID);
         shell.drop(snippet);
         // snippet.classFullName() returns name of a wrapper class created for a snippet
         String className = snippetClassName(snippet);
@@ -271,5 +240,10 @@ public class CodeEvaluator {
         if (execControl != null) {
             execControl.interrupt();
         }
+    }
+
+    public ClassLoader getClassLoader() {
+        JJavaExecutionControl execControl = execControlProvider.getRegisteredControlByID(execControlID);
+        return execControl != null ? execControl.getClassLoader() : null;
     }
 }

@@ -1,3 +1,11 @@
+## 1.0-a7
+
+* #65 mutual dependent class not working
+* #67 JJAVA_STARTUP_SCRIPT can't start up spark
+* #102 Eval startup snippets explicitly
+* #105 Exploding classpath
+* #107 "java.class.path" uses an incorrect separator
+
 ## 1.0-a6
 
 * #68 CompilationException doesn't provide any information about the underlying problem
@@ -13,10 +21,13 @@
 * #82 Refactoring: Move JavaKernel init logic from constructor to Builder
 * #83 Simplify Kernel metadata loading approach
 * #84 Refactoring: reorg Maven modules for reusability
+* #85 Run extensions in JShell ClassLoader
 * #86 ineffecient / incorrect classpath handling
 * #89 Deprecate redundant magics: %jars, %addMavenDependency
 * #90 Deprecate Ivy artifact syntax for %maven magic
 * #93 Extensions / kernel lifecycle
+* #99 Deal with SLF4J transitive dependency
+* #100 Organize internal logging around SLF4J and JUL
 
 ## 1.0-a5
 

@@ -3,7 +3,7 @@ package org.dflib.jjava.kernel;
 import jdk.jshell.JShell;
 import org.dflib.jjava.jupyter.kernel.BaseKernelBuilder;
 import org.dflib.jjava.jupyter.kernel.LanguageInfo;
-import org.dflib.jjava.jupyter.kernel.magic.MagicParser;
+import org.dflib.jjava.jupyter.kernel.magic.MagicsResolver;
 import org.dflib.jjava.jupyter.kernel.magic.MagicTranspiler;
 import org.dflib.jjava.kernel.execution.CodeEvaluator;
 import org.dflib.jjava.kernel.execution.JJavaExecutionControlProvider;
@@ -24,25 +24,15 @@ public abstract class JavaKernelBuilder<
     protected final String jShellExecControlID;
     protected JJavaExecutionControlProvider jShellExecControlProvider;
     protected String timeout;
-    protected final List<String> startupSnippets;
     protected final List<String> compilerOpts;
 
     protected JavaKernelBuilder() {
         this.jShellExecControlID = UUID.randomUUID().toString();
-        this.startupSnippets = new ArrayList<>();
         this.compilerOpts = new ArrayList<>();
     }
 
     public B jShellExecControlProvider(JJavaExecutionControlProvider jShellExecControlProvider) {
         this.jShellExecControlProvider = jShellExecControlProvider;
-        return (B) this;
-    }
-
-    /**
-     * Adds a snippet of script code to execute on startup.
-     */
-    public B startupSnippets(Iterable<String> code) {
-        code.forEach(startupSnippets::add);
         return (B) this;
     }
 
@@ -82,13 +72,13 @@ public abstract class JavaKernelBuilder<
     }
 
     protected CodeEvaluator buildCodeEvaluator(JShell jShell, JJavaExecutionControlProvider jShellExecControlProvider) {
-        return new CodeEvaluator(jShell, jShellExecControlProvider, jShellExecControlID, startupSnippets);
+        return new CodeEvaluator(jShell, jShellExecControlProvider, jShellExecControlID);
     }
 
-    protected MagicParser buildMagicParser(MagicTranspiler transpiler) {
-        return magicParser != null
-                ? magicParser
-                : new MagicParser("(?<=(?:^|=))\\s*%", "%%", transpiler);
+    protected MagicsResolver buildMagicsResolver(MagicTranspiler transpiler) {
+        return magicsResolver != null
+                ? magicsResolver
+                : new MagicsResolver("(?<=(?:^|=))\\s*%", "%%", transpiler);
     }
 
     protected LanguageInfo buildLanguageInfo() {

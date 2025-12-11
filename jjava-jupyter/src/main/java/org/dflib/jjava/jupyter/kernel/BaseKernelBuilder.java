@@ -5,7 +5,7 @@ import org.dflib.jjava.jupyter.kernel.display.Renderer;
 import org.dflib.jjava.jupyter.kernel.history.HistoryManager;
 import org.dflib.jjava.jupyter.kernel.magic.CellMagic;
 import org.dflib.jjava.jupyter.kernel.magic.LineMagic;
-import org.dflib.jjava.jupyter.kernel.magic.MagicParser;
+import org.dflib.jjava.jupyter.kernel.magic.MagicsResolver;
 import org.dflib.jjava.jupyter.kernel.magic.MagicTranspiler;
 import org.dflib.jjava.jupyter.kernel.magic.MagicsRegistry;
 import org.dflib.jjava.jupyter.kernel.util.StringStyler;
@@ -24,7 +24,7 @@ public abstract class BaseKernelBuilder<
     protected String name;
     protected String version;
     protected Charset jupyterIOEncoding;
-    protected MagicParser magicParser;
+    protected MagicsResolver magicsResolver;
     protected MagicTranspiler magicTranspiler;
     protected HistoryManager historyManager;
     protected Boolean extensionsEnabled;
@@ -64,8 +64,8 @@ public abstract class BaseKernelBuilder<
         return (B) this;
     }
 
-    public B magicParser(MagicParser magicParser) {
-        this.magicParser = magicParser;
+    public B magicsResolver(MagicsResolver magicsResolver) {
+        this.magicsResolver = magicsResolver;
         return (B) this;
     }
 

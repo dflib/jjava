@@ -6,23 +6,21 @@ import org.dflib.jjava.jupyter.messages.Message;
 import org.dflib.jjava.jupyter.messages.MessageContext;
 import org.dflib.jjava.jupyter.messages.reply.InputReply;
 import org.dflib.jjava.jupyter.messages.request.InputRequest;
+import org.slf4j.LoggerFactory;
 import org.zeromq.SocketType;
 import org.zeromq.ZMQ;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 public class StdinChannel extends JupyterSocket {
     public StdinChannel(ZMQ.Context context, HMACGenerator hmacGenerator) {
-        super(context, SocketType.ROUTER, hmacGenerator, Logger.getLogger("StdinChannel"));
+        super(context, SocketType.ROUTER, hmacGenerator, LoggerFactory.getLogger("StdinChannel"));
     }
 
     @Override
     public void bind(KernelConnectionProperties connProps) {
-        String addr = formatAddress(connProps.getTransport(), connProps.getIp(), connProps.getStdinPort());
+        String address = formatAddress(connProps.getTransport(), connProps.getIp(), connProps.getStdinPort());
 
-        logger.log(Level.INFO, String.format("Binding stdin to %s.", addr));
-        super.bind(addr);
+        logger.debug("Binding stdin to {}.", address);
+        super.bind(address);
     }
 
     /**

@@ -1,18 +1,17 @@
 package org.dflib.jjava.distro;
 
 import org.dflib.jjava.jupyter.channels.JupyterConnection;
-import org.dflib.jjava.jupyter.channels.JupyterSocket;
 import org.dflib.jjava.jupyter.kernel.KernelConnectionProperties;
 import org.dflib.jjava.kernel.JavaKernel;
 import org.dflib.jjava.kernel.magics.ClasspathMagic;
 import org.dflib.jjava.kernel.magics.JarsMagic;
 import org.dflib.jjava.kernel.magics.LoadCodeMagic;
-import org.dfllib.jjava.maven.MavenDependencyResolver;
-import org.dfllib.jjava.maven.magics.AddMavenDependencyMagic;
-import org.dfllib.jjava.maven.magics.LoadFromPomCellMagic;
-import org.dfllib.jjava.maven.magics.LoadFromPomLineMagic;
-import org.dfllib.jjava.maven.magics.MavenMagic;
-import org.dfllib.jjava.maven.magics.MavenRepoMagic;
+import org.dflib.jjava.maven.MavenDependencyResolver;
+import org.dflib.jjava.maven.magics.AddMavenDependencyMagic;
+import org.dflib.jjava.maven.magics.LoadFromPomCellMagic;
+import org.dflib.jjava.maven.magics.LoadFromPomLineMagic;
+import org.dflib.jjava.maven.magics.MavenMagic;
+import org.dflib.jjava.maven.magics.MavenRepoMagic;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,16 +19,19 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Properties;
-import java.util.logging.Level;
 
 /**
  * The main class launching Jupyter Java kernel.
  */
 public class JJava {
 
+    // single-line JUL logging that mimics the default Jupyter format for the label:
+    // [I 2025-10-19 16:15:41.181 ServerApp]
+    private static final String JUL_JUPYTER_LOG_FORMAT = "[%4$.1s %1$tF %1$tT.%1$tL %3$s] %5$s%n";
     private static final String POM_PROPERTIES = "META-INF/maven/org.dflib.jjava/jjava-distro/pom.properties";
 
     public static void main(String[] args) throws Exception {
+
         if (args.length < 1) {
             throw new IllegalArgumentException("Missing connection file argument");
         }
@@ -39,7 +41,7 @@ public class JJava {
             throw new IllegalArgumentException("Connection file '" + connectionFile + "' isn't a file.");
         }
 
-        JupyterSocket.JUPYTER_LOGGER.setLevel(Level.WARNING);
+        System.setProperty("java.util.logging.SimpleFormatter.format", JUL_JUPYTER_LOG_FORMAT);
 
         KernelConnectionProperties connProps = KernelConnectionProperties.parse(Files.readString(connectionFile));
         JupyterConnection connection = new JupyterConnection(connProps);
@@ -53,7 +55,6 @@ public class JJava {
                 .version((String) pomProps.getOrDefault("version", ""))
 
                 .extensionsEnabled(Env.extensionsEnabled())
-                .startupSnippets(Env.startupSnippets())
                 .compilerOpts(Env.compilerOpts())
                 .timeout(Env.timeout())
 
@@ -71,11 +72,14 @@ public class JJava {
 
                 .build();
 
-        // install built-in Extensions
+        // default startup: init "BaseKernel.notebookKernel" and install the default extensions (if enabled)
         kernel.onStartup();
 
-        // add custom locations to JShell classpath, look for Extensions there, load and install them
+        // process custom locations: expand JShell classpath, install extensions from those places (if enabled)
         kernel.addToClasspath(Env.extraClasspath());
+
+        // run user defined startup snippets explicitly after the default startup
+        Env.startupSnippets().forEach(kernel::evalRaw);
 
         // connect to Jupyter
         kernel.becomeHandlerForConnection(connection);

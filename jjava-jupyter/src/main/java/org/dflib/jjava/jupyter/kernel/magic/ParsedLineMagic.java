@@ -1,16 +1,18 @@
 package org.dflib.jjava.jupyter.kernel.magic;
 
+import java.util.List;
+
 public class ParsedLineMagic {
 
-    public final LineMagicArgs magicCall;
-    public final String raw;
-    public final String rawCell;
-    public final String linePrefix;
+    public final String name;
+    public final List<String> args;
+    public final String magicLinePrefix;
+    public final String unparsedMagic;
 
-    public ParsedLineMagic(LineMagicArgs magicCall, String raw, String rawCell, String linePrefix) {
-        this.magicCall = magicCall;
-        this.raw = raw;
-        this.rawCell = rawCell;
-        this.linePrefix = linePrefix;
+    public ParsedLineMagic(String name, List<String> args, String magicLinePrefix, String unparsedMagic) {
+        this.name = name;
+        this.args = args;
+        this.magicLinePrefix = magicLinePrefix;
+        this.unparsedMagic = unparsedMagic;
     }
 }
