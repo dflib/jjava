@@ -8,11 +8,11 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class KernelMagicIT extends ContainerizedKernelCase {
+public class KernelMagicIT extends ContainerizedKernelCase {
 
     @Deprecated
     @Test
-    void jars() throws Exception {
+    public void jars() throws Exception {
         String jar = CONTAINER_RESOURCES + "/jakarta.annotation-api-3.0.0.jar";
         Container.ExecResult fetchResult = container.execInContainer(
                 "curl", "-L", "-s", "-S", "-f",
@@ -34,7 +34,7 @@ class KernelMagicIT extends ContainerizedKernelCase {
     }
 
     @Test
-    void classpath() throws Exception {
+    public void classpath() throws Exception {
         String snippet = String.join("\n",
                 "%classpath " + TEST_CLASSPATH,
                 "import org.dflib.jjava.Dummy;",
@@ -48,7 +48,7 @@ class KernelMagicIT extends ContainerizedKernelCase {
     }
 
     @Test
-    void maven() throws Exception {
+    public void maven() throws Exception {
         String snippet = String.join("\n",
                 "%maven org.dflib:dflib-jupyter:1.0.0-RC1",
                 "System.getProperty(\"java.class.path\")"
@@ -62,7 +62,7 @@ class KernelMagicIT extends ContainerizedKernelCase {
 
     @Deprecated
     @Test
-    void mavenIvySyntax() throws Exception {
+    public void mavenIvySyntax() throws Exception {
         String snippet = String.join("\n",
                 "%maven jakarta.annotation#jakarta.annotation-api;3.0.0",
                 "System.getProperty(\"java.class.path\")"
@@ -76,7 +76,7 @@ class KernelMagicIT extends ContainerizedKernelCase {
     }
 
     @Test
-    void load() throws Exception {
+    public void load() throws Exception {
         String script = CONTAINER_RESOURCES + "/test-ping.jshell";
         String snippet = String.join("\n",
                 "%load " + script,
@@ -90,7 +90,7 @@ class KernelMagicIT extends ContainerizedKernelCase {
     }
 
     @Test
-    void loadFromPOM() throws Exception {
+    public void loadFromPOM() throws Exception {
         String pom = CONTAINER_RESOURCES + "/test-pom.xml";
         String snippet = String.join("\n",
                 "%loadFromPOM " + pom,
