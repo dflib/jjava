@@ -26,7 +26,7 @@ public abstract class ContainerizedKernelCase {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ContainerizedKernelCase.class);
 
-    protected static GenericContainer<?> container;
+    protected static final GenericContainer<?> container;
     protected static final String WORKING_DIRECTORY = "/test";
     protected static final String CONTAINER_KERNELSPEC = "/usr/share/jupyter/kernels/java";
     protected static final String CONTAINER_RESOURCES = WORKING_DIRECTORY + "/resources";
@@ -36,10 +36,20 @@ public abstract class ContainerizedKernelCase {
     private static final String FS_KERNELSPEC = "../kernelspec/java";
     private static final String FS_RESOURCES = "src/test/resources";
 
+    static {
+        container = new GenericContainer<>(BASE_IMAGE)
+                .withWorkingDirectory(WORKING_DIRECTORY)
+                .withCopyToContainer(MountableFile.forHostPath(FS_KERNELSPEC), CONTAINER_KERNELSPEC)
+                .withCopyToContainer(MountableFile.forHostPath(FS_RESOURCES), CONTAINER_RESOURCES)
+                .withCommand("bash", "-c", getStartupCommand())
+                .withLogConsumer(new Slf4jLogConsumer(LOGGER))
+                .waitingFor(Wait.forSuccessfulCommand(getSuccessfulCommand()))
+                .withStartupTimeout(Duration.ofMinutes(1));
+        container.start();
+    }
+
     @BeforeAll
     static void setUp() throws IOException, InterruptedException {
-        initializeContainer();
-
         String source = "$(find " + CONTAINER_RESOURCES + "/src -name '*.java')";
         Container.ExecResult compileResult = executeInContainer("javac -d " + TEST_CLASSPATH + " " + source);
 
@@ -95,18 +105,6 @@ public abstract class ContainerizedKernelCase {
         LOGGER.debug("stdout = {}", execResult.getStdout());
         LOGGER.debug("stderr = {}", execResult.getStderr());
         return execResult;
-    }
-
-    private static void initializeContainer() {
-        container = new GenericContainer<>(BASE_IMAGE)
-                .withWorkingDirectory(WORKING_DIRECTORY)
-                .withCopyToContainer(MountableFile.forHostPath(FS_KERNELSPEC), CONTAINER_KERNELSPEC)
-                .withCopyToContainer(MountableFile.forHostPath(FS_RESOURCES), CONTAINER_RESOURCES)
-                .withCommand("bash", "-c", getStartupCommand())
-                .withLogConsumer(new Slf4jLogConsumer(LOGGER))
-                .waitingFor(Wait.forSuccessfulCommand(getSuccessfulCommand()))
-                .withStartupTimeout(Duration.ofMinutes(1));
-        container.start();
     }
 
     private static String getStartupCommand() {
