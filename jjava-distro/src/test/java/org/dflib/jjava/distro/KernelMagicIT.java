@@ -3,9 +3,9 @@ package org.dflib.jjava.distro;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.Container;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class KernelMagicIT extends ContainerizedKernelCase {
@@ -19,7 +19,7 @@ public class KernelMagicIT extends ContainerizedKernelCase {
                 "https://repo1.maven.org/maven2/jakarta/annotation/jakarta.annotation-api/3.0.0/jakarta.annotation-api-3.0.0.jar",
                 "-o", jar
         );
-        assertEquals("", fetchResult.getStderr());
+        assertEquals(0, fetchResult.getExitCode(), fetchResult.getStdout());
 
         String snippet = String.join("\n",
                 "%jars " + jar,
@@ -28,7 +28,8 @@ public class KernelMagicIT extends ContainerizedKernelCase {
         );
         Container.ExecResult snippetResult = executeInKernel(snippet);
 
-        assertThat(snippetResult.getStderr(), not(containsString("|")));
+        assertEquals(0, snippetResult.getExitCode(), snippetResult.getStdout());
+        assertThat(snippetResult.getStdout(), not(containsString("|")));
         assertThat(snippetResult.getStdout(), containsString("jakarta.annotation.Nullable"));
     }
 
@@ -37,12 +38,13 @@ public class KernelMagicIT extends ContainerizedKernelCase {
         String snippet = String.join("\n",
                 "%classpath " + TEST_CLASSPATH,
                 "import org.dflib.jjava.Dummy;",
-                "Dummy.class.getName()"
+                "\"className = \" + Dummy.class.getName();"
         );
         Container.ExecResult snippetResult = executeInKernel(snippet);
 
-        assertThat(snippetResult.getStderr(), not(containsString("|")));
-        assertThat(snippetResult.getStdout(), containsString("org.dflib.jjava.Dummy"));
+        assertEquals(0, snippetResult.getExitCode(), snippetResult.getStdout());
+        assertThat(snippetResult.getStdout(), not(containsString("|")));
+        assertThat(snippetResult.getStdout(), containsString("className = org.dflib.jjava.Dummy"));
     }
 
     @Test
@@ -53,7 +55,8 @@ public class KernelMagicIT extends ContainerizedKernelCase {
         );
         Container.ExecResult snippetResult = executeInKernel(snippet);
 
-        assertThat(snippetResult.getStderr(), not(containsString("|")));
+        assertEquals(0, snippetResult.getExitCode(), snippetResult.getStdout());
+        assertThat(snippetResult.getStdout(), not(containsString("|")));
         assertThat(snippetResult.getStdout(), containsString("dflib-jupyter-1.0.0-RC1.jar"));
     }
 
@@ -67,7 +70,8 @@ public class KernelMagicIT extends ContainerizedKernelCase {
 
         Container.ExecResult snippetResult = executeInKernel(snippet);
 
-        assertThat(snippetResult.getStderr(), not(containsString("|")));
+        assertEquals(0, snippetResult.getExitCode(), snippetResult.getStdout());
+        assertThat(snippetResult.getStdout(), not(containsString("|")));
         assertThat(snippetResult.getStdout(), containsString("jakarta.annotation-api-3.0.0.jar"));
     }
 
@@ -80,7 +84,8 @@ public class KernelMagicIT extends ContainerizedKernelCase {
         );
         Container.ExecResult snippetResult = executeInKernel(snippet);
 
-        assertThat(snippetResult.getStderr(), not(containsString("|")));
+        assertEquals(0, snippetResult.getExitCode(), snippetResult.getStdout());
+        assertThat(snippetResult.getStdout(), not(containsString("|")));
         assertThat(snippetResult.getStdout(), containsString("pong!"));
     }
 
@@ -94,7 +99,8 @@ public class KernelMagicIT extends ContainerizedKernelCase {
         );
         Container.ExecResult snippetResult = executeInKernel(snippet);
 
-        assertThat(snippetResult.getStderr(), not(containsString("|")));
+        assertEquals(0, snippetResult.getExitCode(), snippetResult.getStdout());
+        assertThat(snippetResult.getStdout(), not(containsString("|")));
         assertThat(snippetResult.getStdout(), containsString("jakarta.annotation.Nullable"));
     }
 }

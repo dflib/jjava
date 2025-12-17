@@ -3,9 +3,9 @@ package org.dflib.jjava.kernel.magics;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.stream.JsonReader;
-import org.dflib.jjava.kernel.JavaKernel;
 import org.dflib.jjava.jupyter.kernel.magic.LineMagic;
 import org.dflib.jjava.jupyter.kernel.magic.MagicsArgs;
+import org.dflib.jjava.kernel.JavaKernel;
 
 import java.io.FileNotFoundException;
 import java.io.Reader;
