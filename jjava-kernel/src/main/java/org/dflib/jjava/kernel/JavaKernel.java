@@ -8,6 +8,7 @@ import jdk.jshell.SnippetEvent;
 import jdk.jshell.SourceCodeAnalysis;
 import jdk.jshell.UnresolvedReferenceException;
 import org.dflib.jjava.jupyter.kernel.BaseKernel;
+import org.dflib.jjava.jupyter.instrumentation.EvalTimer;
 import org.dflib.jjava.jupyter.kernel.HelpLink;
 import org.dflib.jjava.jupyter.kernel.JupyterIO;
 import org.dflib.jjava.jupyter.kernel.LanguageInfo;
@@ -227,8 +228,8 @@ public class JavaKernel extends BaseKernel {
     }
 
     @Override
-    protected Object doEval(String source) {
-        return evaluator.eval(source);
+    protected Object doEval(String source, EvalTimer timer) {
+        return evaluator.eval(source, timer);
     }
 
     @Override

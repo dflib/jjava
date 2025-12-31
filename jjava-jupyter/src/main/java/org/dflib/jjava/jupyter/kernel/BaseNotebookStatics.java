@@ -7,8 +7,8 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * An automatically-loaded extension that exposes a collection of static methods for notebook code to interact with the
- * kernel.
+ * A collection of static methods for notebook code to interact with the kernel. The methods are automatically exposed
+ * in notebooks via a static import on bootstrap.
  */
 public class BaseNotebookStatics {
 
@@ -28,7 +28,7 @@ public class BaseNotebookStatics {
         } catch (UndefinedMagicException e) {
             throw e;
         } catch (Exception e) {
-            throw new RuntimeException(String.format("Exception occurred while running line magic '%s': %s", name, e.getMessage()), e);
+            throw new RuntimeException(String.format("Exception running line magic '%s': %s", name, e.getMessage()), e);
         }
     }
 
@@ -40,7 +40,7 @@ public class BaseNotebookStatics {
         } catch (UndefinedMagicException e) {
             throw e;
         } catch (Exception e) {
-            throw new RuntimeException(String.format("Exception occurred while running cell magic '%s': %s", name, e.getMessage()), e);
+            throw new RuntimeException(String.format("Exception running cell magic '%s': %s", name, e.getMessage()), e);
         }
     }
 

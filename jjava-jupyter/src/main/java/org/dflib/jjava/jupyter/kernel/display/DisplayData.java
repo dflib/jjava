@@ -8,7 +8,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class DisplayData {
-    public static final String DISPLAY_ID_KEY = "display_id";
+
+    private static final String DISPLAY_ID_KEY = "display_id";
 
     public static final DisplayData EMPTY = new DisplayData(Collections.emptyMap());
 
@@ -109,8 +110,9 @@ public class DisplayData {
             this.transientData.putAll(data.transientData);
     }
 
-    public void setDisplayId(String id) {
+    public DisplayData setDisplayId(String id) {
         this.putTransientData(DISPLAY_ID_KEY, id);
+        return this;
     }
 
     public boolean hasDisplayId() {

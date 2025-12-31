@@ -6,6 +6,7 @@ import org.dflib.jjava.kernel.JavaKernel;
 import org.dflib.jjava.kernel.magics.ClasspathMagic;
 import org.dflib.jjava.kernel.magics.JarsMagic;
 import org.dflib.jjava.kernel.magics.LoadCodeMagic;
+import org.dflib.jjava.kernel.magics.TimeMagic;
 import org.dflib.jjava.maven.MavenDependencyResolver;
 import org.dflib.jjava.maven.magics.AddMavenDependencyMagic;
 import org.dflib.jjava.maven.magics.LoadFromPomCellMagic;
@@ -49,6 +50,7 @@ public class JJava {
         MavenDependencyResolver mavenResolver = new MavenDependencyResolver();
 
         Properties pomProps = loadPomProps();
+        TimeMagic timeMagic = new TimeMagic();
 
         JavaKernel kernel = JavaKernel.builder()
                 .name("JJava")
@@ -60,6 +62,8 @@ public class JJava {
 
                 .lineMagic("load", new LoadCodeMagic("", ".jsh", ".jshell", ".java", ".jjava"))
                 .lineMagic("classpath", new ClasspathMagic())
+                .lineMagic("time", timeMagic)
+
                 .lineMagic("maven", new MavenMagic(mavenResolver))
                 .lineMagic("mavenRepo", new MavenRepoMagic(mavenResolver))
                 .lineMagic("loadFromPOM", new LoadFromPomLineMagic(mavenResolver))
@@ -69,6 +73,7 @@ public class JJava {
                 .lineMagic("addMavenDependency", new AddMavenDependencyMagic(mavenResolver))
 
                 .cellMagic("loadFromPOM", new LoadFromPomCellMagic(mavenResolver))
+                .cellMagic("time", timeMagic)
 
                 .build();
 

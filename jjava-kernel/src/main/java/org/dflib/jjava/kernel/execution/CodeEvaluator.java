@@ -7,6 +7,7 @@ import jdk.jshell.Snippet;
 import jdk.jshell.SnippetEvent;
 import jdk.jshell.SourceCodeAnalysis;
 import org.dflib.jjava.jupyter.kernel.BaseKernel;
+import org.dflib.jjava.jupyter.instrumentation.EvalTimer;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -49,14 +50,28 @@ public class CodeEvaluator {
         this.sourceAnalyzer = shell.sourceCodeAnalysis();
     }
 
-    private SourceCodeAnalysis.CompletionInfo analyzeCompletion(String source) {
-        return sourceAnalyzer.analyzeCompletion(source);
+    public Object eval(String code, EvalTimer timer) {
+
+        Object lastResult = null;
+        SourceCodeAnalysis.CompletionInfo info = this.sourceAnalyzer.analyzeCompletion(code);
+
+        while (info.completeness().isComplete()) {
+
+            lastResult = evalSingle(info.source(), timer);
+            info = sourceAnalyzer.analyzeCompletion(info.remaining());
+        }
+
+        if (info.completeness() != SourceCodeAnalysis.Completeness.EMPTY) {
+            throw new IncompleteSourceException(info.remaining().trim());
+        }
+
+        return lastResult;
     }
 
-    protected Object evalSingle(String code) {
+    protected Object evalSingle(String code, EvalTimer timer) {
 
-        JJavaExecutionControl executionControl = execControlProvider.getRegisteredControlByID(execControlID);
-        List<SnippetEvent> events = shell.eval(code);
+        JJavaExecutionControl execControl = execControlProvider.getRegisteredControlByID(execControlID);
+        List<SnippetEvent> events = timer.runAndMeasureStep(() -> shell.eval(code));
 
         Object result = null;
 
@@ -70,7 +85,9 @@ public class CodeEvaluator {
             }
 
             String key = event.value();
-            if (key == null) continue;
+            if (key == null) {
+                continue;
+            }
 
             Snippet.SubKind subKind = event.snippet().subKind();
 
@@ -78,7 +95,7 @@ public class CodeEvaluator {
             // JJavaExecutionControl. Declarations for example simply take their default value without
             // being executed.
             Object value = subKind.isExecutable()
-                    ? executionControl.takeResult(key)
+                    ? execControl.takeResult(key)
                     : event.value();
 
             switch (subKind) {
@@ -103,7 +120,7 @@ public class CodeEvaluator {
                         EvalException ee = (EvalException) e;
                         switch (ee.getExceptionClassName()) {
                             case JJavaExecutionControl.EXECUTION_TIMEOUT_NAME:
-                                throw new EvaluationTimeoutException(executionControl.getTimeoutDuration(), executionControl.getTimeoutUnit(), code.trim());
+                                throw new EvaluationTimeoutException(execControl.getTimeoutDuration(), execControl.getTimeoutUnit(), code.trim());
                             case JJavaExecutionControl.EXECUTION_INTERRUPTED_NAME:
                                 throw new EvaluationInterruptedException(code.trim());
                             default:
@@ -124,22 +141,6 @@ public class CodeEvaluator {
         }
 
         return result;
-    }
-
-    public Object eval(String code) {
-        Object lastEvalResult = null;
-        SourceCodeAnalysis.CompletionInfo info = this.sourceAnalyzer.analyzeCompletion(code);
-
-        while (info.completeness().isComplete()) {
-            lastEvalResult = evalSingle(info.source());
-            info = analyzeCompletion(info.remaining());
-        }
-
-        if (info.completeness() != SourceCodeAnalysis.Completeness.EMPTY) {
-            throw new IncompleteSourceException(info.remaining().trim());
-        }
-
-        return lastEvalResult;
     }
 
     /**
@@ -213,7 +214,7 @@ public class CodeEvaluator {
     public String isComplete(String code) {
         SourceCodeAnalysis.CompletionInfo info = this.sourceAnalyzer.analyzeCompletion(code);
         while (info.completeness().isComplete()) {
-            info = analyzeCompletion(info.remaining());
+            info = sourceAnalyzer.analyzeCompletion(info.remaining());
         }
 
         switch (info.completeness()) {

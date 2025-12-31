@@ -19,11 +19,11 @@ public class MagicsArgs {
         REPLACE
     }
 
-    public static MagicsArgsBuilder builder() {
-        return new MagicsArgsBuilder();
+    public static Builder builder() {
+        return new Builder();
     }
 
-    public static class MagicsArgsBuilder {
+    public static class Builder {
         private final List<String> requiredPositional = new ArrayList<>();
         private final List<String> optionalPositional = new ArrayList<>();
         private String varargs;
@@ -35,42 +35,36 @@ public class MagicsArgs {
         private final Map<Character, String> flags = new LinkedHashMap<>();
         private final Map<String, String> flagDefaultValues = new LinkedHashMap<>();
 
-        public MagicsArgsBuilder required(String name) {
-            if (!this.optionalPositional.isEmpty() || this.varargs != null)
+        public Builder required(String name) {
+            if (!this.optionalPositional.isEmpty() || this.varargs != null) {
                 throw new IllegalStateException("Schema cannot have required positional arguments after optional ones.");
+            }
 
             this.requiredPositional.add(name);
-
             return this;
         }
 
-        public MagicsArgsBuilder optional(String name) {
+        public Builder optional(String name) {
             this.optionalPositional.add(name);
-
             return this;
         }
 
-        public MagicsArgsBuilder varargs(String name) {
-            if (this.varargs != null)
-                throw new IllegalStateException("Schema already has varargs: " + this.varargs);
-
+        public Builder varargs(String name) {
             this.varargs = name;
-
             return this;
         }
 
         // --keyword value or --keyword=value
-        public MagicsArgsBuilder keyword(String name, KeywordSpec spec, KeywordSpec... specRest) {
+        public Builder keyword(String name, KeywordSpec spec, KeywordSpec... specRest) {
             this.keywords.put(name, EnumSet.of(spec, specRest));
-
             return this;
         }
 
-        public MagicsArgsBuilder keyword(String name) {
+        public Builder keyword(String name) {
             return this.keyword(name, KeywordSpec.COLLECT);
         }
 
-        public MagicsArgsBuilder flag(String name, char shortName, String value) {
+        public Builder flag(String name, char shortName, String value) {
             this.keyword(name);
             this.flags.put(shortName, name);
             this.flagDefaultValues.put(name, value);
@@ -78,32 +72,32 @@ public class MagicsArgs {
             return this;
         }
 
-        public MagicsArgsBuilder flag(String name, char shortName) {
+        public Builder flag(String name, char shortName) {
             this.keyword(name);
             this.flags.put(shortName, name);
 
             return this;
         }
 
-        public MagicsArgsBuilder anyKeyword() {
+        public Builder anyKeyword() {
             this.acceptAnyKeyword = true;
 
             return this;
         }
 
-        public MagicsArgsBuilder onlyKnownKeywords() {
+        public Builder onlyKnownKeywords() {
             this.acceptAnyKeyword = false;
 
             return this;
         }
 
-        public MagicsArgsBuilder anyFlag() {
+        public Builder anyFlag() {
             this.acceptAnyFlag = true;
 
             return this;
         }
 
-        public MagicsArgsBuilder onlyKnownFlags() {
+        public Builder onlyKnownFlags() {
             this.acceptAnyFlag = false;
 
             return this;
@@ -167,9 +161,8 @@ public class MagicsArgs {
         }
 
         public MagicsArgs build() {
-            Map<String, KeywordAggregator> kw = new HashMap<>(this.keywords.size());
-            this.keywords.forEach((name, spec) ->
-                    kw.put(name, this.buildKeyword(spec)));
+            Map<String, KeywordAggregator> kw = new HashMap<>((int) Math.ceil(keywords.size() / 0.75));
+            keywords.forEach((name, spec) -> kw.put(name, buildKeyword(spec)));
 
             return new MagicsArgs(
                     new ArrayList<>(this.requiredPositional),
@@ -233,12 +226,14 @@ public class MagicsArgs {
     }
 
     public Map<String, List<String>> parse(List<String> args) throws MagicArgsParseException {
+
         Map<String, List<String>> collectedArgs = new LinkedHashMap<>();
-        this.positional.forEach(a -> collectedArgs.put(a, new ArrayList<>()));
-        this.optional.forEach(a -> collectedArgs.put(a, new ArrayList<>()));
-        if (this.varargs != null)
-            collectedArgs.put(this.varargs, new ArrayList<>());
-        this.keywords.keySet().forEach(a -> collectedArgs.put(a, new ArrayList<>()));
+        positional.forEach(a -> collectedArgs.put(a, new ArrayList<>()));
+        optional.forEach(a -> collectedArgs.put(a, new ArrayList<>()));
+        keywords.keySet().forEach(a -> collectedArgs.put(a, new ArrayList<>()));
+        if (varargs != null) {
+            collectedArgs.put(varargs, new ArrayList<>());
+        }
 
         int positionalsMatched = 0;
 
@@ -294,12 +289,8 @@ public class MagicsArgs {
                     values.add(arg);
                     return values;
                 });
-            else if (this.varargs != null)
-                collectedArgs.compute(this.varargs, (n, values) -> {
-                    values = values != null ? values : new ArrayList<>();
-                    values.add(arg);
-                    return values;
-                });
+            else if (varargs != null)
+                collectedArgs.get(varargs).add(arg);
             else {
                 throw new MagicArgsParseException("Too many positional arguments.");
             }

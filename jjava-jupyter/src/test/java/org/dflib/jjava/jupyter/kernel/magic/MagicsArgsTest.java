@@ -342,8 +342,8 @@ public class MagicsArgsTest {
         );
     }
 
-    private static MagicsArgs args(Consumer<MagicsArgs.MagicsArgsBuilder> config) {
-        MagicsArgs.MagicsArgsBuilder builder = MagicsArgs.builder();
+    private static MagicsArgs args(Consumer<MagicsArgs.Builder> config) {
+        MagicsArgs.Builder builder = MagicsArgs.builder();
         config.accept(builder);
         return builder.build();
     }
