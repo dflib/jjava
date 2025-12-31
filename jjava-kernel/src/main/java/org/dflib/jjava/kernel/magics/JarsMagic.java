@@ -11,7 +11,7 @@ import java.util.List;
 public class JarsMagic extends ClasspathMagic {
 
     @Override
-    public String eval(JavaKernel kernel, List<String> args) {
+    public Void eval(JavaKernel kernel, List<String> args) {
         System.err.println("'%jars' magic is deprecated and will be removed in the future versions of JJava. " +
                 "A more generic '%classpath' should be used in its place.");
         return super.eval(kernel, args);

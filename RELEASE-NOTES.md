@@ -5,6 +5,7 @@
 * #102 Eval startup snippets explicitly
 * #105 Exploding classpath
 * #107 "java.class.path" uses an incorrect separator
+* #110 Magic return values are suppressed
 
 ## 1.0-a6
 

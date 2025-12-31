@@ -33,7 +33,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class LoadFromPomCellMagic implements CellMagic<List<String>, JavaKernel> {
+public class LoadFromPomCellMagic implements CellMagic<Void, JavaKernel> {
 
     private final MavenDependencyResolver mavenResolver;
 
@@ -42,7 +42,7 @@ public class LoadFromPomCellMagic implements CellMagic<List<String>, JavaKernel>
     }
 
     @Override
-    public List<String> eval(JavaKernel kernel, List<String> args, String body) throws Exception {
+    public Void eval(JavaKernel kernel, List<String> args, String body) throws Exception {
         String rawPom = solidifyPartialPOM(body);
         File tempPomPath = File.createTempFile("jjava-maven-", ".pom").getAbsoluteFile();
         try {
@@ -54,10 +54,11 @@ public class LoadFromPomCellMagic implements CellMagic<List<String>, JavaKernel>
                     .collect(Collectors.toList());
 
             kernel.addToClasspath(PathsHandler.joinStringPaths(deps));
-            return deps;
         } finally {
             tempPomPath.delete();
         }
+
+        return null;
     }
 
     private String solidifyPartialPOM(String rawIn) throws ParserConfigurationException, IOException, SAXException, TransformerException {

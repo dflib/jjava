@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class MavenMagic implements LineMagic<List<String>, JavaKernel> {
+public class MavenMagic implements LineMagic<Void, JavaKernel> {
 
     private final MavenDependencyResolver mavenResolver;
 
@@ -19,7 +19,7 @@ public class MavenMagic implements LineMagic<List<String>, JavaKernel> {
     }
 
     @Override
-    public List<String> eval(JavaKernel kernel, List<String> args) {
+    public Void eval(JavaKernel kernel, List<String> args) {
         MagicsArgs schema = MagicsArgs.builder()
                 .varargs("deps")
                 .keyword("from")
@@ -35,6 +35,6 @@ public class MavenMagic implements LineMagic<List<String>, JavaKernel> {
 
         kernel.addToClasspath(PathsHandler.joinStringPaths(deps));
 
-        return deps;
+        return null;
     }
 }
