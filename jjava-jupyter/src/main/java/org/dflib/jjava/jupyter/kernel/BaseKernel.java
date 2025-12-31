@@ -217,7 +217,7 @@ public abstract class BaseKernel {
     /**
      * Creates and returns a builder for an evaluation pipeline.
      */
-    public <T> SimpleEvalBuilder<T> evalBuilder(String source) {
+    public <T> EvalBuilder<T> evalBuilder(String source) {
         return new SimpleEvalBuilder<>(this, source, EvalTimer.DO_NOTHING);
     }
 
