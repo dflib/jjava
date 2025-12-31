@@ -15,7 +15,7 @@ public class ExternalLibraryExtension implements Extension {
             throw new RuntimeException(e);
         }
 
-        kernel.eval("var externalLibraryValue = \"" + value + "\";");
-        kernel.eval("var externalLibraryExtensionInstalled = true;");
+        kernel.evalBuilder("var externalLibraryValue = \"" + value + "\";").eval();
+        kernel.evalBuilder("var externalLibraryExtensionInstalled = true;").eval();
     }
 }

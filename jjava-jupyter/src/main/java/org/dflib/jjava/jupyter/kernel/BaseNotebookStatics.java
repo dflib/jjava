@@ -16,8 +16,8 @@ public class BaseNotebookStatics {
         System.out.printf(format, args);
     }
 
-    public static Object eval(String expr) {
-        return BaseKernel.notebookKernel().evalRaw(expr);
+    public static Object eval(String source) {
+        return BaseKernel.notebookKernel().evalBuilder(source).resolveMagics().eval();
     }
 
     public static <T> T lineMagic(String name, List<String> args) {

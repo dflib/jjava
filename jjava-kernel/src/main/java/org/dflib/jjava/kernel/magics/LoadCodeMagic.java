@@ -49,11 +49,13 @@ public class LoadCodeMagic implements LineMagic<Void, JavaKernel> {
             Path scriptPath = sourcePath.resolveSibling(file + extension);
             if (Files.isRegularFile(scriptPath)) {
 
+                // TODO: return rendered "eval" results to the caller would make sense here
+
                 if (scriptPath.getFileName().endsWith(NOTEBOOK_EXTENSION)) {
                     execNotebook(kernel, scriptPath);
                 } else {
-                    String sourceContents = Files.readString(scriptPath);
-                    kernel.eval(sourceContents);
+                    String source = Files.readString(scriptPath);
+                    kernel.evalBuilder(source).resolveMagics().eval();
                 }
                 return null;
             }
@@ -118,7 +120,7 @@ public class LoadCodeMagic implements LineMagic<Void, JavaKernel> {
 
                     // Found a code cell!
                     if (isCode != null && isCode) {
-                        kernel.eval(source);
+                        kernel.evalBuilder(source).resolveMagics().eval();
                     }
                 }
                 reader.endArray();

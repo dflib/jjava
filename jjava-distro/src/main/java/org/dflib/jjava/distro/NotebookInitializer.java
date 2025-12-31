@@ -29,6 +29,6 @@ public class NotebookInitializer implements Extension {
 
     @Override
     public void install(BaseKernel kernel) {
-        kernel.eval(STARTUP_SCRIPT);
+        kernel.evalBuilder(STARTUP_SCRIPT).resolveMagics().eval();
     }
 }

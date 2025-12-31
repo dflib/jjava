@@ -7,7 +7,7 @@ public class EvalExtension implements Extension {
 
     @Override
     public void install(BaseKernel kernel) {
-        kernel.eval("var evalValue = \"Test message\";");
-        kernel.eval("var evalExtensionInstalled = true;");
+        kernel.evalBuilder("var evalValue = \"Test message\";").eval();
+        kernel.evalBuilder("var evalExtensionInstalled = true;").eval();
     }
 }

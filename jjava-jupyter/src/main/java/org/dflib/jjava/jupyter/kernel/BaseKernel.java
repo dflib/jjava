@@ -198,40 +198,32 @@ public abstract class BaseKernel {
     }
 
     /**
-     * Same as {@link #eval(String)}, but not applying the renderer to evaluation result.
+     * @deprecated unused, replaced with {@link #evalBuilder(String)} pipeline.
      */
-    public abstract Object evalRaw(String source);
+    @Deprecated(forRemoval = true)
+    public DisplayData eval(String source) {
+        return evalBuilder(source).resolveMagics().renderResults().eval();
+    }
 
     /**
-     * Evaluates a code expression in the kernel's language environment and returns the result
-     * as display data. This is the core evaluation method called when executing code cells
-     * in a Jupyter notebook.
-     *
-     * <p>The implementation should:
-     * <ul>
-     *   <li>Parse and evaluate the provided expression string</li>
-     *   <li>Convert the evaluation result into appropriate display data formats</li>
-     *   <li>Handle any language-specific evaluation context/scope</li>
-     * </ul>
-     *
-     * <p>The returned {@link DisplayData} can contain multiple representations of the result
-     * (e.g. text/plain, text/html, image/png) to allow rich display in the notebook.
-     * Return null if the expression produces no displayable result.
-     *
-     * @param expr The code expression to evaluate as received from the Jupyter frontend
-     * @return A {@link DisplayData} object containing the evaluation result in one or more
-     * MIME formats, or null if there is no displayable result
+     * @deprecated unused, replaced with {@link #evalBuilder(String)} pipeline.
      */
-    public DisplayData eval(String expr) {
-        Object result = evalRaw(expr);
-        if (result == null) {
-            return null;
-        }
-
-        return result instanceof DisplayData
-                ? (DisplayData) result
-                : getRenderer().render(result);
+    @Deprecated(forRemoval = true)
+    public Object evalRaw(String source) {
+        return evalBuilder(source).resolveMagics().eval();
     }
+
+    /**
+     * Creates and returns a builder for an evaluation pipeline.
+     */
+    public <T> SimpleEvalBuilder<T> evalBuilder(String source) {
+        return new SimpleEvalBuilder<>(this, source);
+    }
+
+    /**
+     * Evaluates the source code in a way appropriate for a given kernel subclass.
+     */
+    protected abstract Object doEval(String source);
 
     /**
      * Inspect the code to get things such as documentation for a function. This is
@@ -360,21 +352,7 @@ public abstract class BaseKernel {
         // no-op
     }
 
-    /**
-     * Formats an error into a human friendly format. The default implementation prints
-     * the stack trace as written by {@link Throwable#printStackTrace()} with a dividing
-     * separator as a prefix.
-     * <p>
-     * Subclasses may override this method write better messages for specific errors but
-     * may choose to still use this to display the stack trace. In this case it is recommended
-     * to add the output of this call to the end of the output list.
-     *
-     * @param e the error to format
-     * @return a list of lines that make up the formatted error. This format should
-     * not include strings with newlines but rather separate strings each to go on a
-     * new line.
-     */
-    public List<String> formatError(Throwable e) {
+    protected List<String> formatError(Throwable e) {
         List<String> lines = new ArrayList<>();
         lines.add(this.errorStyler.secondary("---------------------------------------------------------------------------"));
 
@@ -388,12 +366,6 @@ public abstract class BaseKernel {
 
         return lines;
     }
-
-    /*
-     * ===================================
-     * | Default handler implementations |
-     * ===================================
-     */
 
     public void becomeHandlerForConnection(JupyterConnection connection) {
         connection.setHandler(MessageType.EXECUTE_REQUEST, this::handleExecuteRequest);
@@ -446,7 +418,7 @@ public abstract class BaseKernel {
         this.io.setJupyterInEnabled(request.isStdinEnabled());
 
         try {
-            DisplayData out = eval(request.getCode());
+            DisplayData out = evalBuilder(request.getCode()).resolveMagics().renderResults().eval();
 
             if (out != null) {
                 PublishExecuteResult result = new PublishExecuteResult(count, out);

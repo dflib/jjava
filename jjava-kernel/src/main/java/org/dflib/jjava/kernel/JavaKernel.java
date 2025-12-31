@@ -115,7 +115,7 @@ public class JavaKernel extends BaseKernel {
     }
 
     @Override
-    public List<String> formatError(Throwable e) {
+    protected List<String> formatError(Throwable e) {
         if (e instanceof CompilationException) {
             return formatCompilationException((CompilationException) e);
         } else if (e instanceof IncompleteSourceException) {
@@ -226,12 +226,9 @@ public class JavaKernel extends BaseKernel {
         return fmt;
     }
 
-    /**
-     * Same as {@link #eval(String)}, but not applying the renderer to evaluation result.
-     */
     @Override
-    public Object evalRaw(String source) {
-        return evaluator.eval(magicsResolver.resolve(source));
+    protected Object doEval(String source) {
+        return evaluator.eval(source);
     }
 
     @Override

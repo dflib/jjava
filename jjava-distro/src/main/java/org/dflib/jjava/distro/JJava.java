@@ -79,7 +79,7 @@ public class JJava {
         kernel.addToClasspath(Env.extraClasspath());
 
         // run user defined startup snippets explicitly after the default startup
-        Env.startupSnippets().forEach(kernel::evalRaw);
+        Env.startupSnippets().forEach(s -> kernel.evalBuilder(s).resolveMagics().eval());
 
         // connect to Jupyter
         kernel.becomeHandlerForConnection(connection);
