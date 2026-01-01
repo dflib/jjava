@@ -7,8 +7,8 @@ import jdk.jshell.Snippet;
 import jdk.jshell.SnippetEvent;
 import jdk.jshell.SourceCodeAnalysis;
 import jdk.jshell.UnresolvedReferenceException;
-import org.dflib.jjava.jupyter.kernel.BaseKernel;
 import org.dflib.jjava.jupyter.instrumentation.EvalTimer;
+import org.dflib.jjava.jupyter.kernel.BaseKernel;
 import org.dflib.jjava.jupyter.kernel.HelpLink;
 import org.dflib.jjava.jupyter.kernel.JupyterIO;
 import org.dflib.jjava.jupyter.kernel.LanguageInfo;
@@ -28,7 +28,6 @@ import org.dflib.jjava.kernel.execution.CompilationException;
 import org.dflib.jjava.kernel.execution.EvaluationInterruptedException;
 import org.dflib.jjava.kernel.execution.EvaluationTimeoutException;
 import org.dflib.jjava.kernel.execution.IncompleteSourceException;
-import org.dflib.jjava.kernel.execution.JJavaExecutionControlProvider;
 
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -369,10 +368,9 @@ public class JavaKernel extends BaseKernel {
 
             String name = buildName();
             Charset jupyterEncoding = buildJupyterIOEncoding();
-            JJavaExecutionControlProvider execControlProvider = buildJShellExecControlProvider(name);
-            CodeEvaluator evaluator = buildCodeEvaluator(name, execControlProvider);
+            CodeEvaluator evaluator = buildCodeEvaluator(name);
 
-            JShell jShell = buildJShell(execControlProvider);
+            JShell jShell = buildJShell(evaluator);
             LanguageInfo langInfo = buildLanguageInfo();
             MagicTranspiler magicTranspiler = buildMagicTranspiler();
 

@@ -6,12 +6,16 @@ import jdk.jshell.JShellException;
 import jdk.jshell.Snippet;
 import jdk.jshell.SnippetEvent;
 import jdk.jshell.SourceCodeAnalysis;
-import org.dflib.jjava.jupyter.kernel.BaseKernel;
+import jdk.jshell.spi.ExecutionControl;
+import jdk.jshell.spi.ExecutionControlProvider;
+import jdk.jshell.spi.ExecutionEnv;
 import org.dflib.jjava.jupyter.instrumentation.EvalTimer;
+import org.dflib.jjava.jupyter.kernel.BaseKernel;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -33,19 +37,16 @@ public class CodeEvaluator {
         }
     }
 
-
     private final String name;
-    private final JJavaExecutionControlProvider execControlProvider;
-    private final String execControlID;
+    private final JJavaExecutionControl execControl;
 
-    public CodeEvaluator(
-            String name,
-            JJavaExecutionControlProvider execControlProvider,
-            String execControlID) {
-
+    public CodeEvaluator(String name, JJavaExecutionControl execControl) {
         this.name = name;
-        this.execControlProvider = execControlProvider;
-        this.execControlID = execControlID;
+        this.execControl = execControl;
+    }
+
+    public ExecutionControlProvider getExecControlProvider() {
+        return new SimpleExecControlProvider(name, execControl);
     }
 
     public Object eval(JShell shell, String code, EvalTimer timer) {
@@ -70,7 +71,6 @@ public class CodeEvaluator {
 
     protected Object evalSingle(JShell shell, String code, EvalTimer timer) {
 
-        JJavaExecutionControl execControl = execControlProvider.getRegisteredControlByID(execControlID);
         List<SnippetEvent> events = timer.runAndMeasureStep(() -> shell.eval(code));
 
         Object result = null;
@@ -147,7 +147,6 @@ public class CodeEvaluator {
      * Try to clean up information linked to a code snippet and the snippet itself
      */
     private void dropSnippet(JShell shell, Snippet snippet) {
-        JJavaExecutionControl execControl = execControlProvider.getRegisteredControlByID(execControlID);
         shell.drop(snippet);
         // snippet.classFullName() returns name of a wrapper class created for a snippet
         String className = snippetClassName(snippet);
@@ -236,15 +235,31 @@ public class CodeEvaluator {
     }
 
     public void interrupt() {
-        JJavaExecutionControl execControl = execControlProvider.getRegisteredControlByID(execControlID);
-
-        if (execControl != null) {
-            execControl.interrupt();
-        }
+        execControl.interrupt();
     }
 
     public ClassLoader getClassLoader() {
-        JJavaExecutionControl execControl = execControlProvider.getRegisteredControlByID(execControlID);
-        return execControl != null ? execControl.getClassLoader() : null;
+        return execControl.getClassLoader();
+    }
+
+    static final class SimpleExecControlProvider implements ExecutionControlProvider {
+
+        private final String name;
+        private final ExecutionControl control;
+
+        public SimpleExecControlProvider(String name, ExecutionControl control) {
+            this.name = name;
+            this.control = control;
+        }
+
+        @Override
+        public String name() {
+            return name;
+        }
+
+        @Override
+        public ExecutionControl generate(ExecutionEnv env, Map<String, String> parameters) {
+            return control;
+        }
     }
 }

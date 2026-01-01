@@ -20,6 +20,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * The main class launching Jupyter Java kernel.
@@ -52,13 +55,15 @@ public class JJava {
         Properties pomProps = loadPomProps();
         TimeMagic timeMagic = new TimeMagic();
 
+        Timeout timeout = Timeout.parseOrDefault(System.getenv(Env.JJAVA_TIMEOUT));
+
         JavaKernel kernel = JavaKernel.builder()
                 .name("JJava")
                 .version((String) pomProps.getOrDefault("version", ""))
 
                 .extensionsEnabled(Env.extensionsEnabled())
                 .compilerOpts(Env.compilerOpts())
-                .timeout(Env.timeout())
+                .timeout(timeout.time, timeout.timeUnit)
 
                 .lineMagic("load", new LoadCodeMagic("", ".jsh", ".jshell", ".java", ".jjava"))
                 .lineMagic("classpath", new ClasspathMagic())
@@ -111,6 +116,42 @@ public class JJava {
         } catch (IOException e) {
             // generally, this should be ignorable, but it should also never happen, so still rethrow
             throw new RuntimeException("Error reading project properties");
+        }
+    }
+
+    private static class Timeout {
+        private static final Pattern TIMEOUT_PATTERN = Pattern.compile("^(?<dur>-?\\d+)\\W*(?<unit>[A-Za-z]+)?$");
+
+        static Timeout parseOrDefault(String value) {
+
+            if (value == null) {
+                return new Timeout(-1, TimeUnit.MILLISECONDS);
+            }
+
+            Matcher m = TIMEOUT_PATTERN.matcher(value);
+            if (!m.matches()) {
+                throw new IllegalArgumentException("Invalid timeout string: " + value);
+            }
+
+            long timeout = Long.parseLong(m.group("dur"));
+            TimeUnit unit = TimeUnit.MILLISECONDS;
+            if (m.group("unit") != null) {
+                try {
+                    unit = TimeUnit.valueOf(m.group("unit").toUpperCase());
+                } catch (IllegalArgumentException e) {
+                    throw new IllegalArgumentException("Invalid timeout unit: " + m.group("unit"));
+                }
+            }
+
+            return new Timeout(timeout, unit);
+        }
+
+        final long time;
+        final TimeUnit timeUnit;
+
+        public Timeout(long time, TimeUnit timeUnit) {
+            this.time = time;
+            this.timeUnit = timeUnit;
         }
     }
 }
