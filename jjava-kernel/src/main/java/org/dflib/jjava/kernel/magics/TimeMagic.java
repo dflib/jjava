@@ -1,6 +1,5 @@
 package org.dflib.jjava.kernel.magics;
 
-import org.dflib.jjava.jupyter.instrumentation.WallAndCpuTimer;
 import org.dflib.jjava.jupyter.instrumentation.WallTimer;
 import org.dflib.jjava.jupyter.kernel.BaseKernel;
 import org.dflib.jjava.jupyter.kernel.display.DisplayData;
@@ -8,8 +7,6 @@ import org.dflib.jjava.jupyter.kernel.magic.CellMagic;
 import org.dflib.jjava.jupyter.kernel.magic.LineMagic;
 import org.dflib.jjava.kernel.JavaKernel;
 
-import java.lang.management.ManagementFactory;
-import java.lang.management.ThreadMXBean;
 import java.util.List;
 import java.util.UUID;
 
@@ -31,25 +28,12 @@ public class TimeMagic implements LineMagic<DisplayData, JavaKernel>, CellMagic<
     }
 
     private DisplayData timeAndRunCode(JavaKernel kernel, String code) {
-        ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
 
         return kernel.evalBuilder(code)
                 .resolveMagics()
                 .renderResults()
-                .timed(WallAndCpuTimer.canMeasureCpuTimes(threadMXBean)
-                        ? new TMWallAndCpuTimer(kernel, threadMXBean)
-                        : new TMWallTimer(kernel))
+                .timed(new TMWallTimer(kernel))
                 .eval();
-    }
-
-
-    private static void displayCpuTime(BaseKernel kernel, long userTimeNanos, long sysTimeNanos, long totalTimeNanos) {
-        String cpuTimes = String.format("CPU times: user %.3f s, sys %.3f s, total %.3f s",
-                userTimeNanos / NANONS_IN_SEC,
-                sysTimeNanos / NANONS_IN_SEC,
-                totalTimeNanos / NANONS_IN_SEC);
-
-        kernel.display(new DisplayData(cpuTimes).setDisplayId(UUID.randomUUID().toString()));
     }
 
     private static void displayWallTime(BaseKernel kernel, long wallTimeNanos) {
@@ -69,24 +53,4 @@ public class TimeMagic implements LineMagic<DisplayData, JavaKernel>, CellMagic<
             displayWallTime(kernel, wallTimeNanos);
         }
     }
-
-    static class TMWallAndCpuTimer extends WallAndCpuTimer {
-        private final BaseKernel kernel;
-
-        public TMWallAndCpuTimer(BaseKernel kernel, ThreadMXBean threadMXBean) {
-            super(threadMXBean);
-            this.kernel = kernel;
-        }
-
-        @Override
-        protected void onStop(long wallTimeNanos, long userTimeNanos, long totalTimeNanos) {
-            // sanity check: CPU and user times can't be measured sometimes
-            if (userTimeNanos != -1 && totalTimeNanos != -1) {
-                displayCpuTime(kernel, userTimeNanos, totalTimeNanos - userTimeNanos, totalTimeNanos);
-            }
-
-            displayWallTime(kernel, wallTimeNanos);
-        }
-    }
-
 }
