@@ -20,6 +20,7 @@ public class CodeEvaluator {
     private static final Pattern LAST_LINE = Pattern.compile("(?:^|\r?\n)(?<last>.*)$");
 
     private static final String NO_MAGIC_RETURN = "\"__NO_MAGIC_RETURN\"";
+    private static final String INDENTATION = "  ";
 
     private static final Method SNIPPET_CLASS_NAME_METHOD;
 
@@ -32,33 +33,32 @@ public class CodeEvaluator {
         }
     }
 
-    private static final String INDENTATION = "  ";
 
-    private final JShell shell;
+    private final String name;
     private final JJavaExecutionControlProvider execControlProvider;
     private final String execControlID;
-    private final SourceCodeAnalysis sourceAnalyzer;
 
     public CodeEvaluator(
-            JShell shell,
+            String name,
             JJavaExecutionControlProvider execControlProvider,
             String execControlID) {
 
-        this.shell = shell;
+        this.name = name;
         this.execControlProvider = execControlProvider;
         this.execControlID = execControlID;
-        this.sourceAnalyzer = shell.sourceCodeAnalysis();
     }
 
-    public Object eval(String code, EvalTimer timer) {
+    public Object eval(JShell shell, String code, EvalTimer timer) {
+
+        SourceCodeAnalysis sca = shell.sourceCodeAnalysis();
 
         Object lastResult = null;
-        SourceCodeAnalysis.CompletionInfo info = this.sourceAnalyzer.analyzeCompletion(code);
+        SourceCodeAnalysis.CompletionInfo info = sca.analyzeCompletion(code);
 
         while (info.completeness().isComplete()) {
 
-            lastResult = evalSingle(info.source(), timer);
-            info = sourceAnalyzer.analyzeCompletion(info.remaining());
+            lastResult = evalSingle(shell, info.source(), timer);
+            info = sca.analyzeCompletion(info.remaining());
         }
 
         if (info.completeness() != SourceCodeAnalysis.Completeness.EMPTY) {
@@ -68,7 +68,7 @@ public class CodeEvaluator {
         return lastResult;
     }
 
-    protected Object evalSingle(String code, EvalTimer timer) {
+    protected Object evalSingle(JShell shell, String code, EvalTimer timer) {
 
         JJavaExecutionControl execControl = execControlProvider.getRegisteredControlByID(execControlID);
         List<SnippetEvent> events = timer.runAndMeasureStep(() -> shell.eval(code));
@@ -80,7 +80,7 @@ public class CodeEvaluator {
         for (SnippetEvent event : events) {
             if (event.status() == Snippet.Status.OVERWRITTEN) {
                 // if a new snippet changed some other definition, drop the older one
-                dropSnippet(event.snippet());
+                dropSnippet(shell, event.snippet());
                 continue;
             }
 
@@ -146,7 +146,7 @@ public class CodeEvaluator {
     /**
      * Try to clean up information linked to a code snippet and the snippet itself
      */
-    private void dropSnippet(Snippet snippet) {
+    private void dropSnippet(JShell shell, Snippet snippet) {
         JJavaExecutionControl execControl = execControlProvider.getRegisteredControlByID(execControlID);
         shell.drop(snippet);
         // snippet.classFullName() returns name of a wrapper class created for a snippet
@@ -211,8 +211,8 @@ public class CodeEvaluator {
                 : currentIndentation;
     }
 
-    public String isComplete(String code) {
-        SourceCodeAnalysis.CompletionInfo info = this.sourceAnalyzer.analyzeCompletion(code);
+    public String isComplete(SourceCodeAnalysis sourceAnalyzer, String code) {
+        SourceCodeAnalysis.CompletionInfo info = sourceAnalyzer.analyzeCompletion(code);
         while (info.completeness().isComplete()) {
             info = sourceAnalyzer.analyzeCompletion(info.remaining());
         }
@@ -228,7 +228,7 @@ public class CodeEvaluator {
             case CONSIDERED_INCOMPLETE:
             case DEFINITELY_INCOMPLETE:
                 // Compute the indent of the last line and match it
-                return this.computeIndentation(info.remaining());
+                return computeIndentation(info.remaining());
             default:
                 // For completeness, return an "I don't know" if we somehow get down here
                 return BaseKernel.IS_COMPLETE_MAYBE;

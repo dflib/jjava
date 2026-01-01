@@ -229,7 +229,7 @@ public class JavaKernel extends BaseKernel {
 
     @Override
     protected Object doEval(String source, EvalTimer timer) {
-        return evaluator.eval(source, timer);
+        return evaluator.eval(jShell, source, timer);
     }
 
     @Override
@@ -331,7 +331,7 @@ public class JavaKernel extends BaseKernel {
 
     @Override
     public String isComplete(String code) {
-        return this.evaluator.isComplete(code);
+        return evaluator.isComplete(jShell.sourceCodeAnalysis(), code);
     }
 
     @Override
@@ -342,7 +342,7 @@ public class JavaKernel extends BaseKernel {
 
     @Override
     public void interrupt() {
-        this.evaluator.interrupt();
+        evaluator.interrupt();
     }
 
     /**
@@ -369,8 +369,10 @@ public class JavaKernel extends BaseKernel {
 
             String name = buildName();
             Charset jupyterEncoding = buildJupyterIOEncoding();
-            JJavaExecutionControlProvider jShellExecutionControlProvider = buildJShellExecControlProvider(name);
-            JShell jShell = buildJShell(jShellExecutionControlProvider);
+            JJavaExecutionControlProvider execControlProvider = buildJShellExecControlProvider(name);
+            CodeEvaluator evaluator = buildCodeEvaluator(name, execControlProvider);
+
+            JShell jShell = buildJShell(execControlProvider);
             LanguageInfo langInfo = buildLanguageInfo();
             MagicTranspiler magicTranspiler = buildMagicTranspiler();
 
@@ -388,7 +390,7 @@ public class JavaKernel extends BaseKernel {
                     buildExtensionsEnabled(),
                     buildErrorStyler(),
                     jShell,
-                    buildCodeEvaluator(jShell, jShellExecutionControlProvider)
+                    evaluator
             );
         }
 
