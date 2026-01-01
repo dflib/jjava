@@ -48,16 +48,16 @@ public abstract class WallAndCpuTimer implements EvalTimer {
             return timedAction.get();
         } finally {
 
-            long ct1 = threadMXBean.getCurrentThreadCpuTime() - ct0;
-            long ut1 = threadMXBean.getCurrentThreadUserTime() - ut0;
-            long t1 = System.nanoTime() - t0;
+            long ct1 = threadMXBean.getCurrentThreadCpuTime();
+            long ut1 = threadMXBean.getCurrentThreadUserTime();
+            long t1 = System.nanoTime();
 
-            totalWallTime.addAndGet(t1);
+            totalWallTime.addAndGet(t1 - t0);
 
             // sanity check
             if (ut0 != -1 && ut1 != -1 && ct0 != -1 && ct1 != -1) {
-                totalUserTime.addAndGet(ut1);
-                totalCpuTime.addAndGet(ct1);
+                totalUserTime.addAndGet(ut1 - ut0);
+                totalCpuTime.addAndGet(ct1 - ct0);
             } else {
                 totalUserTime.set(-1);
                 totalCpuTime.set(-1);

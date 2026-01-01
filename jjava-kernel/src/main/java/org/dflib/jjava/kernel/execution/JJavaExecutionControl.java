@@ -94,10 +94,10 @@ public class JJavaExecutionControl extends DirectExecutionControl {
         executor.shutdownNow();
     }
 
-    public Object takeResult(String key) {
-        Object result = this.results.remove(key);
+    public Object takeResult(String id) {
+        Object result = this.results.remove(id);
         if (result == null) {
-            throw new IllegalStateException("No result with key: " + key);
+            throw new IllegalStateException("No result with key: " + id);
         }
 
         return result;
@@ -119,10 +119,10 @@ public class JJavaExecutionControl extends DirectExecutionControl {
                 '}';
     }
 
-    private Object execute(String key, Method doitMethod) throws Exception {
+    private Object execute(String id, Method doitMethod) throws Exception {
 
         Future<Object> runningTask = executor.submit(() -> doitMethod.invoke(null));
-        running.put(key, runningTask);
+        running.put(id, runningTask);
 
         try {
             return timeoutDuration > 0 ? runningTask.get(this.timeoutDuration, this.timeoutUnit) : runningTask.get();
@@ -134,16 +134,12 @@ public class JJavaExecutionControl extends DirectExecutionControl {
                 throw new StoppedException();
             } else {
                 // The execution was purposely interrupted.
-                throw new UserException(
-                        "Execution interrupted.",
-                        EXECUTION_INTERRUPTED_NAME,
-                        e.getStackTrace());
+                throw new UserException("Execution interrupted.", EXECUTION_INTERRUPTED_NAME, e.getStackTrace());
             }
         } catch (ExecutionException e) {
-            // The execution threw an exception. The actual exception is the cause of the ExecutionException.
+
             Throwable cause = e.getCause();
             if (cause instanceof InvocationTargetException) {
-                // Unbox further
                 cause = cause.getCause();
             }
             if (cause == null) {
@@ -154,13 +150,12 @@ public class JJavaExecutionControl extends DirectExecutionControl {
                 throw new UserException(String.valueOf(cause.getMessage()), cause.getClass().getName(), cause.getStackTrace());
             }
         } catch (TimeoutException e) {
-            throw new UserException(
-                    String.format("Execution timed out after configured timeout of %d %s.", this.timeoutDuration, this.timeoutUnit.toString().toLowerCase()),
-                    EXECUTION_TIMEOUT_NAME,
-                    e.getStackTrace()
-            );
+            String message = String.format("Execution timed out after configured timeout of %d %s.",
+                    this.timeoutDuration,
+                    this.timeoutUnit.toString().toLowerCase());
+            throw new UserException(message, EXECUTION_TIMEOUT_NAME, e.getStackTrace());
         } finally {
-            running.remove(key, runningTask);
+            running.remove(id, runningTask);
         }
     }
 }
