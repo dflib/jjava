@@ -27,8 +27,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class JJavaExecutionControl extends DirectExecutionControl {
 
-    // generate a semi-unique thread name prefix for each JVM run for easier detection of
-    // JJavaExecutionControl-produced threads
+    // generate a semi-unique thread name prefix for each JVM run for easier detection of JJavaExecutionControl-produced threads
     private static final String THREAD_NAME_PREFIX = "jjava-exec-"
             + ThreadLocalRandom.current().ints(6, 'a', 'z' + 1).collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
             + "-";
@@ -84,21 +83,6 @@ public class JJavaExecutionControl extends DirectExecutionControl {
         return timeoutUnit;
     }
 
-    /**
-     * This method was hijacked and actually only returns a key that can be later retrieved via
-     * {@link #takeResult(String)}. This should be called for every invocation as the objects are saved and not taking
-     * them will leak the memory.
-     *
-     * @returns the key to use for {@link #takeResult(String) looking up the result}.
-     */
-    @Override
-    protected String invoke(Method doitMethod) throws Exception {
-        String id = UUID.randomUUID().toString();
-        Object value = execute(id, doitMethod);
-        results.put(id, value);
-        return id;
-    }
-
     @Override
     public void stop() {
         executor.shutdownNow();
@@ -121,26 +105,32 @@ public class JJavaExecutionControl extends DirectExecutionControl {
         running.forEach((id, f) -> f.cancel(true));
     }
 
+    /**
+     * This method was hijacked and actually only returns a key that can be later retrieved via
+     * {@link #takeResult(String)}. This should be called for every invocation as the objects are saved and not taking
+     * them will leak the memory.
+     *
+     * @returns the key to use for {@link #takeResult(String) looking up the result}.
+     */
     @Override
-    public String toString() {
-        return "JJavaExecutionControl{" +
-                "timeoutTime=" + timeoutDuration +
-                ", timeoutUnit=" + timeoutUnit +
-                '}';
+    protected String invoke(Method doitMethod) throws Exception {
+        String id = UUID.randomUUID().toString();
+        Object value = doInvoke(id, doitMethod);
+        results.put(id, value);
+        return id;
     }
 
-    private Object execute(String id, Method doitMethod) throws Exception {
+    private Object doInvoke(String id, Method doitMethod) throws Exception {
 
-        // run on the same thread if an execution was called within another execution
-        boolean alreadyRunByKernel = Thread.currentThread().getName().startsWith(THREAD_NAME_PREFIX);
-        Future<Object> runningTask = alreadyRunByKernel
+        Future<Object> task = isNestedCall()
+                // run on the same thread if the invocation is done within another invocation
                 ? CompletableFuture.completedFuture(doitMethod.invoke(null))
                 : executor.submit(() -> doitMethod.invoke(null));
 
-        running.put(id, runningTask);
+        running.put(id, task);
 
         try {
-            return timeoutDuration > 0 ? runningTask.get(this.timeoutDuration, this.timeoutUnit) : runningTask.get();
+            return timeoutDuration > 0 ? task.get(timeoutDuration, timeoutUnit) : task.get();
         } catch (CancellationException e) {
             // If canceled this means that stop() or interrupt() was invoked.
             if (executor.isShutdown()) {
@@ -166,11 +156,23 @@ public class JJavaExecutionControl extends DirectExecutionControl {
             }
         } catch (TimeoutException e) {
             String message = String.format("Execution timed out after configured timeout of %d %s.",
-                    this.timeoutDuration,
-                    this.timeoutUnit.toString().toLowerCase());
+                    timeoutDuration,
+                    timeoutUnit.toString().toLowerCase());
             throw new UserException(message, EXECUTION_TIMEOUT_NAME, e.getStackTrace());
         } finally {
-            running.remove(id, runningTask);
+            running.remove(id, task);
         }
+    }
+
+    private boolean isNestedCall() {
+        return Thread.currentThread().getName().startsWith(THREAD_NAME_PREFIX);
+    }
+
+    @Override
+    public String toString() {
+        return "JJavaExecutionControl{" +
+                "timeoutTime=" + timeoutDuration +
+                ", timeoutUnit=" + timeoutUnit +
+                '}';
     }
 }
