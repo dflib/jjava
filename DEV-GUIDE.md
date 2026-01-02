@@ -6,9 +6,9 @@ On MacOS and Linux, run the following commands:
 
 ```bash
 mvn clean package
-unzip -u jjava-distro/target/jjava-*-kernelspec.zip -d jjava-distro/target/unzip
-jupyter kernelspec remove -y java
-jupyter kernelspec install jjava-distro/target/unzip --name=java --user
+unzip -u jjava-distro/target/jjava-*-kernelspec.zip -d jjava-distro/target/unzip ; \
+  jupyter kernelspec remove -y java ; \
+  jupyter kernelspec install jjava-distro/target/unzip --name=java --user
 ```
 
 ## Releasing New Version
