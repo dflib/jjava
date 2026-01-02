@@ -7,6 +7,7 @@
 * #107 "java.class.path" uses an incorrect separator
 * #110 Magic return values are suppressed
 * #111 "kernel.evalBuilder(..)"
+* #112 Use the same thread for "kernel.doEval(..)" nested calls
 
 ## 1.0-a6
 
