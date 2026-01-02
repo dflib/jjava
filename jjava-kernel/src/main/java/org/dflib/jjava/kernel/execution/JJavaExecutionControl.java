@@ -10,11 +10,13 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CancellationException;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -24,12 +26,20 @@ import java.util.concurrent.atomic.AtomicInteger;
  * also logs the actual result of an invocation before being serialized.
  */
 public class JJavaExecutionControl extends DirectExecutionControl {
+
+    // generate a semi-unique thread name prefix for each JVM run for easier detection of
+    // JJavaExecutionControl-produced threads
+    private static final String THREAD_NAME_PREFIX = "jjava-exec-"
+            + ThreadLocalRandom.current().ints(6, 'a', 'z' + 1).collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
+            + "-";
+
     /**
      * A special "class name" for a {@link jdk.jshell.spi.ExecutionControl.UserException} such that it may be
      * identified after serialization into an {@link jdk.jshell.EvalException} via {@link
      * EvalException#getExceptionClassName()}.
      */
-    public static final String EXECUTION_TIMEOUT_NAME = "Execution Timeout"; // Has spaces to not collide with a class name
+    // Has spaces to not collide with a class name
+    public static final String EXECUTION_TIMEOUT_NAME = "Execution Timeout";
 
     /**
      * A special "class name" for a {@link jdk.jshell.spi.ExecutionControl.UserException} such that it may be
@@ -56,7 +66,7 @@ public class JJavaExecutionControl extends DirectExecutionControl {
 
         this.timeoutDuration = timeoutDuration;
         this.timeoutUnit = timeoutDuration > 0 ? Objects.requireNonNull(timeoutUnit) : TimeUnit.MILLISECONDS;
-        this.executor = Executors.newCachedThreadPool(r -> new Thread(r, "JJava-executor-" + EXECUTOR_THREAD_ID.getAndIncrement()));
+        this.executor = Executors.newCachedThreadPool(r -> new Thread(r, THREAD_NAME_PREFIX + EXECUTOR_THREAD_ID.getAndIncrement()));
     }
 
     /**
@@ -121,7 +131,12 @@ public class JJavaExecutionControl extends DirectExecutionControl {
 
     private Object execute(String id, Method doitMethod) throws Exception {
 
-        Future<Object> runningTask = executor.submit(() -> doitMethod.invoke(null));
+        // run on the same thread if an execution was called within another execution
+        boolean alreadyRunByKernel = Thread.currentThread().getName().startsWith(THREAD_NAME_PREFIX);
+        Future<Object> runningTask = alreadyRunByKernel
+                ? CompletableFuture.completedFuture(doitMethod.invoke(null))
+                : executor.submit(() -> doitMethod.invoke(null));
+
         running.put(id, runningTask);
 
         try {

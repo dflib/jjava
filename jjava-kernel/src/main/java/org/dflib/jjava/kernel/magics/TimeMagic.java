@@ -28,7 +28,7 @@ public class TimeMagic implements LineMagic<DisplayData, JavaKernel>, CellMagic<
     }
 
     private DisplayData timeAndRunCode(JavaKernel kernel, String code) {
-
+        System.out.println("TimeMagic thread: " + Thread.currentThread().getName());
         return kernel.evalBuilder(code)
                 .resolveMagics()
                 .renderResults()
