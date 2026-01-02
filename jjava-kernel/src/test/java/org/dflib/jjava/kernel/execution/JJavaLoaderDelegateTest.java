@@ -1,7 +1,6 @@
-package org.dflib.jjava.kernel;
+package org.dflib.jjava.kernel.execution;
 
 import jdk.jshell.spi.ExecutionControl;
-import org.dflib.jjava.kernel.execution.JJavaLoaderDelegate;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;

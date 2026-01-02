@@ -16,6 +16,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -38,11 +39,17 @@ public class CodeEvaluator {
     }
 
     private final String name;
+    private final long timeoutDuration;
+    private final TimeUnit timeoutUnit;
+    private final JJavaLoaderDelegate loaderDelegate;
     private final JJavaExecutionControl execControl;
 
-    public CodeEvaluator(String name, JJavaExecutionControl execControl) {
+    public CodeEvaluator(String name, long timeoutDuration, TimeUnit timeoutUnit) {
         this.name = name;
-        this.execControl = execControl;
+        this.timeoutDuration = timeoutDuration;
+        this.timeoutUnit = timeoutUnit;
+        this.loaderDelegate = new JJavaLoaderDelegate();
+        this.execControl = new JJavaExecutionControl(loaderDelegate, timeoutDuration, timeoutUnit);
     }
 
     public ExecutionControlProvider getExecControlProvider() {
@@ -120,7 +127,7 @@ public class CodeEvaluator {
                         EvalException ee = (EvalException) e;
                         switch (ee.getExceptionClassName()) {
                             case JJavaExecutionControl.EXECUTION_TIMEOUT_NAME:
-                                throw new EvaluationTimeoutException(execControl.getTimeoutDuration(), execControl.getTimeoutUnit(), code.trim());
+                                throw new EvaluationTimeoutException(timeoutDuration, timeoutUnit, code.trim());
                             case JJavaExecutionControl.EXECUTION_INTERRUPTED_NAME:
                                 throw new EvaluationInterruptedException(code.trim());
                             default:
@@ -239,7 +246,7 @@ public class CodeEvaluator {
     }
 
     public ClassLoader getClassLoader() {
-        return execControl.getClassLoader();
+        return loaderDelegate.getClassLoader();
     }
 
     static final class SimpleExecControlProvider implements ExecutionControlProvider {

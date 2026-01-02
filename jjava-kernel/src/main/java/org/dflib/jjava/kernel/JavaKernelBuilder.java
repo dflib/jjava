@@ -6,8 +6,6 @@ import org.dflib.jjava.jupyter.kernel.LanguageInfo;
 import org.dflib.jjava.jupyter.kernel.magic.MagicTranspiler;
 import org.dflib.jjava.jupyter.kernel.magic.MagicsResolver;
 import org.dflib.jjava.kernel.execution.CodeEvaluator;
-import org.dflib.jjava.kernel.execution.JJavaExecutionControl;
-import org.dflib.jjava.kernel.execution.JJavaLoaderDelegate;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -57,9 +55,7 @@ public abstract class JavaKernelBuilder<
     protected CodeEvaluator buildCodeEvaluator(String name) {
         long timeoutDuration = this.timeoutUnit != null ? this.timeoutDuration : -1;
         TimeUnit timeoutUnit = this.timeoutUnit != null ? this.timeoutUnit : TimeUnit.MILLISECONDS;
-        return new CodeEvaluator(
-                name,
-                new JJavaExecutionControl(new JJavaLoaderDelegate(), timeoutDuration, timeoutUnit));
+        return new CodeEvaluator(name, timeoutDuration, timeoutUnit);
     }
 
     protected MagicsResolver buildMagicsResolver(MagicTranspiler transpiler) {

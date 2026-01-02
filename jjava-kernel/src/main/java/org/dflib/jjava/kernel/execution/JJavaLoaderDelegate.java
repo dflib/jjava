@@ -12,7 +12,7 @@ import java.security.CodeSource;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class JJavaLoaderDelegate implements LoaderDelegate {
+class JJavaLoaderDelegate implements LoaderDelegate {
 
     private static final String CLASSPATH_PROPERTY = "java.class.path";
     private static final String PATH_SEPARATOR = System.getProperty("path.separator");

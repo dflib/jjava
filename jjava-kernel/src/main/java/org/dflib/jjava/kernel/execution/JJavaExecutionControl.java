@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * An ExecutionControl very similar to {@link jdk.jshell.execution.LocalExecutionControl} but which
  * also logs the actual result of an invocation before being serialized.
  */
-public class JJavaExecutionControl extends DirectExecutionControl {
+class JJavaExecutionControl extends DirectExecutionControl {
 
     // generate a semi-unique thread name prefix for each JVM run for easier detection of JJavaExecutionControl-produced threads
     private static final String THREAD_NAME_PREFIX = "jjava-exec-"
@@ -66,21 +66,6 @@ public class JJavaExecutionControl extends DirectExecutionControl {
         this.timeoutDuration = timeoutDuration;
         this.timeoutUnit = timeoutDuration > 0 ? Objects.requireNonNull(timeoutUnit) : TimeUnit.MILLISECONDS;
         this.executor = Executors.newCachedThreadPool(r -> new Thread(r, THREAD_NAME_PREFIX + EXECUTOR_THREAD_ID.getAndIncrement()));
-    }
-
-    /**
-     * Returns JShell ClassLoader
-     */
-    public ClassLoader getClassLoader() {
-        return loaderDelegate.getClassLoader();
-    }
-
-    public long getTimeoutDuration() {
-        return timeoutDuration;
-    }
-
-    public TimeUnit getTimeoutUnit() {
-        return timeoutUnit;
     }
 
     @Override
