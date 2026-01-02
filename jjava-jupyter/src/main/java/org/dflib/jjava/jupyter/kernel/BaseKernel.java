@@ -3,7 +3,6 @@ package org.dflib.jjava.jupyter.kernel;
 import org.dflib.jjava.jupyter.Extension;
 import org.dflib.jjava.jupyter.channels.JupyterConnection;
 import org.dflib.jjava.jupyter.channels.ShellReplyEnvironment;
-import org.dflib.jjava.jupyter.instrumentation.EvalTimer;
 import org.dflib.jjava.jupyter.kernel.comm.CommManager;
 import org.dflib.jjava.jupyter.kernel.display.DisplayData;
 import org.dflib.jjava.jupyter.kernel.display.Renderer;
@@ -218,14 +217,13 @@ public abstract class BaseKernel {
      * Creates and returns a builder for an evaluation pipeline.
      */
     public <T> EvalBuilder<T> evalBuilder(String source) {
-        return new SimpleEvalBuilder<>(this, source, EvalTimer.DO_NOTHING);
+        return new SimpleEvalBuilder<>(this, source);
     }
 
     /**
-     * Evaluates the source code in a way appropriate for a given kernel subclass, and using the provided timer to
-     * measure evaluation time.
+     * Evaluates the source code in a way appropriate for a given kernel subclass.
      */
-    protected abstract Object doEval(String source, EvalTimer timer);
+    protected abstract Object doEval(String source);
 
     /**
      * Inspect the code to get things such as documentation for a function. This is

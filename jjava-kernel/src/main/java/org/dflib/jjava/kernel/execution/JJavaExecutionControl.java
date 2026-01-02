@@ -3,6 +3,7 @@ package org.dflib.jjava.kernel.execution;
 import jdk.jshell.EvalException;
 import jdk.jshell.execution.DirectExecutionControl;
 import jdk.jshell.spi.SPIResolutionException;
+import org.dflib.jjava.jupyter.telemetry.TelemetryCollector;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -55,6 +56,7 @@ class JJavaExecutionControl extends DirectExecutionControl {
     private final Map<String, Future<Object>> running;
     private final Map<String, Object> results;
     private final JJavaLoaderDelegate loaderDelegate;
+    private final ThreadLocal<TelemetryCollector<?>> telemetryCollector;
 
     public JJavaExecutionControl(JJavaLoaderDelegate loaderDelegate, long timeoutDuration, TimeUnit timeoutUnit) {
         super(loaderDelegate);
@@ -66,6 +68,7 @@ class JJavaExecutionControl extends DirectExecutionControl {
         this.timeoutDuration = timeoutDuration;
         this.timeoutUnit = timeoutDuration > 0 ? Objects.requireNonNull(timeoutUnit) : TimeUnit.MILLISECONDS;
         this.executor = Executors.newCachedThreadPool(r -> new Thread(r, THREAD_NAME_PREFIX + EXECUTOR_THREAD_ID.getAndIncrement()));
+        this.telemetryCollector = new ThreadLocal<>();
     }
 
     @Override
@@ -90,6 +93,18 @@ class JJavaExecutionControl extends DirectExecutionControl {
         running.forEach((id, f) -> f.cancel(true));
     }
 
+    public void startThreadTelemetryCollection(TelemetryCollector<?> collector) {
+        telemetryCollector.set(Objects.requireNonNull(collector));
+    }
+
+    public void stopThreadTelemetryCollection() {
+        TelemetryCollector<?> collector = telemetryCollector.get();
+        if (collector != null) {
+            collector.stop();
+            telemetryCollector.set(null);
+        }
+    }
+
     /**
      * This method was hijacked and actually only returns a key that can be later retrieved via
      * {@link #takeResult(String)}. This should be called for every invocation as the objects are saved and not taking
@@ -100,7 +115,18 @@ class JJavaExecutionControl extends DirectExecutionControl {
     @Override
     protected String invoke(Method doitMethod) throws Exception {
         String id = UUID.randomUUID().toString();
-        Object value = doInvoke(id, doitMethod);
+        Object value;
+
+        TelemetryCollector tc = threadTelemetryCollector();
+        Object m = tc.measurementStart();
+        try {
+            value = doInvoke(id, doitMethod);
+        } finally {
+            // use the same collector used for "measurementStart" call, so if the thread local is reset inside
+            // "doInvoke", we are still calling the matching collector
+            tc.measurementEnd(m);
+        }
+
         results.put(id, value);
         return id;
     }
@@ -151,6 +177,11 @@ class JJavaExecutionControl extends DirectExecutionControl {
 
     private boolean isNestedCall() {
         return Thread.currentThread().getName().startsWith(THREAD_NAME_PREFIX);
+    }
+
+    private TelemetryCollector<?> threadTelemetryCollector() {
+        TelemetryCollector<?> tc = telemetryCollector.get();
+        return tc != null ? tc : TelemetryCollector.DO_NOTHING;
     }
 
     @Override

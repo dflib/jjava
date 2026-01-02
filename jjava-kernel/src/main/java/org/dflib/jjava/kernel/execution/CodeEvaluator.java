@@ -9,8 +9,8 @@ import jdk.jshell.SourceCodeAnalysis;
 import jdk.jshell.spi.ExecutionControl;
 import jdk.jshell.spi.ExecutionControlProvider;
 import jdk.jshell.spi.ExecutionEnv;
-import org.dflib.jjava.jupyter.instrumentation.EvalTimer;
 import org.dflib.jjava.jupyter.kernel.BaseKernel;
+import org.dflib.jjava.jupyter.telemetry.TelemetryCollector;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -52,11 +52,22 @@ public class CodeEvaluator {
         this.execControl = new JJavaExecutionControl(loaderDelegate, timeoutDuration, timeoutUnit);
     }
 
+    public void startThreadTelemetryCollection(TelemetryCollector<?> collector) {
+        execControl.startThreadTelemetryCollection(collector);
+    }
+
+    public void stopThreadTelemetryCollection() {
+        execControl.stopThreadTelemetryCollection();
+    }
+
+    /**
+     * Returns ExecutionControlProvider required by JShell. This links JShell execution engine to our code evaluator.
+     */
     public ExecutionControlProvider getExecControlProvider() {
         return new SimpleExecControlProvider(name, execControl);
     }
 
-    public Object eval(JShell shell, String code, EvalTimer timer) {
+    public Object eval(JShell shell, String code) {
 
         SourceCodeAnalysis sca = shell.sourceCodeAnalysis();
 
@@ -65,7 +76,7 @@ public class CodeEvaluator {
 
         while (info.completeness().isComplete()) {
 
-            lastResult = evalSingle(shell, info.source(), timer);
+            lastResult = evalSingle(shell, info.source());
             info = sca.analyzeCompletion(info.remaining());
         }
 
@@ -76,9 +87,9 @@ public class CodeEvaluator {
         return lastResult;
     }
 
-    protected Object evalSingle(JShell shell, String code, EvalTimer timer) {
+    protected Object evalSingle(JShell shell, String code) {
 
-        List<SnippetEvent> events = timer.runAndMeasureStep(() -> shell.eval(code));
+        List<SnippetEvent> events = shell.eval(code);
 
         Object result = null;
 

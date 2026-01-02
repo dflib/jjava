@@ -1,6 +1,5 @@
 package org.dflib.jjava.jupyter.kernel;
 
-import org.dflib.jjava.jupyter.instrumentation.EvalTimer;
 import org.dflib.jjava.jupyter.kernel.display.DisplayData;
 
 public class RenderedEvalBuilder implements EvalBuilder<DisplayData> {
@@ -21,11 +20,6 @@ public class RenderedEvalBuilder implements EvalBuilder<DisplayData> {
     @Override
     public RenderedEvalBuilder resolveMagics() {
         return new RenderedEvalBuilder(kernel, delegate.resolveMagics());
-    }
-
-    @Override
-    public EvalBuilder<DisplayData> timed(EvalTimer timer) {
-        return new RenderedEvalBuilder(kernel, delegate.timed(timer));
     }
 
     @Override

@@ -1,11 +1,12 @@
 package org.dflib.jjava.kernel.magics;
 
-import org.dflib.jjava.jupyter.instrumentation.WallAndCpuTimer;
-import org.dflib.jjava.jupyter.instrumentation.WallTimer;
 import org.dflib.jjava.jupyter.kernel.BaseKernel;
 import org.dflib.jjava.jupyter.kernel.display.DisplayData;
 import org.dflib.jjava.jupyter.kernel.magic.CellMagic;
 import org.dflib.jjava.jupyter.kernel.magic.LineMagic;
+import org.dflib.jjava.jupyter.telemetry.TelemetryCollector;
+import org.dflib.jjava.jupyter.telemetry.WallAndCpuTimeCollector;
+import org.dflib.jjava.jupyter.telemetry.WallTimeCollector;
 import org.dflib.jjava.kernel.JavaKernel;
 
 import java.lang.management.ManagementFactory;
@@ -32,13 +33,21 @@ public class TimeMagic implements LineMagic<DisplayData, JavaKernel>, CellMagic<
 
     private DisplayData timeAndRunCode(JavaKernel kernel, String code) {
         ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
-        return kernel.evalBuilder(code)
-                .resolveMagics()
-                .renderResults()
-                .timed(WallAndCpuTimer.canMeasureCpuTimes(threadMXBean)
-                        ? new TMWallAndCpuTimer(kernel, threadMXBean)
-                        : new TMWallTimer(kernel))
-                .eval();
+
+        TelemetryCollector<?> collector = WallAndCpuTimeCollector.canMeasureCpuTimes(threadMXBean)
+                ? new TMWallAndCpuTimeCollector(kernel, threadMXBean)
+                : new TMWallTimeCollector(kernel);
+
+        kernel.getEvaluator().startThreadTelemetryCollection(collector);
+
+        try {
+            return kernel.evalBuilder(code)
+                    .resolveMagics()
+                    .renderResults()
+                    .eval();
+        } finally {
+            kernel.getEvaluator().stopThreadTelemetryCollection();
+        }
     }
 
     private static void displayCpuTime(BaseKernel kernel, long userTimeNanos, long sysTimeNanos, long totalTimeNanos) {
@@ -55,10 +64,10 @@ public class TimeMagic implements LineMagic<DisplayData, JavaKernel>, CellMagic<
         kernel.display(new DisplayData(wallTime).setDisplayId(UUID.randomUUID().toString()));
     }
 
-    static class TMWallTimer extends WallTimer {
+    static class TMWallTimeCollector extends WallTimeCollector {
         private final BaseKernel kernel;
 
-        public TMWallTimer(BaseKernel kernel) {
+        public TMWallTimeCollector(BaseKernel kernel) {
             this.kernel = kernel;
         }
 
@@ -69,10 +78,10 @@ public class TimeMagic implements LineMagic<DisplayData, JavaKernel>, CellMagic<
     }
 
 
-    static class TMWallAndCpuTimer extends WallAndCpuTimer {
+    static class TMWallAndCpuTimeCollector extends WallAndCpuTimeCollector {
         private final BaseKernel kernel;
 
-        public TMWallAndCpuTimer(BaseKernel kernel, ThreadMXBean threadMXBean) {
+        public TMWallAndCpuTimeCollector(BaseKernel kernel, ThreadMXBean threadMXBean) {
             super(threadMXBean);
             this.kernel = kernel;
         }
