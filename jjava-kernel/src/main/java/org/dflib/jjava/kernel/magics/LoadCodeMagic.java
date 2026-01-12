@@ -50,8 +50,8 @@ public class LoadCodeMagic implements LineMagic<Void, JavaKernel> {
             if (Files.isRegularFile(scriptPath)) {
 
                 // TODO: return rendered "eval" results to the caller would make sense here
-
-                if (scriptPath.getFileName().endsWith(NOTEBOOK_EXTENSION)) {
+                // ".toString()" is important; "Path.endsWith(..)" means something entirely different
+                if (scriptPath.getFileName().toString().endsWith(NOTEBOOK_EXTENSION)) {
                     execNotebook(kernel, scriptPath);
                 } else {
                     String source = Files.readString(scriptPath);

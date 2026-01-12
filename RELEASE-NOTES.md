@@ -1,3 +1,7 @@
+## 1.0-a8
+
+* #114 %load magic does not recognize notebooks
+
 ## 1.0-a7
 
 * #65 mutual dependent class not working
