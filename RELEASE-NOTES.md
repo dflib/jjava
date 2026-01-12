@@ -3,6 +3,7 @@
 * #65 mutual dependent class not working
 * #67 JJAVA_STARTUP_SCRIPT can't start up spark
 * #102 Eval startup snippets explicitly
+* #104 %time magic
 * #105 Exploding classpath
 * #107 "java.class.path" uses an incorrect separator
 * #110 Magic return values are suppressed
