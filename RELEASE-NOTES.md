@@ -1,6 +1,7 @@
 ## 1.0-a8
 
 * #114 %load magic does not recognize notebooks
+* #115 "%load" magic should not be adding extensions to file names
 
 ## 1.0-a7
 

@@ -5,7 +5,7 @@ import org.dflib.jjava.jupyter.kernel.KernelConnectionProperties;
 import org.dflib.jjava.kernel.JavaKernel;
 import org.dflib.jjava.kernel.magics.ClasspathMagic;
 import org.dflib.jjava.kernel.magics.JarsMagic;
-import org.dflib.jjava.kernel.magics.LoadCodeMagic;
+import org.dflib.jjava.kernel.magics.LoadMagic;
 import org.dflib.jjava.kernel.magics.TimeMagic;
 import org.dflib.jjava.maven.MavenDependencyResolver;
 import org.dflib.jjava.maven.magics.AddMavenDependencyMagic;
@@ -65,7 +65,7 @@ public class JJava {
                 .compilerOpts(Env.compilerOpts())
                 .timeout(timeout.time, timeout.timeUnit)
 
-                .lineMagic("load", new LoadCodeMagic("", ".jsh", ".jshell", ".java", ".jjava"))
+                .lineMagic("load", new LoadMagic())
                 .lineMagic("classpath", new ClasspathMagic())
                 .lineMagic("time", timeMagic)
 
