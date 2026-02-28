@@ -2,7 +2,7 @@ name: 'build test'
 
 on:
   push:
-    branches: [ main ]
+    branches: [ tc-win ]
   pull_request:
     branches: [ '*' ]
 
@@ -12,11 +12,8 @@ jobs:
 
     strategy:
       matrix:
-        os: [ ubuntu-latest ]
-        java: [ 11, 17, 21, 25 ]
-        include:
-          - os: windows-latest
-            java: 25
+        os: [ windows-latest ]
+        java: [ 25 ]
 
     steps:
       - name: Checkout
@@ -31,10 +28,4 @@ jobs:
 
       - name: Build and test
         shell: bash
-        run: |
-          if [ "${{ runner.os }}" == "Windows" ]; then
-            # Testcontainers doesn't support Windows containers
-            mvn clean test -U
-          else
-            mvn clean verify -U
-          fi
+        run: mvn clean verify -U
