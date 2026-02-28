@@ -1,4 +1,4 @@
-[![build test deploy](https://github.com/dflib/jjava/workflows/build%20test/badge.svg)](https://github.com/dflib/jjava/actions)
+[![build test](https://github.com/dflib/jjava/workflows/build%20test/badge.svg)](https://github.com/dflib/jjava/actions)
 # JJava
 
 DFLib JJava is a Java kernel for [Jupyter](http://jupyter.org/) maintained by the [DFLib.org](https://dflib.org) community. 
