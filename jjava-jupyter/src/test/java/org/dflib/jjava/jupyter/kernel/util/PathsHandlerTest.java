@@ -30,16 +30,17 @@ public class PathsHandlerTest {
         Files.createFile(dir.resolve("b2.txt"));
         Files.createFile(dir.resolve("c1.txt"));
 
-        String basePath = dir + File.separator;
+        // GlobResolver requires "/" as path separator (also on Windows)
+        String basePath = dir.toString().replace(File.separator, "/") + "/";
 
         assertEquals(List.of(), PathsHandler.splitAndResolveGlobs(""));
         assertEquals(List.of(), PathsHandler.splitAndResolveGlobs(basePath + "a"));
         assertEquals(List.of(), PathsHandler.splitAndResolveGlobs(basePath + "a" + File.pathSeparator + "b/c/d"));
 
         assertEquals(List.of(basePath + "a1.txt", basePath + "a2.txt"),
-                PathsHandler.splitAndResolveGlobs(basePath + "a*").stream().map(p -> p.toAbsolutePath().toString()).sorted().collect(Collectors.toList()));
+                PathsHandler.splitAndResolveGlobs(basePath + "a*").stream().map(p -> p.toAbsolutePath().toString().replace(File.separator, "/")).sorted().collect(Collectors.toList()));
         assertEquals(
                 List.of(basePath + "a1.txt", basePath + "a2.txt", basePath + "b1.txt", basePath + "b2.txt"),
-                PathsHandler.splitAndResolveGlobs(basePath + "a*" + File.pathSeparator + basePath + "b*").stream().map(p -> p.toAbsolutePath().toString()).sorted().collect(Collectors.toList()));
+                PathsHandler.splitAndResolveGlobs(basePath + "a*" + File.pathSeparator + basePath + "b*").stream().map(p -> p.toAbsolutePath().toString().replace(File.separator, "/")).sorted().collect(Collectors.toList()));
     }
 }
