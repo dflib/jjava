@@ -7,6 +7,8 @@ import org.dflib.jjava.jupyter.kernel.comm.CommManager;
 import org.dflib.jjava.jupyter.kernel.display.DisplayData;
 import org.dflib.jjava.jupyter.kernel.display.Renderer;
 import org.dflib.jjava.jupyter.kernel.display.common.Image;
+import org.dflib.jjava.jupyter.kernel.display.common.JavaFx;
+import org.dflib.jjava.jupyter.kernel.display.common.Swing;
 import org.dflib.jjava.jupyter.kernel.display.common.Text;
 import org.dflib.jjava.jupyter.kernel.display.common.Url;
 import org.dflib.jjava.jupyter.kernel.history.HistoryEntry;
@@ -136,6 +138,8 @@ public abstract class BaseKernel {
         this.executionCount = new AtomicInteger(1);
 
         Image.registerAll(this.renderer);
+        Swing.registerAll(this.renderer);
+        JavaFx.registerAll(this.renderer);
         Url.registerAll(this.renderer);
         Text.registerAll(this.renderer);
     }

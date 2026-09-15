@@ -89,6 +89,18 @@ public class RendererTest {
     }
 
     @Test
+    public void rendersByClassName() {
+        this.renderer.createRegistration(A.class.getName())
+                .preferring(MIMEType.TEXT_HTML)
+                .register((Object o, RenderContext ctx) -> ctx.renderIfRequested(MIMEType.TEXT_HTML, () -> "<named/>"));
+
+        DisplayData data = this.renderer.render(new A());
+
+        assertEquals("<named/>", data.getData(MIMEType.TEXT_HTML));
+        assertEquals("A", data.getData(MIMEType.TEXT_PLAIN));
+    }
+
+    @Test
     public void rendersAs() {
         DisplayData data = this.renderer.renderAs(new C(), "text/markdown");
 

@@ -5,6 +5,7 @@ target/
 .settings
 *.iml
 dependency-reduced-pom.xml
+.venv
 
 # pip
 build/
@@ -12,3 +13,6 @@ dist/
 .egg/
 *.egg-info/
 kernelspec/**/*.jar
+
+# jupyter
+.ipynb_checkpoints

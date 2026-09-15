@@ -56,12 +56,23 @@ public class Renderer {
         private final Set<MIMEType> supported;
         private final Set<MIMEType> preferred;
         private final Set<Class<? extends T>> types;
+        private final Set<String> typeNames;
 
         public RenderRegistration(Class<? extends T> type) {
+            this();
+            this.types.add(type);
+        }
+
+        public RenderRegistration(String typeName) {
+            this();
+            this.typeNames.add(typeName);
+        }
+
+        private RenderRegistration() {
             this.supported = new LinkedHashSet<>();
             this.preferred = new LinkedHashSet<>();
             this.types = new LinkedHashSet<>();
-            this.types.add(type);
+            this.typeNames = new LinkedHashSet<>();
         }
 
         public RenderRegistration<T> supporting(MIMEType... types) {
@@ -96,20 +107,34 @@ public class Renderer {
         public void register(RenderFunction<T> function) {
             Set<MIMEType> supported = this.supported.isEmpty() ? DisplayDataRenderable.ANY : this.supported;
             Set<MIMEType> preferred = this.preferred.isEmpty() ? supported : this.preferred;
-            Renderer.this.register(supported, preferred, types, function);
+            if (!this.types.isEmpty())
+                Renderer.this.register(supported, preferred, types, function);
+            if (!this.typeNames.isEmpty())
+                Renderer.this.registerByName(supported, preferred, typeNames, function);
         }
     }
 
     private final Map<Class, List<RenderFunctionProps>> renderFunctions;
+    private final Map<String, List<RenderFunctionProps>> renderFunctionsByName;
     private final Map<String, MIMEType> suffixMappings;
 
     public Renderer() {
         this.renderFunctions = new HashMap<>();
+        this.renderFunctionsByName = new HashMap<>();
         this.suffixMappings = new HashMap<>();
     }
 
     public <T> RenderRegistration<T> createRegistration(Class<T> type) {
         return new RenderRegistration<>(type);
+    }
+
+    /**
+     * Create a registration keyed by a fully-qualified class name rather than a {@link Class} instance. This matches a
+     * rendered value when any class or interface in its hierarchy has this name, regardless of which class loader loaded
+     * it — useful for optional, runtime-supplied types (e.g. JavaFX) that are not on the kernel's own class path.
+     */
+    public RenderRegistration<Object> createRegistration(String typeName) {
+        return new RenderRegistration<>(typeName);
     }
 
     public <T> void register(Set<MIMEType> supported, Set<MIMEType> preferred, Set<Class<? extends T>> types, RenderFunction<T> function) {
@@ -120,6 +145,21 @@ public class Renderer {
             functions.add(props);
             return functions;
         }));
+    }
+
+    public <T> void registerByName(Set<MIMEType> supported, Set<MIMEType> preferred, Set<String> typeNames, RenderFunction<T> function) {
+        RenderFunctionProps props = new RenderFunctionProps(function, supported, preferred);
+
+        typeNames.forEach(name -> this.renderFunctionsByName.compute(name, (k, v) -> {
+            List<RenderFunctionProps> functions = v != null ? v : new ArrayList<>();
+            functions.add(props);
+            return functions;
+        }));
+    }
+
+    private List<RenderFunctionProps> lookup(Class type) {
+        List<RenderFunctionProps> byClass = this.renderFunctions.get(type);
+        return byClass != null ? byClass : this.renderFunctionsByName.get(type.getName());
     }
 
     protected DisplayData finalizeDisplayData(DisplayData data, Object value) {
@@ -171,7 +211,7 @@ public class Renderer {
         while (inheritedTypes.hasNext()) {
             Class type = inheritedTypes.next();
 
-            List<RenderFunctionProps> allRenderFunctionProps = this.renderFunctions.get(type);
+            List<RenderFunctionProps> allRenderFunctionProps = this.lookup(type);
             if (allRenderFunctionProps != null && !allRenderFunctionProps.isEmpty()) {
                 for (RenderFunctionProps renderFunctionProps : allRenderFunctionProps) {
                     RenderRequestTypes.Builder requestTypes = new RenderRequestTypes.Builder(this.suffixMappings::get);
@@ -257,7 +297,7 @@ public class Renderer {
         Iterator<Class> inheritedTypes = new InheritanceIterator(value.getClass());
         while (inheritedTypes.hasNext() && !requestTypes.isEmpty()) {
             Class type = inheritedTypes.next();
-            List<RenderFunctionProps> allRenderFunctionProps = this.renderFunctions.get(type);
+            List<RenderFunctionProps> allRenderFunctionProps = this.lookup(type);
             if (allRenderFunctionProps != null) {
                 for (RenderFunctionProps renderFunctionProps : allRenderFunctionProps) {
                     if (requestTypes.anyRequestedIsSupported(renderFunctionProps.getSupportedTypes())) {
