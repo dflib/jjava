@@ -1,0 +1,70 @@
+// Demo 2 — mouse drag + custom painting + a color/clear toolbar.
+// Exercises: mousePressed/mouseDragged (free-hand drawing), repaint-on-drag streaming, and button clicks.
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.util.*;
+import java.util.List;
+
+class SketchPad extends JPanel {
+    static class Stroke { Color color; List<Point> points = new ArrayList<>(); }
+    final List<Stroke> strokes = new ArrayList<>();
+    Stroke current;
+    Color color = new Color(0x1565C0);
+
+    SketchPad() {
+        setPreferredSize(new Dimension(480, 300));
+        setBackground(Color.WHITE);
+        MouseAdapter ma = new MouseAdapter() {
+            public void mousePressed(MouseEvent e) {
+                current = new Stroke();
+                current.color = color;
+                current.points.add(e.getPoint());
+                strokes.add(current);
+                repaint();
+            }
+            public void mouseDragged(MouseEvent e) {
+                if (current != null) { current.points.add(e.getPoint()); repaint(); }
+            }
+            public void mouseReleased(MouseEvent e) { current = null; }
+        };
+        addMouseListener(ma);
+        addMouseMotionListener(ma);
+    }
+
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        Graphics2D g2 = (Graphics2D) g;
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2.setStroke(new BasicStroke(3, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+        for (Stroke s : strokes) {
+            g2.setColor(s.color);
+            for (int i = 1; i < s.points.size(); i++) {
+                Point a = s.points.get(i - 1), b = s.points.get(i);
+                g2.drawLine(a.x, a.y, b.x, b.y);
+            }
+        }
+        g2.setColor(Color.GRAY);
+        g2.drawString("Drag to draw", 8, 16);
+    }
+}
+
+SketchPad pad = new SketchPad();
+
+JPanel bar = new JPanel();
+for (Object[] sw : new Object[][]{{"Blue", new Color(0x1565C0)}, {"Red", new Color(0xC62828)}, {"Green", new Color(0x2E7D32)}, {"Black", Color.BLACK}}) {
+    JButton b = new JButton((String) sw[0]);
+    Color c = (Color) sw[1];
+    b.addActionListener(e -> pad.color = c);
+    bar.add(b);
+}
+JButton clear = new JButton("Clear");
+clear.addActionListener(e -> { pad.strokes.clear(); pad.repaint(); });
+bar.add(clear);
+
+JPanel root = new JPanel(new BorderLayout());
+root.add(bar, BorderLayout.NORTH);
+root.add(pad, BorderLayout.CENTER);
+root.setPreferredSize(new Dimension(480, 340));
+
+displayInteractive(root);

@@ -94,11 +94,20 @@ public class CommManager implements Iterable<Comm> {
      * The latter may happen if the manager is not connected to the frontend
      */
     public <T extends Comm> T openComm(String targetName, CommFactory<T> factory) {
+        return openComm(targetName, new JsonObject(), factory);
+    }
+
+    /**
+     * A {@link #openComm(String, CommFactory)} variant that attaches an initial {@code data} payload to the
+     * {@code comm_open} message. The frontend target handler receives this as the open command's data, which is useful
+     * for correlating the new comm with something the frontend already knows about.
+     */
+    public <T extends Comm> T openComm(String targetName, JsonObject data, CommFactory<T> factory) {
         if (this.iopub == null)
             return null;
         String id = UUID.randomUUID().toString();
 
-        CommOpenCommand content = new CommOpenCommand(id, targetName, new JsonObject());
+        CommOpenCommand content = new CommOpenCommand(id, targetName, data);
         Message<CommOpenCommand> message = new Message<>(this.context, CommOpenCommand.MESSAGE_TYPE, content);
 
         T comm = factory.produce(this, id, targetName, message);

@@ -1,0 +1,48 @@
+// Demo 3 — KEYBOARD + FOCUS stress test (the most fragile path).
+// Click the text field, type, then click Greet. Exercises: focus tracking, KEY_TYPED into a JTextField, a slider drag.
+// If typed text does not appear in the field, that is the known keyboard/focus limitation of off-screen dispatch.
+import javax.swing.*;
+import java.awt.*;
+
+// 1. We renamed the panel to 'demoPanel' to bypass any stale memory in the REPL
+JPanel demoPanel = new JPanel(new GridBagLayout());
+demoPanel.setPreferredSize(new Dimension(420, 220));
+
+JTextField name = new JTextField(16);
+JLabel greeting = new JLabel("Type your name, then click Greet");
+JButton greet = new JButton("Greet");
+greet.addActionListener(e -> greeting.setText("Hello, " + name.getText() + "!"));
+
+JSlider size = new JSlider(8, 48, 16);
+JLabel sizeLabel = new JLabel("Font size: 16");
+size.addChangeListener(e -> {
+    int v = size.getValue();
+    sizeLabel.setText("Font size: " + v);
+    greeting.setFont(greeting.getFont().deriveFont((float) v));
+});
+
+GridBagConstraints gc = new GridBagConstraints();
+gc.insets = new Insets(6, 6, 6, 6);
+gc.fill = GridBagConstraints.HORIZONTAL;
+
+// 2. All components are now added to the newly named 'demoPanel'
+gc.gridx = 0; gc.gridy = 0; 
+demoPanel.add(new JLabel("Name:"), gc);
+
+gc.gridx = 1; gc.gridy = 0; 
+demoPanel.add(name, gc);
+
+gc.gridx = 0; gc.gridy = 1; gc.gridwidth = 2; 
+demoPanel.add(greet, gc);
+
+gc.gridx = 0; gc.gridy = 2; gc.gridwidth = 1; 
+demoPanel.add(sizeLabel, gc);
+
+gc.gridx = 0; gc.gridy = 3; 
+demoPanel.add(size, gc);
+
+gc.gridx = 0; gc.gridy = 4; 
+demoPanel.add(greeting, gc);
+
+// 3. Pass the new panel to your environment's display method
+displayInteractive(demoPanel);

@@ -1,0 +1,77 @@
+// Demo 1 — animation + buttons + mouse.
+// Exercises: Swing Timer driving continuous repaints (async frame streaming via the custom RepaintManager),
+// button clicks (Pause/Clear), and mouse clicks (click the canvas to add a ball).
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.util.*;
+import java.util.List;
+import javax.swing.Timer; // disambiguate: java.util.Timer is auto-imported by the notebook
+
+class BallsPanel extends JPanel {
+    class Ball { double x, y, vx, vy; int r; Color c; }
+    final List<Ball> balls = new ArrayList<>();
+    final Random rnd = new Random();
+    final Timer timer;
+
+    BallsPanel() {
+        setPreferredSize(new Dimension(480, 300));
+        setBackground(Color.WHITE);
+        for (int i = 0; i < 3; i++) addBall(rnd.nextInt(480), rnd.nextInt(300));
+        addMouseListener(new MouseAdapter() {
+            public void mousePressed(MouseEvent e) { addBall(e.getX(), e.getY()); repaint(); }
+        });
+        timer = new Timer(16, e -> { step(); repaint(); });
+        timer.start();
+    }
+
+    void addBall(int x, int y) {
+        Ball b = new Ball();
+        b.x = x; b.y = y;
+        b.vx = rnd.nextDouble() * 8 - 4;
+        b.vy = rnd.nextDouble() * 8 - 4;
+        b.r = 8 + rnd.nextInt(22);
+        b.c = Color.getHSBColor(rnd.nextFloat(), 0.7f, 0.9f);
+        balls.add(b);
+    }
+
+    void step() {
+        int w = getWidth(), h = getHeight();
+        for (Ball b : balls) {
+            b.x += b.vx; b.y += b.vy;
+            if (b.x - b.r < 0 || b.x + b.r > w) b.vx = -b.vx;
+            if (b.y - b.r < 0 || b.y + b.r > h) b.vy = -b.vy;
+        }
+    }
+
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        Graphics2D g2 = (Graphics2D) g;
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        for (Ball b : balls) {
+            g2.setColor(b.c);
+            g2.fillOval((int) (b.x - b.r), (int) (b.y - b.r), b.r * 2, b.r * 2);
+        }
+        g2.setColor(Color.DARK_GRAY);
+        g2.drawString("Balls: " + balls.size() + " — click to add", 8, 16);
+    }
+}
+
+BallsPanel canvas = new BallsPanel();
+
+JButton toggle = new JButton("Pause");
+toggle.addActionListener(e -> {
+    if (canvas.timer.isRunning()) { canvas.timer.stop(); toggle.setText("Start"); }
+    else { canvas.timer.start(); toggle.setText("Pause"); }
+});
+JButton clear = new JButton("Clear");
+clear.addActionListener(e -> { canvas.balls.clear(); canvas.repaint(); });
+
+JPanel root = new JPanel(new BorderLayout());
+JPanel bar = new JPanel();
+bar.add(toggle); bar.add(clear);
+root.add(bar, BorderLayout.NORTH);
+root.add(canvas, BorderLayout.CENTER);
+root.setPreferredSize(new Dimension(480, 340));
+
+displayInteractive(root);

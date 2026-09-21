@@ -1,0 +1,41 @@
+# Distribution as a prebuilt JupyterLab extension (a pip-installable wheel that drops the built assets under
+# share/jupyter/labextensions/jjava-swing). Building the wheel requires a working JupyterLab build environment
+# (Node.js + `pip install jupyterlab`), because the jupyter-builder hook runs the npm production build.
+[build-system]
+requires = ["hatchling>=1.5.0", "jupyterlab>=4.0.0,<5", "hatch-jupyter-builder>=0.5"]
+build-backend = "hatchling.build"
+
+[project]
+name = "jjava_swing"
+version = "0.1.0"
+description = "Interactive Swing/AWT components for the JJava Jupyter kernel"
+readme = "README.md"
+requires-python = ">=3.8"
+license = "Apache-2.0"
+classifiers = [
+  "Framework :: Jupyter",
+  "Framework :: Jupyter :: JupyterLab",
+  "Framework :: Jupyter :: JupyterLab :: 4",
+  "Framework :: Jupyter :: JupyterLab :: Extensions",
+  "Framework :: Jupyter :: JupyterLab :: Extensions :: Prebuilt"
+]
+dependencies = []
+
+[tool.hatch.build.targets.wheel.shared-data]
+"jjava_swing/labextension" = "share/jupyter/labextensions/jjava-swing"
+"install.json" = "share/jupyter/labextensions/jjava-swing/install.json"
+
+[tool.hatch.build.targets.wheel]
+packages = ["jjava_swing"]
+
+[tool.hatch.build.hooks.jupyter-builder]
+dependencies = ["hatch-jupyter-builder>=0.5"]
+build-function = "hatch_jupyter_builder.npm_builder"
+ensured-targets = [
+  "jjava_swing/labextension/static/style.js",
+  "jjava_swing/labextension/package.json"
+]
+
+[tool.hatch.build.hooks.jupyter-builder.build-kwargs]
+build_cmd = "build:prod"
+npm = ["npm"]

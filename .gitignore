@@ -5,8 +5,10 @@ target/
 .settings
 *.iml
 dependency-reduced-pom.xml
+.ipynb_checkpoints
 
 # pip
+.venv
 build/
 dist/
 .egg/

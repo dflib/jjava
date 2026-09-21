@@ -1,0 +1,8 @@
+node_modules/
+lib/
+tsconfig.tsbuildinfo
+jjava_swing/labextension/
+*.egg-info/
+dist/
+build/
+__pycache__/

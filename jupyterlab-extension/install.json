@@ -1,0 +1,5 @@
+{
+  "packageManager": "python",
+  "packageName": "jjava_swing",
+  "uninstallInstructions": "Use your Python package manager (pip/conda) to uninstall the package jjava_swing"
+}

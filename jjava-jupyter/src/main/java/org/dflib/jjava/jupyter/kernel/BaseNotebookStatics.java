@@ -1,8 +1,11 @@
 package org.dflib.jjava.jupyter.kernel;
 
 import org.dflib.jjava.jupyter.kernel.display.DisplayData;
+import org.dflib.jjava.jupyter.kernel.display.interactive.FxBridge;
+import org.dflib.jjava.jupyter.kernel.display.interactive.InteractiveSwing;
 import org.dflib.jjava.jupyter.kernel.magic.UndefinedMagicException;
 
+import java.awt.Component;
 import java.util.List;
 import java.util.UUID;
 
@@ -77,6 +80,31 @@ public class BaseNotebookStatics {
 
         BaseKernel.notebookKernel().display(data);
         return id;
+    }
+
+    /**
+     * Display an AWT/Swing component or a JavaFX node as an interactive widget: it is streamed to the browser as a live
+     * image and mouse/keyboard events from the browser are dispatched back into it. Requires the JJava JupyterLab
+     * extension for interactivity; without it the output falls back to a static image snapshot.
+     *
+     * <p>A {@code javafx.scene.Node} is wrapped in a {@code JFXPanel} so it rides the same pipeline (JavaFX must be on
+     * the classpath — it is an optional, user-supplied dependency).
+     */
+    public static void displayInteractive(Object component) {
+        BaseKernel kernel = BaseKernel.notebookKernel();
+        if (component instanceof Component) {
+            InteractiveSwing.show(kernel, (Component) component);
+        } else if (FxBridge.isNode(component)) {
+            try {
+                InteractiveSwing.show(kernel, FxBridge.wrap(component));
+            } catch (ReflectiveOperationException e) {
+                throw new RuntimeException("Failed to embed JavaFX node (is JavaFX on the classpath?)", e);
+            }
+        } else {
+            throw new IllegalArgumentException(
+                    "displayInteractive expects a java.awt.Component or a javafx.scene.Node, got: "
+                            + (component == null ? "null" : component.getClass().getName()));
+        }
     }
 
     public static void updateDisplay(String id, Object o) {

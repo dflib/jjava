@@ -1,0 +1,15 @@
+.jjava-swing-output {
+  padding: 2px;
+}
+
+.jjava-swing {
+  display: inline-block;
+}
+
+.jjava-swing-canvas {
+  display: block;
+  outline: none;
+  /* never overflow the output cell; scale down to fit if needed (click coords are scale-aware) */
+  max-width: 100%;
+  height: auto;
+}
