@@ -14,7 +14,6 @@
         <module>jjava-jupyter</module>
         <module>jjava-kernel</module>
         <module>jjava-maven</module>
-        <module>jjava-launcher</module>
         <module>jjava-distro</module>
     </modules>
 
@@ -44,7 +43,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <maven.compiler.release>11</maven.compiler.release>
+        <maven.compiler.release>21</maven.compiler.release>
 
         <maven.version>3.9.9</maven.version>
         <maven.mima.version>2.4.0</maven.mima.version>

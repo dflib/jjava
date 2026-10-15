@@ -22,7 +22,9 @@ public class JavaKernelExtensionsLifecycleTest {
         String extraClasspath = PathsHandler.joinPaths(List.of(extensionJar));
 
         String extInstalledProp = "ext.installs:org.dflib.jjava.kernel.test.ExtraClasspathExtension";
+        String extUninstalledProp = "ext.uninstalls:org.dflib.jjava.kernel.test.ExtraClasspathExtension";
         System.clearProperty(extInstalledProp);
+        System.clearProperty(extUninstalledProp);
 
         JavaKernel kernel = JavaKernel
                 .builder()
@@ -42,6 +44,8 @@ public class JavaKernelExtensionsLifecycleTest {
         }
 
         assertNull(System.getProperty(extInstalledProp));
+        assertEquals("1", System.getProperty(extUninstalledProp));
+        System.clearProperty(extUninstalledProp);
     }
 
     @Test
@@ -63,10 +67,12 @@ public class JavaKernelExtensionsLifecycleTest {
             kernel.addToClasspath(extraClasspath);
 
             Object installed = kernel.evalBuilder("evalExtensionInstalled").eval();
-            assertEquals(true, installed, "EvalExtension should have been installed");
+            assertEquals("true", installed, "EvalExtension should have been installed");
+
+            assertEquals("manager:argument", kernel.evalBuilder("%testManagerMagic argument").resolveMagics().eval());
 
             Object result = kernel.evalBuilder("evalValue").eval();
-            assertEquals("Test message", result.toString(), "eval() call was not successful");
+            assertEquals("\"Test message\"", result.toString(), "eval() call was not successful");
         } finally {
             kernel.onShutdown(false);
         }
@@ -95,10 +101,10 @@ public class JavaKernelExtensionsLifecycleTest {
             kernel.addToClasspath(extraClasspath);
 
             Object installed = kernel.evalBuilder("externalLibraryExtensionInstalled").eval();
-            assertEquals(true, installed, "ExternalLibraryExtension should have been installed");
+            assertEquals("true", installed, "ExternalLibraryExtension should have been installed");
 
             Object result = kernel.evalBuilder("externalLibraryValue").eval();
-            assertEquals("Test message", result.toString(), "Library class method call was not successful");
+            assertEquals("\"Test message\"", result.toString(), "Library class method call was not successful");
         } finally {
             kernel.onShutdown(false);
         }

@@ -46,7 +46,7 @@ public class MagicsResolver {
         return out.toString();
     }
 
-    ParsedCellMagic parseCellMagic(String cellSource) {
+    public ParsedCellMagic parseCellMagic(String cellSource) {
         Matcher m = cellMagicPattern.matcher(cellSource);
 
         if (!m.matches()) {
@@ -60,6 +60,11 @@ public class MagicsResolver {
                 split.get(0),
                 split.subList(1, split.size()),
                 bodyAfterMagic);
+    }
+
+    public ParsedLineMagic parseLineMagic(String cellSource) {
+        Matcher matchedLine = lineMagicPattern.matcher(cellSource);
+        return matchedLine.matches() ? parseLineMagic(cellSource, matchedLine) : null;
     }
 
     private ParsedLineMagic parseLineMagic(String cellSource, Matcher matchedLine) {

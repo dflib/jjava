@@ -63,6 +63,7 @@ public class JJava {
 
                 .extensionsEnabled(Env.extensionsEnabled())
                 .compilerOpts(Env.compilerOpts())
+                .remoteVMOptions(Env.jvmOpts())
                 .timeout(timeout.time, timeout.timeUnit)
 
                 .lineMagic("load", new LoadMagic())

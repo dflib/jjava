@@ -15,8 +15,11 @@ Fields: "status" (always present, "ok" or "error"), "result", "display", "stdout
 """
 
 import base64
+import json
 import re
 import sys
+import threading
+import time
 from queue import Empty
 
 from jupyter_client.manager import start_new_kernel
@@ -47,31 +50,50 @@ def receive(receiver, channel, cell_number):
                          % (cell_number, channel, MESSAGE_TIMEOUT))
 
 
-def execute(client, cell_number, source):
+def execute(client, manager, cell_number, source):
+    interrupt_match = re.match(r"^@@INTERRUPT_AFTER_MS=(\d+)@@", source)
+    interrupt_after_ms = int(interrupt_match.group(1)) if interrupt_match else None
+    if interrupt_match:
+        source = source[interrupt_match.end():].lstrip("\n")
+
+    started = time.monotonic()
     msg_id = client.execute(source, allow_stdin=False)
+    timer = None
+    if interrupt_after_ms is not None:
+        timer = threading.Timer(interrupt_after_ms / 1000, manager.interrupt_kernel)
+        timer.daemon = True
+        timer.start()
 
-    outputs = {"result": "", "display": "", "stdout": "", "stderr": "", "error": ""}
-    while True:
-        message = receive(client.get_iopub_msg, "iopub", cell_number)
-        if message["parent_header"].get("msg_id") != msg_id:
-            continue
+    outputs = {"result": "", "display": "", "mime": "", "stdout": "", "stderr": "", "error": ""}
+    try:
+        while True:
+            message = receive(client.get_iopub_msg, "iopub", cell_number)
+            if message["parent_header"].get("msg_id") != msg_id:
+                continue
 
-        message_type = message["msg_type"]
-        content = message["content"]
-        if message_type == "status":
-            if content["execution_state"] == "idle":
-                break
-        elif message_type == "stream":
-            key = "stdout" if content["name"] == "stdout" else "stderr"
-            outputs[key] += content["text"]
-        elif message_type == "execute_result":
-            outputs["result"] += content["data"].get("text/plain", "")
-        elif message_type in ("display_data", "update_display_data"):
-            outputs["display"] += content["data"].get("text/plain", "")
-        elif message_type == "error":
-            lines = ["%s: %s" % (content["ename"], content["evalue"])]
-            lines.extend(content["traceback"])
-            outputs["error"] += ANSI.sub("", "\n".join(lines))
+            message_type = message["msg_type"]
+            content = message["content"]
+            if message_type == "status":
+                if content["execution_state"] == "idle":
+                    break
+            elif message_type == "stream":
+                key = "stdout" if content["name"] == "stdout" else "stderr"
+                outputs[key] += content["text"]
+            elif message_type == "execute_result":
+                outputs["result"] += content["data"].get("text/plain", "")
+            elif message_type in ("display_data", "update_display_data"):
+                outputs["display"] += content["data"].get("text/plain", "")
+                outputs["mime"] += json.dumps(content["data"], separators=(",", ":"))
+            elif message_type == "error":
+                lines = ["%s: %s" % (content["ename"], content["evalue"])]
+                lines.extend(content["traceback"])
+                outputs["error"] += ANSI.sub("", "\n".join(lines))
+    finally:
+        if timer:
+            timer.cancel()
+
+    if interrupt_after_ms is not None:
+        outputs["interruptLatencyMs"] = str(max(0, int((time.monotonic() - started) * 1000) - interrupt_after_ms))
 
     # "wait_for_ready" re-sends "kernel_info_request" until the kernel answers, and consumes
     # only one of the replies, so the shell channel may still hold replies to those extra
@@ -90,7 +112,7 @@ def main(cells):
     manager, client = start_new_kernel(kernel_name="java", startup_timeout=STARTUP_TIMEOUT)
     try:
         for i, source in enumerate(cells):
-            execute(client, i + 1, source)
+            execute(client, manager, i + 1, source)
     finally:
         client.stop_channels()
         manager.shutdown_kernel()

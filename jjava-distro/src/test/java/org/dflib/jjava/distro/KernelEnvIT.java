@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class KernelEnvIT extends ContainerizedKernelCase {
 
@@ -25,9 +26,34 @@ public class KernelEnvIT extends ContainerizedKernelCase {
     public void timeout() throws Exception {
         Map<String, String> env = Map.of(Env.JJAVA_TIMEOUT, "3000");
         String cell = "Thread.sleep(5000);";
-        KernelRun run = executeInKernel(env, cell);
+        KernelRun run = executeInKernel(env, cell, "2 + 2");
 
         run.cell(1).assertError("|   " + cell, "Evaluation timed out after 3000 milliseconds.");
+        assertEquals("4", run.cell(2).result());
+    }
+
+    @Test
+    public void timeoutCoversTheWholeCell() throws Exception {
+        String cell = "Thread.sleep(2000); System.out.println(\"first complete\"); Thread.sleep(2000);";
+        KernelRun run = executeInKernel(Map.of(Env.JJAVA_TIMEOUT, "3000"), "1 + 1", cell);
+
+        assertEquals("2", run.cell(1).result());
+        run.cell(2).assertError("Evaluation timed out after 3000 milliseconds.");
+        assertTrue(run.cell(2).stdout().contains("first complete"), run.cell(2).toString());
+    }
+
+    @Test
+    public void zeroTimeoutDisablesDeadline() throws Exception {
+        KernelRun run = executeInKernel(Map.of(Env.JJAVA_TIMEOUT, "0"), "Thread.sleep(100); 42").assertNoErrors();
+
+        assertEquals("42", run.cell(1).result());
+    }
+
+    @Test
+    public void negativeTimeoutDisablesDeadline() throws Exception {
+        KernelRun run = executeInKernel(Map.of(Env.JJAVA_TIMEOUT, "-1"), "Thread.sleep(100); 42").assertNoErrors();
+
+        assertEquals("42", run.cell(1).result());
     }
 
     @Test
@@ -38,7 +64,7 @@ public class KernelEnvIT extends ContainerizedKernelCase {
                 "\"className = \" + Dummy.class.getName();"
         ).assertNoErrors();
 
-        assertEquals("className = org.dflib.jjava.Dummy", run.cell(2).result());
+        assertEquals("\"className = org.dflib.jjava.Dummy\"", run.cell(2).result());
     }
 
     @Test
@@ -46,7 +72,7 @@ public class KernelEnvIT extends ContainerizedKernelCase {
         Map<String, String> env = Map.of(Env.JJAVA_STARTUP_SCRIPTS_PATH, CONTAINER_RESOURCES + "/test-ping.jshell");
         KernelRun run = executeInKernel(env, "ping()").assertNoErrors();
 
-        assertEquals("pong!", run.cell(1).result());
+        assertEquals("\"pong!\"", run.cell(1).result());
     }
 
     @Test
@@ -54,7 +80,7 @@ public class KernelEnvIT extends ContainerizedKernelCase {
         Map<String, String> env = Map.of(Env.JJAVA_STARTUP_SCRIPT, "public String ping() { return \"pong!\"; }");
         KernelRun run = executeInKernel(env, "ping()").assertNoErrors();
 
-        assertEquals("pong!", run.cell(1).result());
+        assertEquals("\"pong!\"", run.cell(1).result());
     }
 
     @Test

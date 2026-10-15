@@ -87,7 +87,7 @@ public class CellOutput {
         return this;
     }
 
-    private String field(String name) {
+    String field(String name) {
         return fields.getOrDefault(name, "");
     }
 

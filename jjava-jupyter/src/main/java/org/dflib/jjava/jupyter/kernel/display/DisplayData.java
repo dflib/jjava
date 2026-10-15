@@ -96,6 +96,18 @@ public class DisplayData {
         return this.data.containsKey(type.toString());
     }
 
+    public Map<String, Object> getData() {
+        return Collections.unmodifiableMap(data);
+    }
+
+    public Map<String, Object> getMetadata() {
+        return Collections.unmodifiableMap(metadata);
+    }
+
+    public Map<String, Object> getTransientData() {
+        return transientData == null ? Collections.emptyMap() : Collections.unmodifiableMap(transientData);
+    }
+
     public void assign(DisplayData data) {
         this.data.putAll(data.data);
 

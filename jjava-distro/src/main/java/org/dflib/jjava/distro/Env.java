@@ -24,7 +24,6 @@ final class Env {
     public static final String JJAVA_STARTUP_SCRIPT = "JJAVA_STARTUP_SCRIPT";
     public static final String JJAVA_LOAD_EXTENSIONS = "JJAVA_LOAD_EXTENSIONS";
 
-    // not used by JJava, but rather by the kernel launcher script
     public static final String JJAVA_JVM_OPTS = "JJAVA_JVM_OPTS";
 
     public static String timeout() {
@@ -46,6 +45,11 @@ final class Env {
     public static List<String> compilerOpts() {
         String optsString = System.getenv(Env.JJAVA_COMPILER_OPTS);
         return optsString != null ? Opts.splitOpts(optsString) : java.util.List.of();
+    }
+
+    public static List<String> jvmOpts() {
+        String optsString = System.getenv(Env.JJAVA_JVM_OPTS);
+        return optsString != null ? Opts.splitOpts(optsString) : List.of();
     }
 
     public static String extraClasspath() {

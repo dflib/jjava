@@ -7,8 +7,8 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * A collection of static methods for notebook code to interact with the kernel. The methods are automatically exposed
- * in notebooks via a static import on bootstrap.
+ * Manager-side notebook helpers. They always use the running kernel directly; executor code uses
+ * {@link ExecutorNotebookStatics} instead.
  */
 public class BaseNotebookStatics {
 
@@ -22,7 +22,6 @@ public class BaseNotebookStatics {
 
     public static <T> T lineMagic(String name, List<String> args) {
         BaseKernel kernel = BaseKernel.notebookKernel();
-
         try {
             return kernel.getMagicsRegistry().evalLineMagic(kernel, name, args);
         } catch (UndefinedMagicException e) {
@@ -34,7 +33,6 @@ public class BaseNotebookStatics {
 
     public static <T> T cellMagic(String name, List<String> args, String body) {
         BaseKernel kernel = BaseKernel.notebookKernel();
-
         try {
             return kernel.getMagicsRegistry().evalCellMagic(kernel, name, args, body);
         } catch (UndefinedMagicException e) {
@@ -53,39 +51,32 @@ public class BaseNotebookStatics {
     }
 
     public static String display(Object o) {
-
-        DisplayData data = render(o);
-
-        String id = data.getDisplayId();
-        if (id == null) {
-            id = UUID.randomUUID().toString();
-            data.setDisplayId(id);
-        }
-
-        BaseKernel.notebookKernel().display(data);
-        return id;
+        return displayData(render(o));
     }
 
     public static String display(Object o, String... as) {
-        DisplayData data = render(o, as);
+        return displayData(render(o, as));
+    }
 
+    public static void updateDisplay(String id, Object o) {
+        updateDisplayData(id, render(o));
+    }
+
+    public static void updateDisplay(String id, Object o, String... as) {
+        updateDisplayData(id, render(o, as));
+    }
+
+    private static String displayData(DisplayData data) {
         String id = data.getDisplayId();
         if (id == null) {
             id = UUID.randomUUID().toString();
             data.setDisplayId(id);
         }
-
         BaseKernel.notebookKernel().display(data);
         return id;
     }
 
-    public static void updateDisplay(String id, Object o) {
-        DisplayData data = render(o);
-        BaseKernel.notebookKernel().getIO().display.updateDisplay(id, data);
-    }
-
-    public static void updateDisplay(String id, Object o, String... as) {
-        DisplayData data = render(o, as);
+    private static void updateDisplayData(String id, DisplayData data) {
         BaseKernel.notebookKernel().getIO().display.updateDisplay(id, data);
     }
 }

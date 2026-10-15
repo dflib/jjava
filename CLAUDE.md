@@ -5,13 +5,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Build, Test, Run
 
 - `mvn clean package` — full build; produces the shaded kernel jar and the kernelspec zip under `jjava-distro/target/`.
-- `mvn clean verify` — what CI runs on Linux/macOS. Adds Failsafe integration tests (the `*IT.java` cases in `jjava-distro`, which spin up `eclipse-temurin` containers via Testcontainers). Testcontainers does not work on Windows; CI uses `mvn clean test` there.
+- `mvn clean verify` — runs Failsafe integration tests (`*IT.java` in `jjava-distro`) via Testcontainers if Testcontainers can reach Docker (Windows GitHub-hosted runners cannot run WSL-backed containers). If Docker is unavailable, use `mvn clean test`.
 - `mvn test -pl jjava-kernel -am` — single-module unit tests (with required upstream modules built).
 - `mvn -pl jjava-kernel test -Dtest=JavaKernelExtensionsLifecycleTest` — run a single test class.
 - Surefire in `jjava-kernel` and `jjava-distro` is configured with `--add-opens jdk.jshell/jdk.jshell=ALL-UNNAMED` — required for JShell reflection. Anything that exercises `JavaKernel`/`CodeEvaluator` directly needs the same flag.
 - Local install of the freshly built kernel into Jupyter: see `DEV-GUIDE.md` (`unzip` the kernelspec zip, then `jupyter kernelspec install ... --name=java --user`).
 
-Minimum toolchain: JDK 11 (`maven.compiler.release=11`). CI matrix builds against 11, 17, 21, 25.
+Minimum toolchain: JDK 21 (`maven.compiler.release=21`). CI matrix builds against 21 and 25.
 
 ## Module Layout and Dependency Graph
 

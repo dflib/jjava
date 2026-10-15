@@ -6,77 +6,55 @@ import jdk.jshell.JShellException;
 import jdk.jshell.Snippet;
 import jdk.jshell.SnippetEvent;
 import jdk.jshell.SourceCodeAnalysis;
-import jdk.jshell.spi.ExecutionControl;
-import jdk.jshell.spi.ExecutionControlProvider;
-import jdk.jshell.spi.ExecutionEnv;
 import org.dflib.jjava.jupyter.kernel.BaseKernel;
-import org.dflib.jjava.jupyter.telemetry.TelemetryCollector;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class CodeEvaluator {
+public class CodeEvaluator implements AutoCloseable {
     private static final Pattern WHITESPACE_PREFIX = Pattern.compile("(?:^|\r?\n)(?<ws>\\s*).*$");
     private static final Pattern LAST_LINE = Pattern.compile("(?:^|\r?\n)(?<last>.*)$");
 
-    private static final String NO_MAGIC_RETURN = "\"__NO_MAGIC_RETURN\"";
     private static final String INDENTATION = "  ";
+    private static final String EXECUTION_OUT_OF_MEMORY_NAME = "java.lang.OutOfMemoryError";
 
-    private static final Method SNIPPET_CLASS_NAME_METHOD;
-
-    static {
-        try {
-            SNIPPET_CLASS_NAME_METHOD = Snippet.class.getDeclaredMethod("classFullName");
-            SNIPPET_CLASS_NAME_METHOD.setAccessible(true);
-        } catch (NoSuchMethodException e) {
-            throw new RuntimeException("Unable to access jdk.jshell.Snippet.classFullName() method.", e);
-        }
-    }
-
-    private final String name;
     private final long timeoutDuration;
     private final TimeUnit timeoutUnit;
-    private final JJavaLoaderDelegate loaderDelegate;
-    private final JJavaExecutionControl execControl;
+    private final AtomicBoolean interrupted = new AtomicBoolean();
+    private final ExecutorService evaluationExecutor;
+    private volatile ExecutorTerminationException executorFailure;
 
-    public CodeEvaluator(String name, long timeoutDuration, TimeUnit timeoutUnit) {
-        this.name = name;
+    public CodeEvaluator(long timeoutDuration, TimeUnit timeoutUnit) {
         this.timeoutDuration = timeoutDuration;
         this.timeoutUnit = timeoutUnit;
-        this.loaderDelegate = new JJavaLoaderDelegate();
-        this.execControl = new JJavaExecutionControl(loaderDelegate, timeoutDuration, timeoutUnit);
+        this.evaluationExecutor = Executors.newSingleThreadExecutor(r -> {
+            Thread thread = new Thread(r, "jjava-jshell-evaluation");
+            thread.setDaemon(true);
+            return thread;
+        });
     }
 
-    public void startThreadTelemetryCollection(TelemetryCollector<?> collector) {
-        execControl.startThreadTelemetryCollection(collector);
-    }
-
-    public void stopThreadTelemetryCollection() {
-        execControl.stopThreadTelemetryCollection();
-    }
-
-    /**
-     * Returns ExecutionControlProvider required by JShell. This links JShell execution engine to our code evaluator.
-     */
-    public ExecutionControlProvider getExecControlProvider() {
-        return new SimpleExecControlProvider(name, execControl);
-    }
-
-    public Object eval(JShell shell, String code) {
-
+    public EvaluationResult eval(JShell shell, String code) {
+        checkExecutorFailure();
+        interrupted.set(false);
+        long timeoutNanos = timeoutDuration > 0 ? timeoutUnit.toNanos(timeoutDuration) : -1;
+        long started = System.nanoTime();
         SourceCodeAnalysis sca = shell.sourceCodeAnalysis();
 
-        Object lastResult = null;
+        EvaluationResult lastResult = EvaluationResult.NONE;
         SourceCodeAnalysis.CompletionInfo info = sca.analyzeCompletion(code);
 
         while (info.completeness().isComplete()) {
-
-            lastResult = evalSingle(shell, info.source());
+            long remainingNanos = timeoutNanos < 0 ? -1 : timeoutNanos - (System.nanoTime() - started);
+            lastResult = evalSingle(shell, info.source(), remainingNanos);
             info = sca.analyzeCompletion(info.remaining());
         }
 
@@ -87,40 +65,43 @@ public class CodeEvaluator {
         return lastResult;
     }
 
-    protected Object evalSingle(JShell shell, String code) {
+    protected EvaluationResult evalSingle(JShell shell, String code, long timeoutNanos) {
+        List<SnippetEvent> events = evaluate(shell, code, timeoutNanos);
+        String result = null;
 
-        List<SnippetEvent> events = shell.eval(code.strip());
-
-        Object result = null;
-
-        // We iterate twice to make sure throwing an early exception doesn't leak the memory
-        // and we `takeResult` everything.
         for (SnippetEvent event : events) {
-            if (event.status() == Snippet.Status.OVERWRITTEN) {
-                // if a new snippet changed some other definition, drop the older one
-                dropSnippet(shell, event.snippet());
+            if (event.causeSnippet() != null) {
                 continue;
             }
 
-            String key = event.value();
-            if (key == null) {
+            JShellException exception = event.exception();
+            if (exception != null) {
+                if (exception instanceof EvalException) {
+                    EvalException evalException = (EvalException) exception;
+                    if (EXECUTION_OUT_OF_MEMORY_NAME.equals(evalException.getExceptionClassName())) {
+                        throw executorTerminated(shell, exception);
+                    }
+                    throw new RuntimeException(
+                            evalException.getExceptionClassName() + ", " + exception.getMessage(),
+                            exception);
+                }
+                throw new RuntimeException(exception);
+            }
+
+            if (event.status() != Snippet.Status.RECOVERABLE_NOT_DEFINED && !event.status().isDefined()) {
+                throw new CompilationException(event);
+            }
+
+            String value = event.value();
+            if (value == null) {
                 continue;
             }
 
-            Snippet.SubKind subKind = event.snippet().subKind();
-
-            // Only executable snippets make their way through the machinery we have setup in the
-            // JJavaExecutionControl. Declarations for example simply take their default value without
-            // being executed.
-            Object value = subKind.isExecutable()
-                    ? execControl.takeResult(key)
-                    : event.value();
-
-            switch (subKind) {
+            switch (event.snippet().subKind()) {
                 case VAR_VALUE_SUBKIND:
                 case OTHER_EXPRESSION_SUBKIND:
                 case TEMP_VAR_EXPRESSION_SUBKIND:
-                    result = NO_MAGIC_RETURN.equals(value) ? null : value;
+                    result = value;
                     break;
                 default:
                     result = null;
@@ -128,60 +109,65 @@ public class CodeEvaluator {
             }
         }
 
-        for (SnippetEvent event : events) {
-            // If fresh snippet
-            if (event.causeSnippet() == null) {
-                JShellException e = event.exception();
-                if (e != null) {
-
-                    if (e instanceof EvalException) {
-                        EvalException ee = (EvalException) e;
-                        switch (ee.getExceptionClassName()) {
-                            case JJavaExecutionControl.EXECUTION_TIMEOUT_NAME:
-                                throw new EvaluationTimeoutException(timeoutDuration, timeoutUnit, code.trim());
-                            case JJavaExecutionControl.EXECUTION_INTERRUPTED_NAME:
-                                throw new EvaluationInterruptedException(code.trim());
-                            default:
-                                throw new RuntimeException(ee.getExceptionClassName() + ", " + e.getMessage(), e);
-                        }
-                    }
-
-                    throw new RuntimeException(e);
-                }
-
-                // Undefined snippets are generally bad, unless we can still recover from them. E.g.,
-                // "Unresolved dependencies" errors are recoverable when those dependencies are defined in the later
-                // snippets.
-                if (event.status() != Snippet.Status.RECOVERABLE_NOT_DEFINED && !event.status().isDefined()) {
-                    throw new CompilationException(event);
-                }
-            }
-        }
-
-        return result;
+        return new EvaluationResult(result);
     }
 
-    /**
-     * Try to clean up information linked to a code snippet and the snippet itself
-     */
-    private void dropSnippet(JShell shell, Snippet snippet) {
-        shell.drop(snippet);
-        // snippet.classFullName() returns name of a wrapper class created for a snippet
-        String className = snippetClassName(snippet);
-        // check that this class is not used by other snippets
-        if (shell.snippets()
-                .map(this::snippetClassName)
-                .noneMatch(className::equals)) {
-            execControl.unloadClass(className);
+    private List<SnippetEvent> evaluate(JShell shell, String code, long timeoutNanos) {
+        if (timeoutDuration > 0 && timeoutNanos <= 0) {
+            throw new EvaluationTimeoutException(timeoutDuration, timeoutUnit, code.trim());
         }
-    }
 
-    private String snippetClassName(Snippet snippet) {
+        Future<List<SnippetEvent>> evaluation = evaluationExecutor.submit(() -> shell.eval(code.strip()));
+
+        List<SnippetEvent> events;
         try {
-            return SNIPPET_CLASS_NAME_METHOD.invoke(snippet).toString();
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            throw new RuntimeException(e);
+            events = timeoutNanos > 0 ? evaluation.get(timeoutNanos, TimeUnit.NANOSECONDS) : evaluation.get();
+        } catch (TimeoutException e) {
+            checkExecutorFailure();
+            shell.stop();
+            evaluation.cancel(true);
+            throw new EvaluationTimeoutException(timeoutDuration, timeoutUnit, code.trim());
+        } catch (InterruptedException e) {
+            shell.stop();
+            evaluation.cancel(true);
+            Thread.currentThread().interrupt();
+            throw new EvaluationInterruptedException(code.trim());
+        } catch (ExecutionException e) {
+            Throwable cause = e.getCause();
+            checkExecutorFailure();
+            if (interrupted.getAndSet(false)) {
+                throw new EvaluationInterruptedException(code.trim());
+            }
+            if (cause instanceof RuntimeException) throw (RuntimeException) cause;
+            if (cause instanceof Error) throw (Error) cause;
+            throw new RuntimeException(cause);
         }
+
+        if (interrupted.getAndSet(false)) {
+            throw new EvaluationInterruptedException(code.trim());
+        }
+        checkExecutorFailure();
+        return events;
+    }
+
+    public void checkExecutorFailure() {
+        if (executorFailure != null) throw executorFailure;
+    }
+
+    public synchronized void markExecutorTerminated() {
+        if (executorFailure == null) {
+            executorFailure = new ExecutorTerminationException(
+                    "Executor process terminated; session state is lost. Restart the kernel.", null);
+        }
+    }
+
+    private synchronized ExecutorTerminationException executorTerminated(JShell shell, Throwable cause) {
+        if (executorFailure == null) {
+            executorFailure = new ExecutorTerminationException(
+                    "Executor process terminated; session state is lost. Restart the kernel.", cause);
+            shell.close();
+        }
+        return executorFailure;
     }
 
     private String computeIndentation(String partialStatement) {
@@ -252,32 +238,13 @@ public class CodeEvaluator {
         }
     }
 
-    public void interrupt() {
-        execControl.interrupt();
+    public void interrupt(JShell shell) {
+        interrupted.set(true);
+        shell.stop();
     }
 
-    public ClassLoader getClassLoader() {
-        return loaderDelegate.getClassLoader();
-    }
-
-    static final class SimpleExecControlProvider implements ExecutionControlProvider {
-
-        private final String name;
-        private final ExecutionControl control;
-
-        public SimpleExecControlProvider(String name, ExecutionControl control) {
-            this.name = name;
-            this.control = control;
-        }
-
-        @Override
-        public String name() {
-            return name;
-        }
-
-        @Override
-        public ExecutionControl generate(ExecutionEnv env, Map<String, String> parameters) {
-            return control;
-        }
+    @Override
+    public void close() {
+        evaluationExecutor.shutdownNow();
     }
 }

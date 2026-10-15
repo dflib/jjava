@@ -8,7 +8,7 @@ _JJava is an evolution of the earlier [IJava kernel](https://github.com/SpencerP
 
 ## Requirements
 
-1.  Java 11 or newer
+1.  Java 21 or newer
 2.  Python and a Jupyter-like environment to use the kernel in.
 
 ## Installation

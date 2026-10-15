@@ -21,5 +21,8 @@ public class ExtraClasspathExtension implements Extension {
     public void uninstall(BaseKernel kernel) {
         String key = "ext.installs:" + getClass().getName();
         System.clearProperty(key);
+        String uninstallKey = "ext.uninstalls:" + getClass().getName();
+        int count = Integer.parseInt(System.getProperty(uninstallKey, "0"));
+        System.setProperty(uninstallKey, String.valueOf(count + 1));
     }
 }
